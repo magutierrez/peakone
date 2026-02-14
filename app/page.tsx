@@ -68,7 +68,7 @@ export default function HomePage() {
           onAnalyze={handleAnalyze}
         />
 
-        <main className="flex flex-1 flex-col">
+        <main className="flex flex-1 flex-col min-w-0">
           <div className="h-[40vh] lg:h-[50vh]">
             <RouteMap
               points={gpxData?.points || []}

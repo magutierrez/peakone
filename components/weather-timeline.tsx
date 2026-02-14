@@ -89,10 +89,10 @@ export function WeatherTimeline({ weatherPoints, selectedIndex, onSelect }: Weat
       </div>
 
       {/* Timeline horizontal scroll */}
-      <div>
+      <div className="w-full overflow-hidden">
         <h3 className="mb-3 text-sm font-semibold text-foreground">{t('timelineTitle')}</h3>
-        <ScrollArea className="w-full">
-          <div className="flex gap-2 pb-3">
+        <ScrollArea className="w-full whitespace-nowrap">
+          <div className="flex w-max gap-2 pb-4">
             {weatherPoints.map((wp, idx) => {
               const time = new Date(wp.weather.time)
               const locale = 'es-ES' // Could be dynamic if needed
