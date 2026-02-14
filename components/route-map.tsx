@@ -1,7 +1,10 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
+import Map, { Source, Layer, Marker, Popup, NavigationControl, MapRef } from 'react-map-gl/maplibre'
+import maplibregl from 'maplibre-gl'
+import 'maplibre-gl/dist/maplibre-gl.css'
 import type { RoutePoint, RouteWeatherPoint } from '@/lib/types'
 import { WEATHER_CODES } from '@/lib/types'
 
@@ -26,149 +29,182 @@ function getWindEffectColor(effect: string): string {
   }
 }
 
-export function RouteMap({ points, weatherPoints, selectedPointIndex, onPointSelect }: RouteMapProps) {
+export default function RouteMap({ points, weatherPoints, selectedPointIndex, onPointSelect }: RouteMapProps) {
   const t = useTranslations('RouteMap')
   const tTimeline = useTranslations('WeatherTimeline')
   const tw = useTranslations('WeatherCodes')
-  
-  const mapRef = useRef<HTMLDivElement>(null)
-  const mapInstanceRef = useRef<L.Map | null>(null)
-  const markersRef = useRef<L.CircleMarker[]>([])
-  const polylineRef = useRef<L.Polyline | null>(null)
-  const [isReady, setIsReady] = useState(false)
+  const mapRef = useRef<MapRef>(null)
+  const [hoveredPointIndex, setHoveredPointIndex] = useState<number | null>(null)
 
-  // Initialize map
+  // Memoize GeoJSON for performance
+  const routeData = useMemo(() => {
+    if (points.length === 0) return null
+    return {
+      type: 'Feature',
+      properties: {},
+      geometry: {
+        type: 'LineString',
+        coordinates: points.map((p) => [p.lon, p.lat]),
+      },
+    }
+  }, [points])
+
+  // Fit map to bounds when points change
   useEffect(() => {
-    if (!mapRef.current || mapInstanceRef.current) return
-
-    const initMap = async () => {
-      const L = (await import('leaflet')).default
-      await import('leaflet/dist/leaflet.css')
-
-      const map = L.map(mapRef.current!, {
-        zoomControl: false,
-        attributionControl: true,
-      }).setView([40.4168, -3.7038], 6)
-
-      L.control.zoom({ position: 'topright' }).addTo(map)
-
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://carto.com/">CARTO</a>',
-        maxZoom: 19,
-      }).addTo(map)
-
-      mapInstanceRef.current = map
-      setIsReady(true)
+    if (points.length > 0 && mapRef.current) {
+      const lons = points.map(p => p.lon)
+      const lats = points.map(p => p.lat)
+      const minLon = Math.min(...lons)
+      const maxLon = Math.max(...lons)
+      const minLat = Math.min(...lats)
+      const maxLat = Math.max(...lats)
+      
+      mapRef.current.fitBounds(
+        [[minLon, minLat], [maxLon, maxLat]],
+        { padding: 40, duration: 1000 }
+      )
     }
+  }, [points])
 
-    initMap()
-
-    return () => {
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove()
-        mapInstanceRef.current = null
-      }
-    }
-  }, [])
-
-  // Draw route
+  // Sync map center with selected point
   useEffect(() => {
-    if (!isReady || !mapInstanceRef.current || points.length === 0) return
+    // @ts-ignore
+      if (selectedPointIndex !== null && weatherPoints?.[selectedPointIndex] && mapRef.current) {
+      // @ts-ignore
+        const point = weatherPoints[selectedPointIndex].point
+      mapRef.current.easeTo({
+        center: [point.lon, point.lat],
+        duration: 500
+      })
+    }
+  }, [selectedPointIndex, weatherPoints])
 
-    const drawRoute = async () => {
-      const L = (await import('leaflet')).default
-      const map = mapInstanceRef.current!
-
-      // Clear existing
-      if (polylineRef.current) {
-        map.removeLayer(polylineRef.current)
-      }
-      markersRef.current.forEach((m) => map.removeLayer(m))
-      markersRef.current = []
-
-      // Draw polyline
-      const latLngs = points.map((p) => [p.lat, p.lon] as [number, number])
-      polylineRef.current = L.polyline(latLngs, {
-        color: '#3ecf8e',
-        weight: 3,
-        opacity: 0.8,
-      }).addTo(map)
-
-      // Fit bounds
-      const bounds = L.latLngBounds(latLngs)
-      map.fitBounds(bounds, { padding: [40, 40] })
-
-      // Add weather markers if available
-      if (weatherPoints && weatherPoints.length > 0) {
-        weatherPoints.forEach((wp, idx) => {
-          const color = getWindEffectColor(wp.windEffect)
-          const marker = L.circleMarker([wp.point.lat, wp.point.lon], {
-            radius: selectedPointIndex === idx ? 10 : 6,
-            fillColor: color,
-            color: selectedPointIndex === idx ? '#ffffff' : color,
-            weight: selectedPointIndex === idx ? 3 : 1.5,
-            fillOpacity: 0.9,
-          })
-            .addTo(map)
-            .on('click', () => {
-              onPointSelect?.(idx)
-            })
-
-          const hasTranslation = !!tw.raw(wp.weather.weatherCode.toString())
-          const weatherDescription = hasTranslation ? tw(wp.weather.weatherCode.toString() as any) : (WEATHER_CODES[wp.weather.weatherCode]?.description || tTimeline('unknownWeather'))
-          
-          const time = new Date(wp.weather.time)
-          const timeStr = time.toLocaleTimeString('es-ES', {
-            hour: '2-digit',
-            minute: '2-digit',
-          })
-
-          marker.bindTooltip(
-            `<div style="font-family: system-ui; font-size: 12px; line-height: 1.4;">
-              <strong>${timeStr}</strong> - km ${wp.point.distanceFromStart.toFixed(1)}<br/>
-              ${weatherDescription}<br/>
-              ${wp.weather.temperature}°C | ${t('tooltip.wind')}: ${wp.weather.windSpeed} km/h
-            </div>`,
-            { className: 'weather-tooltip' }
-          )
-
-          markersRef.current.push(marker)
-        })
-      } else {
-        // Start/end markers only
-        const startMarker = L.circleMarker([points[0].lat, points[0].lon], {
-          radius: 8,
-          fillColor: '#3ecf8e',
-          color: '#ffffff',
-          weight: 2,
-          fillOpacity: 1,
-        }).addTo(map)
-        startMarker.bindTooltip(t('start'), { permanent: false })
-        markersRef.current.push(startMarker)
-
-        const endMarker = L.circleMarker(
-          [points[points.length - 1].lat, points[points.length - 1].lon],
-          {
-            radius: 8,
-            fillColor: '#ef4444',
-            color: '#ffffff',
-            weight: 2,
-            fillOpacity: 1,
-          }
-        ).addTo(map)
-        endMarker.bindTooltip(t('end'), { permanent: false })
-        markersRef.current.push(endMarker)
+  const popupInfo = useMemo(() => {
+    const idx = hoveredPointIndex !== null ? hoveredPointIndex : selectedPointIndex
+    // @ts-ignore
+      if (idx !== null && weatherPoints?.[idx]) {
+      // @ts-ignore
+          return {
+              // @ts-ignore
+              ...weatherPoints[idx],
+        index: idx
       }
     }
-
-    drawRoute()
-  }, [isReady, points, weatherPoints, selectedPointIndex, onPointSelect, t, tTimeline, tw])
+    return null
+  }, [hoveredPointIndex, selectedPointIndex, weatherPoints])
 
   return (
-    <div className="relative h-full w-full overflow-hidden rounded-lg">
-      <div ref={mapRef} className="h-full w-full" />
+    <div className="relative h-full w-full overflow-hidden rounded-lg border border-border">
+      <Map
+        ref={mapRef}
+        mapLib={maplibregl}
+        initialViewState={{
+          longitude: -3.7038,
+          latitude: 40.4168,
+          zoom: 5
+        }}
+        style={{ width: '100%', height: '100%' }}
+        mapStyle="https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json"
+      >
+        <NavigationControl position="top-right" />
+
+        {routeData && (
+          <Source id="route-source" type="geojson" data={routeData as any}>
+            <Layer
+              id="route-layer"
+              type="line"
+              paint={{
+                'line-color': '#3ecf8e',
+                'line-width': 3,
+                'line-opacity': 0.8
+              }}
+            />
+          </Source>
+        )}
+
+        {/* Weather Markers */}
+        {weatherPoints && weatherPoints.length > 0 ? (
+          weatherPoints.map((wp, idx) => {
+            const isSelected = selectedPointIndex === idx
+            const color = getWindEffectColor(wp.windEffect)
+            
+            return (
+              <Marker
+                key={idx}
+                longitude={wp.point.lon}
+                latitude={wp.point.lat}
+                anchor="center"
+                onClick={e => {
+                  e.originalEvent.stopPropagation()
+                  onPointSelect?.(idx)
+                }}
+              >
+                <button
+                  className="group relative flex items-center justify-center transition-transform hover:scale-125"
+                  onMouseEnter={() => setHoveredPointIndex(idx)}
+                  onMouseLeave={() => setHoveredPointIndex(null)}
+                >
+                  <div 
+                    className="rounded-full shadow-lg transition-all"
+                    style={{
+                      width: isSelected ? '18px' : '12px',
+                      height: isSelected ? '18px' : '12px',
+                      backgroundColor: color,
+                      border: isSelected ? '3px solid white' : `1.5px solid ${color}`,
+                      opacity: 0.9
+                    }}
+                  />
+                </button>
+              </Marker>
+            )
+          })
+        ) : points.length > 0 && (
+          <>
+            <Marker longitude={points[0].lon} latitude={points[0].lat} color="#3ecf8e" />
+            <Marker longitude={points[points.length - 1].lon} latitude={points[points.length - 1].lat} color="#ef4444" />
+          </>
+        )}
+
+        {/* Custom Popup for Weather Info */}
+        {popupInfo && (
+          <Popup
+            longitude={popupInfo.point.lon}
+            latitude={popupInfo.point.lat}
+            anchor="bottom"
+            onClose={() => setHoveredPointIndex(null)}
+            closeButton={false}
+            maxWidth="240px"
+            className="weather-popup"
+            offset={15}
+          >
+            <div className="p-1 text-xs leading-relaxed text-foreground">
+              <div className="mb-1 flex items-center justify-between border-b border-border pb-1">
+                <strong className="font-mono">
+                  {new Date(popupInfo.weather.time).toLocaleTimeString('es-ES', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </strong>
+                <span className="text-muted-foreground">km {popupInfo.point.distanceFromStart.toFixed(1)}</span>
+              </div>
+              <div className="font-medium">
+                {tw.raw(popupInfo.weather.weatherCode.toString()) 
+                  ? tw(popupInfo.weather.weatherCode.toString() as any) 
+                  : (WEATHER_CODES[popupInfo.weather.weatherCode]?.description || tTimeline('unknownWeather'))}
+              </div>
+              <div className="mt-0.5 flex items-center justify-between">
+                <span>{popupInfo.weather.temperature}°C</span>
+                <span className="text-muted-foreground">
+                  {t('tooltip.wind')}: {popupInfo.weather.windSpeed} km/h
+                </span>
+              </div>
+            </div>
+          </Popup>
+        )}
+      </Map>
+
       <style jsx global>{`
-        .weather-tooltip {
+        .weather-popup .maplibregl-popup-content {
           background: hsl(220, 18%, 10%) !important;
           border: 1px solid hsl(220, 14%, 18%) !important;
           color: hsl(210, 20%, 92%) !important;
@@ -176,30 +212,14 @@ export function RouteMap({ points, weatherPoints, selectedPointIndex, onPointSel
           padding: 8px 12px !important;
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
         }
-        .weather-tooltip::before {
+        .weather-popup .maplibregl-popup-tip {
           border-top-color: hsl(220, 14%, 18%) !important;
-        }
-        .leaflet-control-zoom a {
-          background: hsl(220, 18%, 10%) !important;
-          color: hsl(210, 20%, 92%) !important;
-          border-color: hsl(220, 14%, 18%) !important;
-        }
-        .leaflet-control-zoom a:hover {
-          background: hsl(220, 16%, 16%) !important;
-        }
-        .leaflet-control-attribution {
-          background: hsl(220, 18%, 10%, 0.8) !important;
-          color: hsl(215, 12%, 55%) !important;
-          font-size: 10px !important;
-        }
-        .leaflet-control-attribution a {
-          color: hsl(158, 64%, 52%) !important;
         }
       `}</style>
 
       {/* Legend */}
       {weatherPoints && weatherPoints.length > 0 && (
-        <div className="absolute bottom-8 left-3 z-[1000] rounded-lg border border-border bg-card/95 p-3 backdrop-blur-sm">
+        <div className="absolute bottom-6 left-3 z-10 rounded-lg border border-border bg-card/95 p-3 shadow-xl backdrop-blur-sm">
           <p className="mb-2 text-xs font-semibold text-foreground">{t('legend.title')}</p>
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center gap-2">
@@ -219,5 +239,4 @@ export function RouteMap({ points, weatherPoints, selectedPointIndex, onPointSel
       )}
     </div>
   )
-
 }

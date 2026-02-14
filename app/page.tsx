@@ -9,7 +9,7 @@ import { WeatherTimeline } from '@/components/weather-timeline'
 import { parseGPX, sampleRoutePoints, calculateBearing, getWindEffect } from '@/lib/gpx-parser'
 import type { GPXData, RouteConfig, RouteWeatherPoint, WeatherData } from '@/lib/types'
 
-const RouteMap = dynamic(() => import('@/components/route-map').then((m) => ({ default: m.RouteMap })), {
+const RouteMap = dynamic(() => import('@/components/route-map'), {
   ssr: false,
   loading: function Loading() {
     const t = useTranslations('HomePage')
