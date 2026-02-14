@@ -6,7 +6,8 @@ import type { RouteWeatherPoint } from '@/lib/types'
 
 interface RouteSegmentsProps {
   weatherPoints: RouteWeatherPoint[]
-  onSelectPoint: (index: number) => void
+  activeFilter?: { key: 'pathType' | 'surface', value: string } | null
+  onFilterChange?: (filter: { key: 'pathType' | 'surface', value: string } | null) => void
 }
 
 const PATH_TYPE_COLORS: Record<string, string> = {
@@ -44,7 +45,7 @@ const SURFACE_COLORS: Record<string, string> = {
   unknown: '#e5e7eb',
 }
 
-export function RouteSegments({ weatherPoints, onSelectPoint }: RouteSegmentsProps) {
+export function RouteSegments({ weatherPoints, activeFilter, onFilterChange }: RouteSegmentsProps) {
   const t = useTranslations('WeatherTimeline')
 
   const totalPoints = weatherPoints.length
@@ -67,9 +68,10 @@ export function RouteSegments({ weatherPoints, onSelectPoint }: RouteSegmentsPro
   }
 
   const handleSegmentClick = (key: 'pathType' | 'surface', value: string) => {
-    const firstIndex = weatherPoints.findIndex(wp => (wp[key] || 'unknown') === value)
-    if (firstIndex !== -1) {
-      onSelectPoint(firstIndex)
+    if (activeFilter?.key === key && activeFilter.value === value) {
+      onFilterChange?.(null)
+    } else {
+      onFilterChange?.({ key, value })
     }
   }
 
@@ -81,31 +83,47 @@ export function RouteSegments({ weatherPoints, onSelectPoint }: RouteSegmentsPro
       <div className="flex items-center justify-between">
         <span className="text-xs font-medium text-muted-foreground">{title}</span>
       </div>
-      <div className="flex h-2.5 w-full overflow-hidden rounded-full bg-secondary">
-        {data.map((item, idx) => (
-          <button
-            key={idx}
-            onClick={() => handleSegmentClick(typeKey, item.name)}
-            style={{ width: `${item.percent}%`, backgroundColor: item.color }}
-            className="h-full transition-all hover:brightness-110 hover:scale-y-125"
-            title={`${item.name}: ${item.percent.toFixed(0)}%`}
-          />
-        ))}
+      <div className="flex h-3 w-full overflow-hidden rounded-full bg-secondary ring-1 ring-border">
+        {data.map((item, idx) => {
+          const isActive = activeFilter?.key === typeKey && activeFilter.value === item.name
+          const isFilteringOther = activeFilter && (activeFilter.key !== typeKey || activeFilter.value !== item.name)
+          
+          return (
+            <button
+              key={idx}
+              onClick={() => handleSegmentClick(typeKey, item.name)}
+              style={{ 
+                width: `${item.percent}%`, 
+                backgroundColor: item.color,
+                opacity: isFilteringOther ? 0.3 : 1
+              }}
+              className={`h-full transition-all hover:brightness-110 ${isActive ? 'ring-2 ring-inset ring-white' : ''}`}
+              title={`${item.name}: ${item.percent.toFixed(0)}%`}
+            />
+          )
+        })}
       </div>
       <div className="flex flex-wrap gap-x-4 gap-y-1">
-        {data.map((item, idx) => (
-          <button 
-            key={idx} 
-            onClick={() => handleSegmentClick(typeKey, item.name)}
-            className="flex items-center gap-1.5 transition-all hover:bg-secondary rounded px-1 -ml-1 py-0.5"
-          >
-            <div className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color }} />
-            <span className="text-[10px] text-foreground">
-              {t(`${translationNamespace}.${item.name}` as any)}
-            </span>
-            <span className="text-[10px] text-muted-foreground">{item.percent.toFixed(0)}%</span>
-          </button>
-        ))}
+        {data.map((item, idx) => {
+          const isActive = activeFilter?.key === typeKey && activeFilter.value === item.name
+          return (
+            <button 
+              key={idx} 
+              onClick={() => handleSegmentClick(typeKey, item.name)}
+              className={`flex items-center gap-1.5 transition-all rounded px-1.5 py-0.5 border ${
+                isActive 
+                  ? 'bg-primary/10 border-primary text-primary' 
+                  : 'bg-secondary/50 border-transparent hover:border-border text-foreground'
+              }`}
+            >
+              <div className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color }} />
+              <span className="text-[10px] font-medium">
+                {t(`${translationNamespace}.${item.name}` as any)}
+              </span>
+              <span className="text-[10px] text-muted-foreground">{item.percent.toFixed(0)}%</span>
+            </button>
+          )
+        })}
       </div>
     </div>
   )

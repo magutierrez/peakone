@@ -15,9 +15,16 @@ interface RouteMapProps {
   weatherPoints?: RouteWeatherPoint[]
   selectedPointIndex?: number | null
   onPointSelect?: (index: number) => void
+  activeFilter?: { key: 'pathType' | 'surface', value: string } | null
 }
 
-export default function RouteMap({ points, weatherPoints, selectedPointIndex, onPointSelect }: RouteMapProps) {
+export default function RouteMap({ 
+  points, 
+  weatherPoints, 
+  selectedPointIndex, 
+  onPointSelect,
+  activeFilter 
+}: RouteMapProps) {
   const t = useTranslations('RouteMap')
   const tTimeline = useTranslations('WeatherTimeline')
   const tw = useTranslations('WeatherCodes')
@@ -37,7 +44,7 @@ export default function RouteMap({ points, weatherPoints, selectedPointIndex, on
       : 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json'
   }, [resolvedTheme])
 
-  // Memoize GeoJSON for performance
+  // Original route
   const routeData = useMemo(() => {
     if (points.length === 0) return null
     return {
@@ -49,6 +56,45 @@ export default function RouteMap({ points, weatherPoints, selectedPointIndex, on
       },
     }
   }, [points])
+
+  // Highlighted segments based on active filter
+  const highlightedData = useMemo(() => {
+    if (!activeFilter || !weatherPoints || weatherPoints.length < 2) return null
+
+    const segments: number[][][] = []
+    let currentSegment: number[][] = []
+
+    weatherPoints.forEach((wp, i) => {
+      const matches = (wp[activeFilter.key] || 'unknown') === activeFilter.value
+      
+      if (matches) {
+        currentSegment.push([wp.point.lon, wp.point.lat])
+        // To make the segment continuous, we often need to include the next point
+        if (i < weatherPoints.length - 1) {
+          const nextWp = weatherPoints[i+1]
+          currentSegment.push([nextWp.point.lon, nextWp.point.lat])
+        }
+      } else {
+        if (currentSegment.length > 0) {
+          segments.push(currentSegment)
+          currentSegment = []
+        }
+      }
+    })
+
+    if (currentSegment.length > 0) segments.push(currentSegment)
+
+    if (segments.length === 0) return null
+
+    return {
+      type: 'Feature',
+      properties: {},
+      geometry: {
+        type: 'MultiLineString',
+        coordinates: segments,
+      },
+    }
+  }, [activeFilter, weatherPoints])
 
   // Fit map to bounds when points change
   useEffect(() => {
@@ -114,6 +160,30 @@ export default function RouteMap({ points, weatherPoints, selectedPointIndex, on
               paint={{
                 'line-color': '#3ecf8e',
                 'line-width': 3,
+                'line-opacity': activeFilter ? 0.2 : 0.8
+              }}
+            />
+          </Source>
+        )}
+
+        {highlightedData && (
+          <Source id="highlight-source" type="geojson" data={highlightedData as any}>
+            <Layer
+              id="highlight-layer"
+              type="line"
+              paint={{
+                'line-color': '#3ecf8e',
+                'line-width': 6,
+                'line-opacity': 1,
+                'line-blur': 2
+              }}
+            />
+            <Layer
+              id="highlight-layer-inner"
+              type="line"
+              paint={{
+                'line-color': '#ffffff',
+                'line-width': 2,
                 'line-opacity': 0.8
               }}
             />
@@ -124,7 +194,10 @@ export default function RouteMap({ points, weatherPoints, selectedPointIndex, on
         {weatherPoints && weatherPoints.length > 0 ? (
           weatherPoints.map((wp, idx) => {
             const isSelected = selectedPointIndex === idx
+            const isFiltered = activeFilter && (wp[activeFilter.key] || 'unknown') !== activeFilter.value
             
+            if (isFiltered && !isSelected) return null
+
             return (
               <Marker
                 key={idx}

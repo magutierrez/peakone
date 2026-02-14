@@ -38,6 +38,8 @@ export default function HomePage() {
     activityType: 'cycling',
   })
 
+  const [activeFilter, setActiveFilter] = useState<{ key: 'pathType' | 'surface', value: string } | null>(null)
+
   const {
     gpxData,
     gpxFileName,
@@ -75,6 +77,7 @@ export default function HomePage() {
               weatherPoints={weatherPoints.length > 0 ? weatherPoints : undefined}
               selectedPointIndex={selectedPointIndex}
               onPointSelect={setSelectedPointIndex}
+              activeFilter={activeFilter}
             />
           </div>
 
@@ -84,6 +87,8 @@ export default function HomePage() {
                 weatherPoints={weatherPoints}
                 selectedIndex={selectedPointIndex}
                 onSelect={setSelectedPointIndex}
+                activeFilter={activeFilter}
+                onFilterChange={setActiveFilter}
               />
             ) : (
               <EmptyState />
