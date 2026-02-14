@@ -1,0 +1,121 @@
+{
+  "HomePage": {
+    "loadingMap": "Cargando mapa...",
+    "errors": {
+      "insufficientPoints": "El archivo GPX no contiene suficientes puntos.",
+      "readError": "Error al leer el archivo GPX. Verifica el formato.",
+      "weatherFetchError": "Error al obtener datos meteorologicos",
+      "tooManyRequests": "Demasiadas peticiones. Por favor, espera un momento antes de volver a intentarlo.",
+      "unknownError": "Error desconocido"
+    },
+    "header": {
+      "title": "RouteWeather",
+      "subtitle": "Forecast para rutas outdoor",
+      "apiVersion": "Open-Meteo API"
+    },
+    "placeholders": {
+      "title": "Sube un archivo GPX para empezar",
+      "description": "Configura la fecha, hora y velocidad, y analiza tu ruta para ver el forecast meteorologico punto a punto con el analisis de vientos."
+    }
+  },
+  "RouteConfigPanel": {
+    "gpxFile": "Archivo GPX",
+    "km": "km",
+    "elevationGain": "m D+",
+    "elevationLoss": "m D-",
+    "activity": "Actividad",
+    "cycling": "Bicicleta",
+    "walking": "Andando",
+    "date": "Fecha",
+    "startTime": "Hora salida",
+    "averageSpeed": "Velocidad media (km/h)",
+    "estimatedDuration": "Duracion estimada",
+    "durationFormat": "{hours}h {minutes}min",
+    "analyze": "Analizar ruta",
+    "analyzing": "Analizando..."
+  },
+  "GPXUpload": {
+    "removeFile": "Eliminar archivo",
+    "uploadAriaLabel": "Subir archivo GPX",
+    "dragDrop": "Arrastra tu archivo GPX",
+    "clickSelect": "o haz clic para seleccionar"
+  },
+  "WeatherTimeline": {
+    "summary": {
+      "avgTemp": "Temp. media",
+      "maxWind": "Viento max.",
+      "precipProb": "Prob. lluvia",
+      "wind": "Viento",
+      "gusts": "Rachas: {speed} km/h",
+      "kmh": "km/h",
+      "favor": "{percent}% favor",
+      "contra": "{percent}% contra"
+    },
+    "timelineTitle": "Timeline por punto",
+    "unknownWeather": "Desconocido",
+    "windFrom": "Viento desde {direction} grados",
+    "windEffect": {
+      "tailwind": "A favor",
+      "headwind": "En contra",
+      "crosswind-left": "Lateral izq.",
+      "crosswind-right": "Lateral der.",
+      "summary": "Viento {label}",
+      "relativeAngle": "Angulo relativo: {angle}° respecto a tu direccion de viaje",
+      "bearing": "Rumbo viaje"
+    },
+    "detail": {
+      "temperature": "Temperatura",
+      "feelsLike": "Sens. {temp}°C",
+      "wind": "Viento",
+      "gusts": "Rachas: {speed} km/h",
+      "rain": "Lluvia",
+      "prob": "Prob: {percent}%",
+      "visibility": "Visibilidad",
+      "clouds": "Nubes: {percent}%",
+      "altitude": "Alt: {ele}m"
+    }
+  },
+  "RouteMap": {
+    "start": "Inicio",
+    "end": "Final",
+    "tooltip": {
+      "wind": "Viento"
+    },
+    "legend": {
+      "title": "Efecto viento",
+      "tailwind": "A favor",
+      "headwind": "En contra",
+      "crosswind": "Lateral"
+    }
+  },
+  "WeatherCodes": {
+    "0": "Despejado",
+    "1": "Mayormente despejado",
+    "2": "Parcialmente nublado",
+    "3": "Nublado",
+    "45": "Niebla",
+    "48": "Niebla con escarcha",
+    "51": "Llovizna ligera",
+    "53": "Llovizna moderada",
+    "55": "Llovizna intensa",
+    "56": "Llovizna helada ligera",
+    "57": "Llovizna helada intensa",
+    "61": "Lluvia ligera",
+    "63": "Lluvia moderada",
+    "65": "Lluvia intensa",
+    "66": "Lluvia helada ligera",
+    "67": "Lluvia helada intensa",
+    "71": "Nevada ligera",
+    "73": "Nevada moderada",
+    "75": "Nevada intensa",
+    "77": "Granizo fino",
+    "80": "Chubascos ligeros",
+    "81": "Chubascos moderados",
+    "82": "Chubascos violentos",
+    "85": "Chubascos de nieve ligeros",
+    "86": "Chubascos de nieve intensos",
+    "95": "Tormenta",
+    "96": "Tormenta con granizo ligero",
+    "99": "Tormenta con granizo intenso"
+  }
+}

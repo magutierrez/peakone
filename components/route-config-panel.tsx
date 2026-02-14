@@ -1,6 +1,7 @@
 'use client'
 
 import { Bike, Footprints, Calendar, Clock, Gauge } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -28,6 +29,7 @@ export function RouteConfigPanel({
   onAnalyze,
   isLoading,
 }: RouteConfigPanelProps) {
+  const t = useTranslations('RouteConfigPanel')
   const estimatedDuration = gpxData
     ? (gpxData.totalDistance / config.speed) * 60
     : 0
@@ -39,7 +41,7 @@ export function RouteConfigPanel({
       {/* GPX Upload */}
       <div>
         <Label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          Archivo GPX
+          {t('gpxFile')}
         </Label>
         <GPXUpload
           onFileLoaded={onGPXLoaded}
@@ -55,19 +57,19 @@ export function RouteConfigPanel({
             <p className="text-lg font-bold text-foreground font-mono">
               {gpxData.totalDistance.toFixed(1)}
             </p>
-            <p className="text-xs text-muted-foreground">km</p>
+            <p className="text-xs text-muted-foreground">{t('km')}</p>
           </div>
           <div className="rounded-lg bg-secondary p-3 text-center">
             <p className="text-lg font-bold text-primary font-mono">
               +{Math.round(gpxData.totalElevationGain)}
             </p>
-            <p className="text-xs text-muted-foreground">m D+</p>
+            <p className="text-xs text-muted-foreground">{t('elevationGain')}</p>
           </div>
           <div className="rounded-lg bg-secondary p-3 text-center">
             <p className="text-lg font-bold text-destructive font-mono">
               -{Math.round(gpxData.totalElevationLoss)}
             </p>
-            <p className="text-xs text-muted-foreground">m D-</p>
+            <p className="text-xs text-muted-foreground">{t('elevationLoss')}</p>
           </div>
         </div>
       )}
@@ -75,7 +77,7 @@ export function RouteConfigPanel({
       {/* Activity Type */}
       <div>
         <Label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          Actividad
+          {t('activity')}
         </Label>
         <div className="grid grid-cols-2 gap-2">
           <button
@@ -89,7 +91,7 @@ export function RouteConfigPanel({
             }`}
           >
             <Bike className="h-4 w-4" />
-            Bicicleta
+            {t('cycling')}
           </button>
           <button
             onClick={() =>
@@ -102,7 +104,7 @@ export function RouteConfigPanel({
             }`}
           >
             <Footprints className="h-4 w-4" />
-            Andando
+            {t('walking')}
           </button>
         </div>
       </div>
@@ -115,7 +117,7 @@ export function RouteConfigPanel({
             className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground"
           >
             <Calendar className="h-3.5 w-3.5" />
-            Fecha
+            {t('date')}
           </Label>
           <Input
             id="date"
@@ -131,7 +133,7 @@ export function RouteConfigPanel({
             className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground"
           >
             <Clock className="h-3.5 w-3.5" />
-            Hora salida
+            {t('startTime')}
           </Label>
           <Input
             id="time"
@@ -150,7 +152,7 @@ export function RouteConfigPanel({
           className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground"
         >
           <Gauge className="h-3.5 w-3.5" />
-          Velocidad media (km/h)
+          {t('averageSpeed')}
         </Label>
         <Input
           id="speed"
@@ -168,9 +170,9 @@ export function RouteConfigPanel({
       {/* Estimated Duration */}
       {gpxData && (
         <div className="rounded-lg border border-border bg-muted/50 p-3">
-          <p className="text-xs text-muted-foreground">Duracion estimada</p>
+          <p className="text-xs text-muted-foreground">{t('estimatedDuration')}</p>
           <p className="text-lg font-bold text-foreground font-mono">
-            {hours}h {minutes.toString().padStart(2, '0')}min
+            {t('durationFormat', { hours, minutes: minutes.toString().padStart(2, '0') })}
           </p>
         </div>
       )}
@@ -185,10 +187,10 @@ export function RouteConfigPanel({
         {isLoading ? (
           <span className="flex items-center gap-2">
             <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
-            Analizando...
+            {t('analyzing')}
           </span>
         ) : (
-          'Analizar ruta'
+          t('analyze')
         )}
       </Button>
     </div>

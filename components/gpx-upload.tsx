@@ -2,6 +2,7 @@
 
 import { useCallback, useRef } from 'react'
 import { Upload, FileText, X } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 
 interface GPXUploadProps {
@@ -11,6 +12,7 @@ interface GPXUploadProps {
 }
 
 export function GPXUpload({ onFileLoaded, fileName, onClear }: GPXUploadProps) {
+  const t = useTranslations('GPXUpload')
   const inputRef = useRef<HTMLInputElement>(null)
 
   const handleFile = useCallback(
@@ -62,7 +64,7 @@ export function GPXUpload({ onFileLoaded, fileName, onClear }: GPXUploadProps) {
           onClick={onClear}
         >
           <X className="h-4 w-4" />
-          <span className="sr-only">Eliminar archivo</span>
+          <span className="sr-only">{t('removeFile')}</span>
         </Button>
       </div>
     )
@@ -76,7 +78,7 @@ export function GPXUpload({ onFileLoaded, fileName, onClear }: GPXUploadProps) {
       className="group flex cursor-pointer flex-col items-center gap-3 rounded-lg border-2 border-dashed border-border p-6 transition-colors hover:border-primary/50 hover:bg-primary/5"
       role="button"
       tabIndex={0}
-      aria-label="Subir archivo GPX"
+      aria-label={t('uploadAriaLabel')}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault()
@@ -89,10 +91,10 @@ export function GPXUpload({ onFileLoaded, fileName, onClear }: GPXUploadProps) {
       </div>
       <div className="text-center">
         <p className="text-sm font-medium text-foreground">
-          Arrastra tu archivo GPX
+          {t('dragDrop')}
         </p>
         <p className="mt-1 text-xs text-muted-foreground">
-          o haz clic para seleccionar
+          {t('clickSelect')}
         </p>
       </div>
       <input

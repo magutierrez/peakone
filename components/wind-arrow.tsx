@@ -1,5 +1,7 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
+
 interface WindArrowProps {
   direction: number
   travelBearing: number
@@ -8,6 +10,7 @@ interface WindArrowProps {
 }
 
 export function WindArrow({ direction, effect, size = 40 }: WindArrowProps) {
+  const t = useTranslations('WeatherTimeline')
   const color =
     effect === 'tailwind'
       ? '#22c55e'
@@ -21,7 +24,7 @@ export function WindArrow({ direction, effect, size = 40 }: WindArrowProps) {
       height={size}
       viewBox="0 0 40 40"
       className="shrink-0"
-      aria-label={`Viento desde ${Math.round(direction)} grados`}
+      aria-label={t('windFrom', { direction: Math.round(direction) })}
     >
       <circle cx="20" cy="20" r="18" fill="none" stroke="hsl(220, 14%, 18%)" strokeWidth="1.5" />
       <g transform={`rotate(${direction}, 20, 20)`}>
