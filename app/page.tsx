@@ -69,6 +69,27 @@ export default function HomePage() {
     setIsLoading(true)
     setError(null)
 
+    const fetchWithRetry = async (url: string, options: RequestInit, maxRetries = 3): Promise<Response> => {
+      let lastError: Error | null = null
+      for (let i = 0; i < maxRetries; i++) {
+        try {
+          const response = await fetch(url, options)
+          if (response.status === 429) {
+            // Wait for 2^i * 1000ms
+            const waitTime = Math.pow(2, i) * 1000
+            await new Promise(resolve => setTimeout(resolve, waitTime))
+            continue
+          }
+          return response
+        } catch (err) {
+          lastError = err instanceof Error ? err : new Error('Unknown error')
+          const waitTime = Math.pow(2, i) * 1000
+          await new Promise(resolve => setTimeout(resolve, waitTime))
+        }
+      }
+      throw lastError || new Error('Error al obtener datos tras varios intentos')
+    }
+
     try {
       const sampled = sampleRoutePoints(gpxData.points, 24)
 
@@ -82,7 +103,7 @@ export default function HomePage() {
         }
       })
 
-      const response = await fetch('/api/weather', {
+      const response = await fetchWithRetry('/api/weather', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -95,6 +116,9 @@ export default function HomePage() {
       })
 
       if (!response.ok) {
+        if (response.status === 429) {
+          throw new Error('Demasiadas peticiones. Por favor, espera un momento antes de volver a intentarlo.')
+        }
         throw new Error('Error al obtener datos meteorologicos')
       }
 
