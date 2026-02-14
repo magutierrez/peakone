@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
+import { useTheme } from 'next-themes'
 import Map, { Source, Layer, Marker, Popup, NavigationControl, MapRef } from 'react-map-gl/maplibre'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
@@ -33,8 +34,21 @@ export default function RouteMap({ points, weatherPoints, selectedPointIndex, on
   const t = useTranslations('RouteMap')
   const tTimeline = useTranslations('WeatherTimeline')
   const tw = useTranslations('WeatherCodes')
+  const { resolvedTheme } = useTheme()
   const mapRef = useRef<MapRef>(null)
   const [hoveredPointIndex, setHoveredPointIndex] = useState<number | null>(null)
+  const [mounted, setMounted] = useState(false)
+
+  // Ensure theme is available before rendering the map to avoid mismatch
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const mapStyle = useMemo(() => {
+    return resolvedTheme === 'light'
+      ? 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json'
+      : 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json'
+  }, [resolvedTheme])
 
   // Memoize GeoJSON for performance
   const routeData = useMemo(() => {
@@ -68,10 +82,8 @@ export default function RouteMap({ points, weatherPoints, selectedPointIndex, on
 
   // Sync map center with selected point
   useEffect(() => {
-    // @ts-ignore
-      if (selectedPointIndex !== null && weatherPoints?.[selectedPointIndex] && mapRef.current) {
-      // @ts-ignore
-        const point = weatherPoints[selectedPointIndex].point
+    if (selectedPointIndex !== null && weatherPoints?.[selectedPointIndex] && mapRef.current) {
+      const point = weatherPoints[selectedPointIndex].point
       mapRef.current.easeTo({
         center: [point.lon, point.lat],
         duration: 500
@@ -81,17 +93,16 @@ export default function RouteMap({ points, weatherPoints, selectedPointIndex, on
 
   const popupInfo = useMemo(() => {
     const idx = hoveredPointIndex !== null ? hoveredPointIndex : selectedPointIndex
-    // @ts-ignore
-      if (idx !== null && weatherPoints?.[idx]) {
-      // @ts-ignore
-          return {
-              // @ts-ignore
-              ...weatherPoints[idx],
+    if (idx !== null && weatherPoints?.[idx]) {
+      return {
+        ...weatherPoints[idx],
         index: idx
       }
     }
     return null
   }, [hoveredPointIndex, selectedPointIndex, weatherPoints])
+
+  if (!mounted) return null
 
   return (
     <div className="relative h-full w-full overflow-hidden rounded-lg border border-border">
@@ -104,7 +115,7 @@ export default function RouteMap({ points, weatherPoints, selectedPointIndex, on
           zoom: 5
         }}
         style={{ width: '100%', height: '100%' }}
-        mapStyle="https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json"
+        mapStyle={mapStyle}
       >
         <NavigationControl position="top-right" />
 
@@ -205,15 +216,15 @@ export default function RouteMap({ points, weatherPoints, selectedPointIndex, on
 
       <style jsx global>{`
         .weather-popup .maplibregl-popup-content {
-          background: hsl(220, 18%, 10%) !important;
-          border: 1px solid hsl(220, 14%, 18%) !important;
-          color: hsl(210, 20%, 92%) !important;
+          background: hsl(var(--card)) !important;
+          border: 1px solid hsl(var(--border)) !important;
+          color: hsl(var(--foreground)) !important;
           border-radius: 8px !important;
           padding: 8px 12px !important;
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
         }
         .weather-popup .maplibregl-popup-tip {
-          border-top-color: hsl(220, 14%, 18%) !important;
+          border-top-color: hsl(var(--border)) !important;
         }
       `}</style>
 
