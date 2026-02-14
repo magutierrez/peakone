@@ -1,0 +1,46 @@
+'use client'
+
+interface WindArrowProps {
+  direction: number
+  travelBearing: number
+  effect: 'tailwind' | 'headwind' | 'crosswind-left' | 'crosswind-right'
+  size?: number
+}
+
+export function WindArrow({ direction, effect, size = 40 }: WindArrowProps) {
+  const color =
+    effect === 'tailwind'
+      ? '#22c55e'
+      : effect === 'headwind'
+        ? '#ef4444'
+        : '#f59e0b'
+
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 40 40"
+      className="shrink-0"
+      aria-label={`Viento desde ${Math.round(direction)} grados`}
+    >
+      <circle cx="20" cy="20" r="18" fill="none" stroke="hsl(220, 14%, 18%)" strokeWidth="1.5" />
+      <g transform={`rotate(${direction}, 20, 20)`}>
+        <path
+          d="M20 6 L26 24 L20 20 L14 24 Z"
+          fill={color}
+          opacity="0.9"
+        />
+      </g>
+      <text
+        x="20"
+        y="35"
+        textAnchor="middle"
+        fill="hsl(215, 12%, 55%)"
+        fontSize="7"
+        fontFamily="system-ui"
+      >
+        {Math.round(direction)}
+      </text>
+    </svg>
+  )
+}
