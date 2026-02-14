@@ -6,6 +6,7 @@ import { useTheme } from 'next-themes'
 import Map, { Source, Layer, Marker, Popup, NavigationControl, MapRef } from 'react-map-gl/maplibre'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
+import { WindArrow } from '@/components/wind-arrow'
 import type { RoutePoint, RouteWeatherPoint } from '@/lib/types'
 import { WEATHER_CODES } from '@/lib/types'
 
@@ -14,20 +15,6 @@ interface RouteMapProps {
   weatherPoints?: RouteWeatherPoint[]
   selectedPointIndex?: number | null
   onPointSelect?: (index: number) => void
-}
-
-function getWindEffectColor(effect: string): string {
-  switch (effect) {
-    case 'tailwind':
-      return '#22c55e'
-    case 'headwind':
-      return '#ef4444'
-    case 'crosswind-left':
-    case 'crosswind-right':
-      return '#f59e0b'
-    default:
-      return '#6b7280'
-  }
 }
 
 export default function RouteMap({ points, weatherPoints, selectedPointIndex, onPointSelect }: RouteMapProps) {
@@ -133,11 +120,10 @@ export default function RouteMap({ points, weatherPoints, selectedPointIndex, on
           </Source>
         )}
 
-        {/* Weather Markers */}
+        {/* Weather Markers as WindArrows */}
         {weatherPoints && weatherPoints.length > 0 ? (
           weatherPoints.map((wp, idx) => {
             const isSelected = selectedPointIndex === idx
-            const color = getWindEffectColor(wp.windEffect)
             
             return (
               <Marker
@@ -151,20 +137,19 @@ export default function RouteMap({ points, weatherPoints, selectedPointIndex, on
                 }}
               >
                 <button
-                  className="group relative flex items-center justify-center transition-transform hover:scale-125"
+                  className={`group relative flex items-center justify-center transition-all hover:scale-125 ${isSelected ? 'z-10 scale-125' : 'z-0'}`}
                   onMouseEnter={() => setHoveredPointIndex(idx)}
                   onMouseLeave={() => setHoveredPointIndex(null)}
                 >
-                  <div 
-                    className="rounded-full shadow-lg transition-all"
-                    style={{
-                      width: isSelected ? '18px' : '12px',
-                      height: isSelected ? '18px' : '12px',
-                      backgroundColor: color,
-                      border: isSelected ? '3px solid white' : `1.5px solid ${color}`,
-                      opacity: 0.9
-                    }}
+                  <WindArrow 
+                    direction={wp.weather.windDirection}
+                    travelBearing={wp.bearing}
+                    effect={wp.windEffect}
+                    size={isSelected ? 36 : 28}
                   />
+                  {isSelected && (
+                    <div className="absolute inset-0 rounded-full border-2 border-white/50 animate-pulse" />
+                  )}
                 </button>
               </Marker>
             )
