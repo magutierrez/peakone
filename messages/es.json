@@ -52,8 +52,15 @@
       "contra": "{percent}% contra"
     },
     "timelineTitle": "Timeline por punto",
+    "elevationTitle": "Perfil de elevacion",
     "unknownWeather": "Desconocido",
     "windFrom": "Viento desde {direction} grados",
+    "chart": {
+      "elevation": "Elevacion",
+      "distance": "Distancia",
+      "m": "m",
+      "km": "km"
+    },
     "windEffect": {
       "tailwind": "A favor",
       "headwind": "En contra",
