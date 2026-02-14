@@ -1,6 +1,7 @@
 'use client'
 
 import { Wind, Thermometer, Droplets, Eye, ArrowUp, ArrowDown, ArrowLeft, ArrowRight } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { WeatherIcon } from '@/components/weather-icon'
 import { WindArrow } from '@/components/wind-arrow'
 import { WEATHER_CODES } from '@/lib/types'
@@ -11,21 +12,6 @@ interface WeatherTimelineProps {
   weatherPoints: RouteWeatherPoint[]
   selectedIndex: number | null
   onSelect: (index: number) => void
-}
-
-function getWindEffectLabel(effect: string): string {
-  switch (effect) {
-    case 'tailwind':
-      return 'A favor'
-    case 'headwind':
-      return 'En contra'
-    case 'crosswind-left':
-      return 'Lateral izq.'
-    case 'crosswind-right':
-      return 'Lateral der.'
-    default:
-      return ''
-  }
 }
 
 function getWindEffectIcon(effect: string) {
@@ -44,6 +30,9 @@ function getWindEffectIcon(effect: string) {
 }
 
 export function WeatherTimeline({ weatherPoints, selectedIndex, onSelect }: WeatherTimelineProps) {
+  const t = useTranslations('WeatherTimeline')
+  const tw = useTranslations('WeatherCodes')
+
   if (weatherPoints.length === 0) return null
 
   // Summary stats
@@ -54,6 +43,10 @@ export function WeatherTimeline({ weatherPoints, selectedIndex, onSelect }: Weat
   const tailwindPercent = (weatherPoints.filter((w) => w.windEffect === 'tailwind').length / weatherPoints.length) * 100
   const headwindPercent = (weatherPoints.filter((w) => w.windEffect === 'headwind').length / weatherPoints.length) * 100
 
+  const getWindEffectLabel = (effect: string) => {
+    return t(`windEffect.${effect}` as any)
+  }
+
   return (
     <div className="flex flex-col gap-4">
       {/* Summary cards */}
@@ -61,52 +54,54 @@ export function WeatherTimeline({ weatherPoints, selectedIndex, onSelect }: Weat
         <div className="rounded-lg border border-border bg-card p-3">
           <div className="flex items-center gap-2 text-muted-foreground">
             <Thermometer className="h-4 w-4" />
-            <span className="text-xs">Temp. media</span>
+            <span className="text-xs">{t('summary.avgTemp')}</span>
           </div>
           <p className="mt-1 text-xl font-bold font-mono text-foreground">{avgTemp.toFixed(1)}°C</p>
         </div>
         <div className="rounded-lg border border-border bg-card p-3">
           <div className="flex items-center gap-2 text-muted-foreground">
             <Wind className="h-4 w-4" />
-            <span className="text-xs">Viento max.</span>
+            <span className="text-xs">{t('summary.maxWind')}</span>
           </div>
           <p className="mt-1 text-xl font-bold font-mono text-foreground">
-            {maxWind.toFixed(0)} <span className="text-sm font-normal text-muted-foreground">km/h</span>
+            {maxWind.toFixed(0)} <span className="text-sm font-normal text-muted-foreground">{t('summary.kmh')}</span>
           </p>
-          <p className="text-xs text-muted-foreground">Rachas: {maxGusts.toFixed(0)} km/h</p>
+          <p className="text-xs text-muted-foreground">{t('summary.gusts', { speed: maxGusts.toFixed(0) })}</p>
         </div>
         <div className="rounded-lg border border-border bg-card p-3">
           <div className="flex items-center gap-2 text-muted-foreground">
             <Droplets className="h-4 w-4" />
-            <span className="text-xs">Prob. lluvia</span>
+            <span className="text-xs">{t('summary.precipProb')}</span>
           </div>
           <p className="mt-1 text-xl font-bold font-mono text-foreground">{avgPrecipProb.toFixed(0)}%</p>
         </div>
         <div className="rounded-lg border border-border bg-card p-3">
           <div className="flex items-center gap-2 text-muted-foreground">
             <Wind className="h-4 w-4" />
-            <span className="text-xs">Viento</span>
+            <span className="text-xs">{t('summary.wind')}</span>
           </div>
           <div className="mt-1 flex items-center gap-2">
-            <span className="text-xs font-medium text-primary">{tailwindPercent.toFixed(0)}% favor</span>
+            <span className="text-xs font-medium text-primary">{t('summary.favor', { percent: tailwindPercent.toFixed(0) })}</span>
             <span className="text-xs text-muted-foreground">/</span>
-            <span className="text-xs font-medium text-destructive">{headwindPercent.toFixed(0)}% contra</span>
+            <span className="text-xs font-medium text-destructive">{t('summary.contra', { percent: headwindPercent.toFixed(0) })}</span>
           </div>
         </div>
       </div>
 
       {/* Timeline horizontal scroll */}
       <div>
-        <h3 className="mb-3 text-sm font-semibold text-foreground">Timeline por punto</h3>
+        <h3 className="mb-3 text-sm font-semibold text-foreground">{t('timelineTitle')}</h3>
         <ScrollArea className="w-full">
           <div className="flex gap-2 pb-3">
             {weatherPoints.map((wp, idx) => {
               const time = new Date(wp.weather.time)
-              const timeStr = time.toLocaleTimeString('es-ES', {
+              const locale = 'es-ES' // Could be dynamic if needed
+              const timeStr = time.toLocaleTimeString(locale, {
                 hour: '2-digit',
                 minute: '2-digit',
               })
-              const weatherInfo = WEATHER_CODES[wp.weather.weatherCode] || { description: 'Desconocido' }
+              const hasTranslation = !!tw.raw(wp.weather.weatherCode.toString())
+              const weatherDescription = hasTranslation ? tw(wp.weather.weatherCode.toString() as any) : (WEATHER_CODES[wp.weather.weatherCode]?.description || t('unknownWeather'))
               const isSelected = selectedIndex === idx
 
               return (
@@ -123,7 +118,7 @@ export function WeatherTimeline({ weatherPoints, selectedIndex, onSelect }: Weat
                   <span className="text-xs font-bold font-mono text-foreground">{timeStr}</span>
                   <span className="text-[10px] text-muted-foreground">km {wp.point.distanceFromStart.toFixed(1)}</span>
                   <WeatherIcon code={wp.weather.weatherCode} className="h-6 w-6" />
-                  <span className="text-[10px] text-muted-foreground">{weatherInfo.description}</span>
+                  <span className="text-[10px] text-muted-foreground">{weatherDescription}</span>
                   <span className="text-sm font-bold font-mono text-foreground">{wp.weather.temperature}°</span>
                   <div className="flex items-center gap-1">
                     <Wind className="h-3 w-3 text-muted-foreground" />
@@ -160,17 +155,26 @@ export function WeatherTimeline({ weatherPoints, selectedIndex, onSelect }: Weat
 }
 
 function WeatherDetail({ point }: { point: RouteWeatherPoint }) {
+  const t = useTranslations('WeatherTimeline')
+  const tw = useTranslations('WeatherCodes')
   const time = new Date(point.weather.time)
-  const timeStr = time.toLocaleTimeString('es-ES', {
+  const locale = 'es-ES'
+  const timeStr = time.toLocaleTimeString(locale, {
     hour: '2-digit',
     minute: '2-digit',
   })
-  const dateStr = time.toLocaleDateString('es-ES', {
+  const dateStr = time.toLocaleDateString(locale, {
     weekday: 'short',
     day: 'numeric',
     month: 'short',
   })
-  const weatherInfo = WEATHER_CODES[point.weather.weatherCode] || { description: 'Desconocido' }
+  
+  const hasTranslation = !!tw.raw(point.weather.weatherCode.toString())
+  const weatherDescription = hasTranslation ? tw(point.weather.weatherCode.toString() as any) : (WEATHER_CODES[point.weather.weatherCode]?.description || t('unknownWeather'))
+
+  const getWindEffectLabel = (effect: string) => {
+    return t(`windEffect.${effect}` as any)
+  }
 
   return (
     <div className="rounded-lg border border-primary/20 bg-card p-4">
@@ -180,12 +184,12 @@ function WeatherDetail({ point }: { point: RouteWeatherPoint }) {
           <p className="text-2xl font-bold font-mono text-foreground">{timeStr}</p>
           <p className="text-xs text-muted-foreground">km {point.point.distanceFromStart.toFixed(1)}</p>
           {point.point.ele !== undefined && (
-            <p className="text-xs text-muted-foreground">Alt: {Math.round(point.point.ele)}m</p>
+            <p className="text-xs text-muted-foreground">{t('detail.altitude', { ele: Math.round(point.point.ele) })}</p>
           )}
         </div>
         <div className="flex flex-col items-center gap-1">
           <WeatherIcon code={point.weather.weatherCode} className="h-10 w-10" />
-          <span className="text-xs text-muted-foreground text-center">{weatherInfo.description}</span>
+          <span className="text-xs text-muted-foreground text-center">{weatherDescription}</span>
         </div>
       </div>
 
@@ -194,9 +198,9 @@ function WeatherDetail({ point }: { point: RouteWeatherPoint }) {
         <div className="flex items-center gap-2 rounded-lg bg-secondary p-2.5">
           <Thermometer className="h-4 w-4 shrink-0 text-destructive" />
           <div>
-            <p className="text-xs text-muted-foreground">Temperatura</p>
+            <p className="text-xs text-muted-foreground">{t('detail.temperature')}</p>
             <p className="text-sm font-bold font-mono text-foreground">{point.weather.temperature}°C</p>
-            <p className="text-[10px] text-muted-foreground">Sens. {point.weather.apparentTemperature}°C</p>
+            <p className="text-[10px] text-muted-foreground">{t('detail.feelsLike', { temp: point.weather.apparentTemperature })}</p>
           </div>
         </div>
 
@@ -209,9 +213,9 @@ function WeatherDetail({ point }: { point: RouteWeatherPoint }) {
             size={36}
           />
           <div>
-            <p className="text-xs text-muted-foreground">Viento</p>
+            <p className="text-xs text-muted-foreground">{t('detail.wind')}</p>
             <p className="text-sm font-bold font-mono text-foreground">{point.weather.windSpeed} km/h</p>
-            <p className="text-[10px] text-muted-foreground">Rachas: {point.weather.windGusts} km/h</p>
+            <p className="text-[10px] text-muted-foreground">{t('detail.gusts', { speed: point.weather.windGusts })}</p>
           </div>
         </div>
 
@@ -219,9 +223,9 @@ function WeatherDetail({ point }: { point: RouteWeatherPoint }) {
         <div className="flex items-center gap-2 rounded-lg bg-secondary p-2.5">
           <Droplets className="h-4 w-4 shrink-0 text-chart-2" />
           <div>
-            <p className="text-xs text-muted-foreground">Lluvia</p>
+            <p className="text-xs text-muted-foreground">{t('detail.rain')}</p>
             <p className="text-sm font-bold font-mono text-foreground">{point.weather.precipitation}mm</p>
-            <p className="text-[10px] text-muted-foreground">Prob: {point.weather.precipitationProbability}%</p>
+            <p className="text-[10px] text-muted-foreground">{t('detail.prob', { percent: point.weather.precipitationProbability })}</p>
           </div>
         </div>
 
@@ -229,11 +233,11 @@ function WeatherDetail({ point }: { point: RouteWeatherPoint }) {
         <div className="flex items-center gap-2 rounded-lg bg-secondary p-2.5">
           <Eye className="h-4 w-4 shrink-0 text-muted-foreground" />
           <div>
-            <p className="text-xs text-muted-foreground">Visibilidad</p>
+            <p className="text-xs text-muted-foreground">{t('detail.visibility')}</p>
             <p className="text-sm font-bold font-mono text-foreground">
               {(point.weather.visibility / 1000).toFixed(1)} km
             </p>
-            <p className="text-[10px] text-muted-foreground">Nubes: {point.weather.cloudCover}%</p>
+            <p className="text-[10px] text-muted-foreground">{t('detail.clouds', { percent: point.weather.cloudCover })}</p>
           </div>
         </div>
       </div>
@@ -243,15 +247,14 @@ function WeatherDetail({ point }: { point: RouteWeatherPoint }) {
         {getWindEffectIcon(point.windEffect)}
         <div className="flex-1">
           <p className="text-sm font-medium text-foreground">
-            Viento {getWindEffectLabel(point.windEffect).toLowerCase()}
+            {t('windEffect.summary', { label: getWindEffectLabel(point.windEffect).toLowerCase() })}
           </p>
           <p className="text-xs text-muted-foreground">
-            {'Angulo relativo: '}
-            {point.windEffectAngle.toFixed(0)}° respecto a tu direccion de viaje
+            {t('windEffect.relativeAngle', { angle: point.windEffectAngle.toFixed(0) })}
           </p>
         </div>
         <div className="text-right">
-          <p className="text-xs text-muted-foreground">Rumbo viaje</p>
+          <p className="text-xs text-muted-foreground">{t('windEffect.bearing')}</p>
           <p className="text-sm font-mono font-bold text-foreground">{point.bearing.toFixed(0)}°</p>
         </div>
       </div>

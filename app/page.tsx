@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react'
 import dynamic from 'next/dynamic'
 import { Mountain, Wind } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { RouteConfigPanel } from '@/components/route-config-panel'
 import { WeatherTimeline } from '@/components/weather-timeline'
 import { parseGPX, sampleRoutePoints, calculateBearing, getWindEffect } from '@/lib/gpx-parser'
@@ -10,11 +11,14 @@ import type { GPXData, RouteConfig, RouteWeatherPoint, WeatherData } from '@/lib
 
 const RouteMap = dynamic(() => import('@/components/route-map').then((m) => ({ default: m.RouteMap })), {
   ssr: false,
-  loading: () => (
-    <div className="flex h-full items-center justify-center bg-card">
-      <span className="text-sm text-muted-foreground">Cargando mapa...</span>
-    </div>
-  ),
+  loading: function Loading() {
+    const t = useTranslations('HomePage')
+    return (
+      <div className="flex h-full items-center justify-center bg-card">
+        <span className="text-sm text-muted-foreground">{t('loadingMap')}</span>
+      </div>
+    )
+  },
 })
 
 function getDefaultDate(): string {
@@ -24,6 +28,7 @@ function getDefaultDate(): string {
 }
 
 export default function HomePage() {
+  const t = useTranslations('HomePage')
   const [config, setConfig] = useState<RouteConfig>({
     date: getDefaultDate(),
     time: '08:00',
@@ -42,7 +47,7 @@ export default function HomePage() {
     try {
       const data = parseGPX(content)
       if (data.points.length < 2) {
-        setError('El archivo GPX no contiene suficientes puntos.')
+        setError(t('errors.insufficientPoints'))
         return
       }
       setGPXData(data)
@@ -51,9 +56,9 @@ export default function HomePage() {
       setSelectedPointIndex(null)
       setError(null)
     } catch {
-      setError('Error al leer el archivo GPX. Verifica el formato.')
+      setError(t('errors.readError'))
     }
-  }, [])
+  }, [t])
 
   const handleClearGPX = useCallback(() => {
     setGPXData(null)
@@ -117,9 +122,9 @@ export default function HomePage() {
 
       if (!response.ok) {
         if (response.status === 429) {
-          throw new Error('Demasiadas peticiones. Por favor, espera un momento antes de volver a intentarlo.')
+          throw new Error(t('errors.tooManyRequests'))
         }
-        throw new Error('Error al obtener datos meteorologicos')
+        throw new Error(t('errors.weatherFetchError'))
       }
 
       const data = await response.json()
@@ -146,11 +151,11 @@ export default function HomePage() {
       setWeatherPoints(routeWeatherPoints)
       setSelectedPointIndex(0)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error desconocido')
+      setError(err instanceof Error ? err.message : t('errors.unknownError'))
     } finally {
       setIsLoading(false)
     }
-  }, [gpxData, config])
+  }, [gpxData, config, t])
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -162,14 +167,14 @@ export default function HomePage() {
               <Mountain className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-foreground leading-tight">RouteWeather</h1>
-              <p className="text-xs text-muted-foreground">Forecast para rutas outdoor</p>
+              <h1 className="text-lg font-bold text-foreground leading-tight">{t('header.title')}</h1>
+              <p className="text-xs text-muted-foreground">{t('header.subtitle')}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <Wind className="h-4 w-4 text-muted-foreground" />
             <span className="text-xs text-muted-foreground">
-              Open-Meteo API
+              {t('header.apiVersion')}
             </span>
           </div>
         </div>
@@ -224,11 +229,10 @@ export default function HomePage() {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-foreground">
-                    Sube un archivo GPX para empezar
+                    {t('placeholders.title')}
                   </p>
                   <p className="mt-1 max-w-sm text-xs text-muted-foreground leading-relaxed">
-                    Configura la fecha, hora y velocidad, y analiza tu ruta para ver el forecast
-                    meteorologico punto a punto con el analisis de vientos.
+                    {t('placeholders.description')}
                   </p>
                 </div>
               </div>

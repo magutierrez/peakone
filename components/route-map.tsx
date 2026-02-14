@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import type { RoutePoint, RouteWeatherPoint } from '@/lib/types'
 import { WEATHER_CODES } from '@/lib/types'
 
@@ -26,6 +27,10 @@ function getWindEffectColor(effect: string): string {
 }
 
 export function RouteMap({ points, weatherPoints, selectedPointIndex, onPointSelect }: RouteMapProps) {
+  const t = useTranslations('RouteMap')
+  const tTimeline = useTranslations('WeatherTimeline')
+  const tw = useTranslations('WeatherCodes')
+  
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<L.Map | null>(null)
   const markersRef = useRef<L.CircleMarker[]>([])
@@ -109,9 +114,9 @@ export function RouteMap({ points, weatherPoints, selectedPointIndex, onPointSel
               onPointSelect?.(idx)
             })
 
-          const weatherInfo = WEATHER_CODES[wp.weather.weatherCode] || {
-            description: 'Desconocido',
-          }
+          const hasTranslation = !!tw.raw(wp.weather.weatherCode.toString())
+          const weatherDescription = hasTranslation ? tw(wp.weather.weatherCode.toString() as any) : (WEATHER_CODES[wp.weather.weatherCode]?.description || tTimeline('unknownWeather'))
+          
           const time = new Date(wp.weather.time)
           const timeStr = time.toLocaleTimeString('es-ES', {
             hour: '2-digit',
@@ -121,8 +126,8 @@ export function RouteMap({ points, weatherPoints, selectedPointIndex, onPointSel
           marker.bindTooltip(
             `<div style="font-family: system-ui; font-size: 12px; line-height: 1.4;">
               <strong>${timeStr}</strong> - km ${wp.point.distanceFromStart.toFixed(1)}<br/>
-              ${weatherInfo.description}<br/>
-              ${wp.weather.temperature}°C | Viento: ${wp.weather.windSpeed} km/h
+              ${weatherDescription}<br/>
+              ${wp.weather.temperature}°C | ${t('tooltip.wind')}: ${wp.weather.windSpeed} km/h
             </div>`,
             { className: 'weather-tooltip' }
           )
@@ -138,7 +143,7 @@ export function RouteMap({ points, weatherPoints, selectedPointIndex, onPointSel
           weight: 2,
           fillOpacity: 1,
         }).addTo(map)
-        startMarker.bindTooltip('Inicio', { permanent: false })
+        startMarker.bindTooltip(t('start'), { permanent: false })
         markersRef.current.push(startMarker)
 
         const endMarker = L.circleMarker(
@@ -151,13 +156,13 @@ export function RouteMap({ points, weatherPoints, selectedPointIndex, onPointSel
             fillOpacity: 1,
           }
         ).addTo(map)
-        endMarker.bindTooltip('Final', { permanent: false })
+        endMarker.bindTooltip(t('end'), { permanent: false })
         markersRef.current.push(endMarker)
       }
     }
 
     drawRoute()
-  }, [isReady, points, weatherPoints, selectedPointIndex, onPointSelect])
+  }, [isReady, points, weatherPoints, selectedPointIndex, onPointSelect, t, tTimeline, tw])
 
   return (
     <div className="relative h-full w-full overflow-hidden rounded-lg">
@@ -195,23 +200,24 @@ export function RouteMap({ points, weatherPoints, selectedPointIndex, onPointSel
       {/* Legend */}
       {weatherPoints && weatherPoints.length > 0 && (
         <div className="absolute bottom-8 left-3 z-[1000] rounded-lg border border-border bg-card/95 p-3 backdrop-blur-sm">
-          <p className="mb-2 text-xs font-semibold text-foreground">Efecto viento</p>
+          <p className="mb-2 text-xs font-semibold text-foreground">{t('legend.title')}</p>
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center gap-2">
               <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: '#22c55e' }} />
-              <span className="text-xs text-muted-foreground">A favor</span>
+              <span className="text-xs text-muted-foreground">{t('legend.tailwind')}</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: '#ef4444' }} />
-              <span className="text-xs text-muted-foreground">En contra</span>
+              <span className="text-xs text-muted-foreground">{t('legend.headwind')}</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: '#f59e0b' }} />
-              <span className="text-xs text-muted-foreground">Lateral</span>
+              <span className="text-xs text-muted-foreground">{t('legend.crosswind')}</span>
             </div>
           </div>
         </div>
       )}
     </div>
   )
+
 }
