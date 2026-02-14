@@ -29,7 +29,10 @@ export function WeatherTimeline({ weatherPoints, selectedIndex, onSelect }: Weat
       />
 
       {/* 3. Route Segments (Path types & Surfaces) */}
-      <RouteSegments weatherPoints={weatherPoints} />
+      <RouteSegments 
+        weatherPoints={weatherPoints} 
+        onSelectPoint={onSelect}
+      />
 
       {/* 4. Elevation Chart (Komoot style) */}
       <ElevationProfile 

@@ -1,11 +1,12 @@
 'use client'
 
-import { Map as MapIcon, Layers } from 'lucide-react'
+import { Map as MapIcon } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import type { RouteWeatherPoint } from '@/lib/types'
 
 interface RouteSegmentsProps {
   weatherPoints: RouteWeatherPoint[]
+  onSelectPoint: (index: number) => void
 }
 
 const PATH_TYPE_COLORS: Record<string, string> = {
@@ -43,7 +44,7 @@ const SURFACE_COLORS: Record<string, string> = {
   unknown: '#e5e7eb',
 }
 
-export function RouteSegments({ weatherPoints }: RouteSegmentsProps) {
+export function RouteSegments({ weatherPoints, onSelectPoint }: RouteSegmentsProps) {
   const t = useTranslations('WeatherTimeline')
 
   const totalPoints = weatherPoints.length
@@ -61,36 +62,49 @@ export function RouteSegments({ weatherPoints }: RouteSegmentsProps) {
         percent: (count / totalPoints) * 100,
         color: colorMap[name] || colorMap.unknown
       }))
+      .filter(item => item.percent > 0)
       .sort((a, b) => b.percent - a.percent)
+  }
+
+  const handleSegmentClick = (key: 'pathType' | 'surface', value: string) => {
+    const firstIndex = weatherPoints.findIndex(wp => (wp[key] || 'unknown') === value)
+    if (firstIndex !== -1) {
+      onSelectPoint(firstIndex)
+    }
   }
 
   const pathBreakdown = getBreakdown('pathType', PATH_TYPE_COLORS)
   const surfaceBreakdown = getBreakdown('surface', SURFACE_COLORS)
 
-  const SegmentBar = ({ title, data, translationNamespace }: { title: string, data: any[], translationNamespace: string }) => (
+  const SegmentBar = ({ title, data, translationNamespace, typeKey }: { title: string, data: any[], translationNamespace: string, typeKey: 'pathType' | 'surface' }) => (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
         <span className="text-xs font-medium text-muted-foreground">{title}</span>
       </div>
       <div className="flex h-2.5 w-full overflow-hidden rounded-full bg-secondary">
         {data.map((item, idx) => (
-          <div
+          <button
             key={idx}
+            onClick={() => handleSegmentClick(typeKey, item.name)}
             style={{ width: `${item.percent}%`, backgroundColor: item.color }}
-            className="h-full transition-all"
+            className="h-full transition-all hover:brightness-110 hover:scale-y-125"
             title={`${item.name}: ${item.percent.toFixed(0)}%`}
           />
         ))}
       </div>
       <div className="flex flex-wrap gap-x-4 gap-y-1">
         {data.map((item, idx) => (
-          <div key={idx} className="flex items-center gap-1.5">
+          <button 
+            key={idx} 
+            onClick={() => handleSegmentClick(typeKey, item.name)}
+            className="flex items-center gap-1.5 transition-all hover:bg-secondary rounded px-1 -ml-1 py-0.5"
+          >
             <div className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color }} />
             <span className="text-[10px] text-foreground">
               {t(`${translationNamespace}.${item.name}` as any)}
             </span>
             <span className="text-[10px] text-muted-foreground">{item.percent.toFixed(0)}%</span>
-          </div>
+          </button>
         ))}
       </div>
     </div>
@@ -108,11 +122,13 @@ export function RouteSegments({ weatherPoints }: RouteSegmentsProps) {
           title={t('pathTypes.title')} 
           data={pathBreakdown} 
           translationNamespace="pathTypes"
+          typeKey="pathType"
         />
         <SegmentBar 
           title={t('surfaces.title')} 
           data={surfaceBreakdown} 
           translationNamespace="surfaces"
+          typeKey="surface"
         />
       </div>
     </div>
