@@ -67,11 +67,13 @@
       "service": "Vía de servicio",
       "primary": "Carretera principal",
       "primary_link": "Enlace principal",
+      "trunk": "Carretera nacional",
       "secondary": "Carretera secundaria",
       "secondary_link": "Enlace secundario",
       "tertiary": "Carretera local",
       "tertiary_link": "Enlace local",
       "unclassified": "Camino",
+      "raceway": "Circuito",
       "unknown": "Otros"
     },
     "surfaces": {

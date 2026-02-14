@@ -20,12 +20,14 @@ const PATH_TYPE_COLORS: Record<string, string> = {
   living_street: '#9ca3af',
   primary: '#ef4444',
   primary_link: '#ef4444',
+  trunk: '#b91c1c',
   secondary: '#f59e0b',
   secondary_link: '#f59e0b',
   tertiary: '#fbbf24',
   tertiary_link: '#fbbf24',
   service: '#d1d5db',
   unclassified: '#9ca3af',
+  raceway: '#1e1b4b',
   unknown: '#e5e7eb',
 }
 
