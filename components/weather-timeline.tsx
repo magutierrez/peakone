@@ -5,6 +5,7 @@ import { WeatherSummary } from './weather-timeline/weather-summary'
 import { WeatherList } from './weather-timeline/weather-list'
 import { ElevationProfile } from './weather-timeline/elevation-profile'
 import { WeatherPointDetail } from './weather-timeline/weather-point-detail'
+import { RouteSegments } from './weather-timeline/route-segments'
 
 interface WeatherTimelineProps {
   weatherPoints: RouteWeatherPoint[]
@@ -17,22 +18,30 @@ export function WeatherTimeline({ weatherPoints, selectedIndex, onSelect }: Weat
 
   return (
     <div className="flex flex-col gap-6">
+      {/* 1. Summary Stats */}
       <WeatherSummary weatherPoints={weatherPoints} />
 
-      <WeatherList
+      {/* 2. Horizontal Points List */}
+      <WeatherList 
         weatherPoints={weatherPoints} 
         selectedIndex={selectedIndex} 
         onSelect={onSelect} 
       />
 
+      {/* 3. Route Segments (Path types & Surfaces) */}
+      <RouteSegments weatherPoints={weatherPoints} />
+
+      {/* 4. Elevation Chart (Komoot style) */}
+      <ElevationProfile 
+        weatherPoints={weatherPoints} 
+        selectedIndex={selectedIndex} 
+        onSelect={onSelect} 
+      />
+
+      {/* 5. Selected Point Detail */}
       {selectedIndex !== null && weatherPoints[selectedIndex] && (
         <WeatherPointDetail point={weatherPoints[selectedIndex]} />
       )}
-        <ElevationProfile
-            weatherPoints={weatherPoints}
-            selectedIndex={selectedIndex}
-            onSelect={onSelect}
-        />
     </div>
   )
 }

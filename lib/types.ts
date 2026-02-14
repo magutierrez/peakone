@@ -27,6 +27,19 @@ export interface RouteWeatherPoint {
   windEffect: 'tailwind' | 'headwind' | 'crosswind-left' | 'crosswind-right'
   windEffectAngle: number // angle between travel direction and wind
   bearing: number // direction of travel at this point
+  pathType?: string // e.g., cycleway, path, primary, etc.
+  surface?: string // e.g., asphalt, gravel, unpaved
+}
+
+export interface RouteSegmentMetadata {
+  name: string
+  value: number // distance or percentage
+  color: string
+}
+
+export interface RouteStats {
+  pathTypes: RouteSegmentMetadata[]
+  surfaces: RouteSegmentMetadata[]
 }
 
 export interface RouteConfig {
