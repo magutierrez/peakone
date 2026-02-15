@@ -31,7 +31,7 @@
     "averageSpeed": "Velocidad media (km/h)",
     "estimatedDuration": "Duracion estimada",
     "durationFormat": "{hours}h {minutes}min",
-    "analyze": "Analizar ruta",
+    "analyze": "Analizar meteorología",
     "analyzing": "Analizando..."
   },
   "GPXUpload": {
