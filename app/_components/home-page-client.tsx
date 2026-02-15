@@ -65,6 +65,7 @@ export default function HomePageClient({ session }: HomePageClientProps) {
     error,
     handleGPXLoaded,
     handleClearGPX,
+    handleReverseRoute,
     handleAnalyze,
   } = useRouteAnalysis(config)
 
@@ -93,6 +94,7 @@ export default function HomePageClient({ session }: HomePageClientProps) {
           onGPXLoaded={handleGPXLoaded}
           gpxFileName={gpxFileName}
           onClearGPX={handleClearGPX}
+          onReverseRoute={handleReverseRoute}
           onAnalyze={handleAnalyze}
           isLoading={isLoading}
           error={error}

@@ -13,6 +13,7 @@ interface SidebarProps {
   error: string | null
   onGPXLoaded: (content: string, fileName: string) => void
   onClearGPX: () => void
+  onReverseRoute: () => void
   onAnalyze: () => void
 }
 
@@ -25,6 +26,7 @@ export function Sidebar({
   error,
   onGPXLoaded,
   onClearGPX,
+  onReverseRoute,
   onAnalyze,
 }: SidebarProps) {
   return (
@@ -37,6 +39,7 @@ export function Sidebar({
           onGPXLoaded={onGPXLoaded}
           gpxFileName={gpxFileName}
           onClearGPX={onClearGPX}
+          onReverseRoute={onReverseRoute}
           onAnalyze={onAnalyze}
           isLoading={isLoading}
         />

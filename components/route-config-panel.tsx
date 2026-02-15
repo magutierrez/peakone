@@ -18,6 +18,7 @@ interface RouteConfigPanelProps {
   onGPXLoaded: (content: string, fileName: string) => void
   gpxFileName: string | null
   onClearGPX: () => void
+  onReverseRoute: () => void
   onAnalyze: () => void
   isLoading: boolean
 }
@@ -29,6 +30,7 @@ export function RouteConfigPanel({
   onGPXLoaded,
   gpxFileName,
   onClearGPX,
+  onReverseRoute,
   onAnalyze,
   isLoading,
 }: RouteConfigPanelProps) {
@@ -43,10 +45,22 @@ export function RouteConfigPanel({
   return (
     <div className="flex flex-col gap-5">
       {/* GPX Upload */}
-      <div>
-        <Label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+      <div className="flex items-center justify-between mb-2">
+        <Label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           {t('gpxFile')}
         </Label>
+        {gpxData && (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="h-7 px-2 text-[10px] gap-1.5 text-muted-foreground hover:text-primary"
+            onClick={onReverseRoute}
+          >
+            <span className="rotate-90">⇄</span> Invertir sentido
+          </Button>
+        )}
+      </div>
+      <div>
         <GPXUpload
           onFileLoaded={onGPXLoaded}
           fileName={gpxFileName}

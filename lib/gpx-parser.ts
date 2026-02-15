@@ -104,6 +104,24 @@ export function parseGPX(gpxString: string): GPXData {
   }
 }
 
+export function reverseGPXData(data: GPXData): GPXData {
+  const reversedPoints = [...data.points].reverse()
+  const totalDist = data.totalDistance
+
+  // Recalculate distances from the new start
+  const points = reversedPoints.map((p) => ({
+    ...p,
+    distanceFromStart: totalDist - p.distanceFromStart,
+  }))
+
+  return {
+    ...data,
+    points,
+    totalElevationGain: data.totalElevationLoss,
+    totalElevationLoss: data.totalElevationGain,
+  }
+}
+
 export function calculateBearing(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const dLon = (lon2 - lon1) * Math.PI / 180
   const y = Math.sin(dLon) * Math.cos(lat2 * Math.PI / 180)

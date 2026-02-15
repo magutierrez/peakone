@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
-import { parseGPX, sampleRoutePoints, calculateBearing, getWindEffect } from '@/lib/gpx-parser'
+import { parseGPX, sampleRoutePoints, calculateBearing, getWindEffect, reverseGPXData } from '@/lib/gpx-parser'
 import type { GPXData, RouteConfig, RouteWeatherPoint, WeatherData } from '@/lib/types'
 
 export function useRouteAnalysis(config: RouteConfig) {
@@ -15,6 +15,14 @@ export function useRouteAnalysis(config: RouteConfig) {
   const [selectedPointIndex, setSelectedPointIndex] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const handleReverseRoute = useCallback(() => {
+    if (!gpxData) return
+    const reversed = reverseGPXData(gpxData)
+    setGPXData(reversed)
+    setWeatherPoints([]) // Reset weather as it's no longer accurate for reversed direction
+    setSelectedPointIndex(null)
+  }, [gpxData])
 
   // Fetch route info (OSM) as soon as GPX is loaded
   useEffect(() => {
@@ -168,6 +176,7 @@ export function useRouteAnalysis(config: RouteConfig) {
     error,
     handleGPXLoaded,
     handleClearGPX,
+    handleReverseRoute,
     handleAnalyze,
   }
 }
