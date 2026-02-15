@@ -1,3 +1,5 @@
+'use client'
+
 import { RouteConfigPanel } from '@/components/route-config-panel'
 import type { RouteConfig, GPXData } from '@/lib/types'
 
@@ -25,23 +27,25 @@ export function Sidebar({
   onAnalyze,
 }: SidebarProps) {
   return (
-    <aside className="w-full shrink-0 border-b border-border bg-card p-4 lg:w-80 lg:border-b-0 lg:border-r lg:overflow-y-auto lg:h-[calc(100vh-57px)]">
-      <RouteConfigPanel
-        config={config}
-        onConfigChange={setConfig}
-        gpxData={gpxData}
-        onGPXLoaded={onGPXLoaded}
-        gpxFileName={gpxFileName}
-        onClearGPX={onClearGPX}
-        onAnalyze={onAnalyze}
-        isLoading={isLoading}
-      />
+    <aside className="w-full shrink-0 border-b border-border bg-card p-4 lg:w-80 lg:border-b-0 lg:border-r lg:overflow-y-auto lg:h-[calc(100vh-57px)] lg:sticky lg:top-[57px]">
+      <div className="flex flex-col gap-6">
+        <RouteConfigPanel
+          config={config}
+          onConfigChange={setConfig}
+          gpxData={gpxData}
+          onGPXLoaded={onGPXLoaded}
+          gpxFileName={gpxFileName}
+          onClearGPX={onClearGPX}
+          onAnalyze={onAnalyze}
+          isLoading={isLoading}
+        />
 
-      {error && (
-        <div className="mt-4 rounded-lg border border-destructive/30 bg-destructive/10 p-3">
-          <p className="text-xs text-destructive">{error}</p>
-        </div>
-      )}
+        {error && (
+          <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-3">
+            <p className="text-xs text-destructive">{error}</p>
+          </div>
+        )}
+      </div>
     </aside>
   )
 }
