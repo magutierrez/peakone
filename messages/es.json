@@ -1,6 +1,11 @@
 {
   "HomePage": {
     "loadingMap": "Cargando mapa...",
+    "processingRoute": "Procesando ruta...",
+    "obtainingData": "Obteniendo datos de elevación y terreno",
+    "analyzeFirst": "Analiza la ruta para ver los datos meteorológicos",
+    "clickAnalyze": "Haz clic en 'Analizar meteorología' para ver el pronóstico por tramos",
+    "uploadFirst": "Sube un archivo GPX para empezar",
     "errors": {
       "insufficientPoints": "El archivo GPX no contiene suficientes puntos.",
       "readError": "Error al leer el archivo GPX. Verifica el formato.",
@@ -16,10 +21,17 @@
     "placeholders": {
       "title": "Sube un archivo GPX para empezar",
       "description": "Configura la fecha, hora y velocidad, y analiza tu ruta para ver el forecast meteorologico punto a punto con el analisis de vientos."
+    },
+    "sections": {
+      "terrain": "Terreno y Vía",
+      "altitude": "Altitud",
+      "activityConfig": "Configuración de la Actividad",
+      "weatherAnalysis": "Análisis Meteorológico"
     }
   },
   "RouteConfigPanel": {
     "gpxFile": "Archivo GPX",
+    "reverseRoute": "Invertir sentido",
     "km": "km",
     "elevationGain": "m D+",
     "elevationLoss": "m D-",
@@ -55,45 +67,9 @@
     "elevationTitle": "Perfil de elevacion",
     "segmentsTitle": "Tipos de vía y superficies",
     "unknownWeather": "Desconocido",
-    "pathTypes": {
-      "title": "Tipos de vía",
-      "cycleway": "Carril bici",
-      "path": "Sendero",
-      "footway": "Camino peatonal",
-      "pedestrian": "Zona peatonal",
-      "track": "Pista forestal",
-      "residential": "Calle residencial",
-      "living_street": "Calle de prioridad peatonal",
-      "service": "Vía de servicio",
-      "primary": "Carretera principal",
-      "primary_link": "Enlace principal",
-      "trunk": "Carretera nacional",
-      "secondary": "Carretera secundaria",
-      "secondary_link": "Enlace secundario",
-      "tertiary": "Carretera local",
-      "tertiary_link": "Enlace local",
-      "unclassified": "Camino",
-      "raceway": "Circuito",
-      "unknown": "Otros",
-      "construction": "En construcción"
-    },
-    "surfaces": {
-      "title": "Superficies",
-      "asphalt": "Asfalto",
-      "paved": "Pavimentado",
-      "paving_stones": "Adoquines",
-      "concrete": "Hormigón",
-      "gravel": "Grava",
-      "fine_gravel": "Grava fina",
-      "unpaved": "Sin pavimentar",
-      "ground": "Tierra",
-      "compacted": "Compactado",
-      "dirt": "Tierra suelta",
-      "sand": "Arena",
-      "grass": "Hierba",
-      "unknown": "Desconocido"
-    },
     "windFrom": "Viento desde {direction} grados",
+    "loading": "Cargando...",
+    "slope": "Pendiente",
     "chart": {
       "elevation": "Elevacion",
       "distance": "Distancia",
@@ -122,7 +98,59 @@
       "visibility": "Visibilidad",
       "clouds": "Nubes: {percent}%",
       "altitude": "Alt: {ele}m"
+    },
+    "pathTypes": {
+      "title": "Tipos de vía",
+      "cycleway": "Carril bici",
+      "path": "Sendero",
+      "footway": "Camino peatonal",
+      "pedestrian": "Zona peatonal",
+      "track": "Pista forestal",
+      "residential": "Calle residencial",
+      "living_street": "Calle de prioridad peatonal",
+      "service": "Vía de servicio",
+      "primary": "Carretera principal",
+      "primary_link": "Enlace principal",
+      "trunk": "Carretera nacional",
+      "secondary": "Carretera secundaria",
+      "secondary_link": "Enlace secundario",
+      "tertiary": "Carretera local",
+      "tertiary_link": "Enlace local",
+      "unclassified": "Camino",
+      "raceway": "Circuito",
+      "unknown": "Otros"
+    },
+    "surfaces": {
+      "title": "Superficies",
+      "asphalt": "Asfalto",
+      "paved": "Pavimentado",
+      "paving_stones": "Adoquines",
+      "concrete": "Hormigón",
+      "gravel": "Grava",
+      "fine_gravel": "Grava fina",
+      "unpaved": "Sin pavimentar",
+      "ground": "Tierra",
+      "compacted": "Compactado",
+      "dirt": "Tierra suelta",
+      "sand": "Arena",
+      "grass": "Hierba",
+      "unknown": "Desconocido"
     }
+  },
+  "Auth": {
+    "welcome": "Bienvenido a RouteWeather",
+    "loginDescription": "Inicia sesión para analizar tus rutas y ver el pronóstico meteorológico detallado.",
+    "continueGoogle": "Continuar con Google",
+    "continueFacebook": "Continuar con Facebook",
+    "continueX": "Continuar con X (Twitter)",
+    "continueStrava": "Continuar con Strava",
+    "terms": "Al continuar, aceptas nuestros términos de servicio y política de privacidad.",
+    "logout": "Cerrar sesión"
+  },
+  "SavedRoutes": {
+    "title": "Mis Rutas Guardadas",
+    "loading": "Cargando rutas...",
+    "stravaTitle": "Mis Actividades de Strava"
   },
   "RouteMap": {
     "start": "Inicio",
@@ -136,35 +164,5 @@
       "headwind": "En contra",
       "crosswind": "Lateral"
     }
-  },
-  "WeatherCodes": {
-    "0": "Despejado",
-    "1": "Mayormente despejado",
-    "2": "Parcialmente nublado",
-    "3": "Nublado",
-    "45": "Niebla",
-    "48": "Niebla con escarcha",
-    "51": "Llovizna ligera",
-    "53": "Llovizna moderada",
-    "55": "Llovizna intensa",
-    "56": "Llovizna helada ligera",
-    "57": "Llovizna helada intensa",
-    "61": "Lluvia ligera",
-    "63": "Lluvia moderada",
-    "65": "Lluvia intensa",
-    "66": "Lluvia helada ligera",
-    "67": "Lluvia helada intensa",
-    "71": "Nevada ligera",
-    "73": "Nevada moderada",
-    "75": "Nevada intensa",
-    "77": "Granizo fino",
-    "80": "Chubascos ligeros",
-    "81": "Chubascos moderados",
-    "82": "Chubascos violentos",
-    "85": "Chubascos de nieve ligeros",
-    "86": "Chubascos de nieve intensos",
-    "95": "Tormenta",
-    "96": "Tormenta con granizo ligero",
-    "99": "Tormenta con granizo intenso"
   }
 }

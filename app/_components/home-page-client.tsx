@@ -46,6 +46,8 @@ interface HomePageClientProps {
 
 export default function HomePageClient({ session }: HomePageClientProps) {
   const t = useTranslations('RouteConfigPanel')
+  const th = useTranslations('HomePage')
+  
   const [config, setConfig] = useState<RouteConfig>({
     date: getDefaultDate(),
     time: '08:00',
@@ -102,7 +104,6 @@ export default function HomePageClient({ session }: HomePageClientProps) {
       <Header session={session} />
 
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
-        {/* SIDEBAR: Fixed width configuration */}
         <Sidebar
           gpxData={gpxData}
           onGPXLoaded={handleGPXLoaded}
@@ -114,33 +115,29 @@ export default function HomePageClient({ session }: HomePageClientProps) {
           provider={session?.provider}
         />
 
-        {/* MAIN AREA: Split 60/40 */}
-        <main className="flex min-w-0 flex-1 flex-col lg:flex-row relative">
-          {/* Global Route Loading State */}
+        <main className="relative flex min-w-0 flex-1 flex-col lg:flex-row">
           {isRouteInfoLoading && (
             <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-background/60 backdrop-blur-sm">
-              <div className="flex flex-col items-center gap-4 p-8 rounded-2xl bg-card border border-border shadow-2xl">
+              <div className="flex flex-col items-center gap-4 rounded-2xl border border-border bg-card p-8 shadow-2xl">
                 <Loader2 className="h-10 w-10 animate-spin text-primary" />
                 <div className="text-center">
-                  <p className="font-bold text-foreground">Procesando ruta...</p>
-                  <p className="text-xs text-muted-foreground mt-1">Obteniendo datos de elevación y terreno</p>
+                  <p className="font-bold text-foreground">{th('processingRoute')}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{th('obtainingData')}</p>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Data Column (60%) */}
           <div className="flex w-full flex-col gap-10 p-6 md:p-8 lg:w-[60%]">
             {!gpxData ? (
               <EmptyState />
             ) : (
               <>
-                {/* 1. Path Segments */}
                 <section className="flex flex-col gap-4">
                   <div className="flex items-center gap-2 border-b border-border pb-2">
                     <div className="h-4 w-1 rounded-full bg-primary" />
                     <h3 className="text-sm font-bold uppercase tracking-wider text-foreground/80">
-                      Terreno y Vía
+                      {th('sections.terrain')}
                     </h3>
                   </div>
                   <RouteSegments
@@ -154,12 +151,11 @@ export default function HomePageClient({ session }: HomePageClientProps) {
                   />
                 </section>
 
-                {/* 2. Elevation Profile */}
                 <section className="flex flex-col gap-4">
                   <div className="flex items-center gap-2 border-b border-border pb-2">
                     <div className="h-4 w-1 rounded-full bg-primary" />
                     <h3 className="text-sm font-bold uppercase tracking-wider text-foreground/80">
-                      Altitud
+                      {th('sections.altitude')}
                     </h3>
                   </div>
                   <ElevationProfile
@@ -182,17 +178,15 @@ export default function HomePageClient({ session }: HomePageClientProps) {
                   />
                 </section>
 
-                {/* 3. Activity Configuration (Moved from sidebar) */}
                 <section className="flex flex-col gap-6 rounded-xl border border-border bg-card/50 p-6">
                   <div className="flex items-center gap-2 border-b border-border pb-2">
                     <div className="h-4 w-1 rounded-full bg-primary" />
                     <h3 className="text-sm font-bold uppercase tracking-wider text-foreground/80">
-                      Configuración de la Actividad
+                      {th('sections.activityConfig')}
                     </h3>
                   </div>
 
                   <div className="grid gap-6 md:grid-cols-2">
-                    {/* Activity Type */}
                     <div className="flex flex-col gap-3">
                       <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                         {t('activity')}
@@ -223,9 +217,11 @@ export default function HomePageClient({ session }: HomePageClientProps) {
                       </div>
                     </div>
 
-                    {/* Speed */}
                     <div className="flex flex-col gap-3">
-                      <Label htmlFor="speed" className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      <Label
+                        htmlFor="speed"
+                        className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+                      >
                         <Gauge className="h-3.5 w-3.5" />
                         {t('averageSpeed')}
                       </Label>
@@ -236,21 +232,30 @@ export default function HomePageClient({ session }: HomePageClientProps) {
                           min={1}
                           max={60}
                           value={config.speed}
-                          onChange={(e) => setConfig({ ...config, speed: parseFloat(e.target.value) || 1 })}
-                          className="font-mono border-border bg-secondary"
+                          onChange={(e) =>
+                            setConfig({ ...config, speed: parseFloat(e.target.value) || 1 })
+                          }
+                          className="border-border font-mono bg-secondary"
                         />
-                        <div className="rounded-lg border border-border bg-muted/50 px-4 py-2 shrink-0">
-                          <p className="text-[10px] text-muted-foreground uppercase">{t('estimatedDuration')}</p>
-                          <p className="font-mono text-sm font-bold text-foreground whitespace-nowrap">
-                            {t('durationFormat', { hours, minutes: minutes.toString().padStart(2, '0') })}
+                        <div className="shrink-0 rounded-lg border border-border bg-muted/50 px-4 py-2">
+                          <p className="text-[10px] uppercase text-muted-foreground">
+                            {t('estimatedDuration')}
+                          </p>
+                          <p className="font-mono text-sm font-bold whitespace-nowrap text-foreground">
+                            {t('durationFormat', {
+                              hours,
+                              minutes: minutes.toString().padStart(2, '0'),
+                            })}
                           </p>
                         </div>
                       </div>
                     </div>
 
-                    {/* Date */}
                     <div className="flex flex-col gap-3">
-                      <Label htmlFor="date" className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      <Label
+                        htmlFor="date"
+                        className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+                      >
                         <CalendarIcon className="h-3.5 w-3.5" />
                         {t('date')}
                       </Label>
@@ -263,9 +268,11 @@ export default function HomePageClient({ session }: HomePageClientProps) {
                       />
                     </div>
 
-                    {/* Time */}
                     <div className="flex flex-col gap-3">
-                      <Label htmlFor="time" className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      <Label
+                        htmlFor="time"
+                        className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+                      >
                         <Clock className="h-3.5 w-3.5" />
                         {t('startTime')}
                       </Label>
@@ -279,12 +286,11 @@ export default function HomePageClient({ session }: HomePageClientProps) {
                     </div>
                   </div>
 
-                  {/* Analyze Button */}
-                  <div className="pt-4 border-t border-border mt-2">
+                  <div className="mt-2 border-t border-border pt-4">
                     <Button
                       onClick={handleAnalyze}
                       disabled={!gpxData || isLoading}
-                      className="w-full bg-primary font-semibold text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20"
+                      className="w-full bg-primary font-semibold text-primary-foreground shadow-lg shadow-primary/20 hover:bg-primary/90"
                       size="lg"
                     >
                       {isLoading ? (
@@ -299,13 +305,12 @@ export default function HomePageClient({ session }: HomePageClientProps) {
                   </div>
                 </section>
 
-                {/* 4. Weather Data */}
                 {weatherPoints.length > 0 && (
                   <section className="flex flex-col gap-8">
                     <div className="flex items-center gap-2 border-b border-border pb-2">
                       <div className="h-4 w-1 rounded-full bg-primary" />
                       <h3 className="text-sm font-bold uppercase tracking-wider text-foreground/80">
-                        Análisis Meteorológico
+                        {th('sections.weatherAnalysis')}
                       </h3>
                     </div>
                     <WeatherSummary weatherPoints={weatherPoints} />
@@ -323,7 +328,6 @@ export default function HomePageClient({ session }: HomePageClientProps) {
             )}
           </div>
 
-          {/* Sticky Map Column (40%) */}
           <div className="sticky top-[57px] h-[50vh] w-full border-l border-border lg:h-[calc(100vh-57px)] lg:w-[40%]">
             <RouteMap
               points={gpxData?.points || []}

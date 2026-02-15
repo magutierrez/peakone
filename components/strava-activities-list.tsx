@@ -2,18 +2,19 @@
 
 import useSWR from 'swr'
 import { MapPin, Calendar, Activity, Loader2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { stravaToGPXData } from '@/lib/gpx-parser'
 import type { GPXData } from '@/lib/types'
+import { useTranslations } from 'next-intl'
 
 interface StravaActivitiesListProps {
   onLoadGPX: (data: GPXData, fileName: string) => void
 }
 
-const fetcher = (url: string) => fetch(url).then(res => res.json())
+const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
 export function StravaActivitiesList({ onLoadGPX }: StravaActivitiesListProps) {
+  const t = useTranslations('SavedRoutes')
   const { data: activities, error, isLoading } = useSWR('/api/strava/activities', fetcher)
 
   if (isLoading) {
@@ -31,7 +32,7 @@ export function StravaActivitiesList({ onLoadGPX }: StravaActivitiesListProps) {
       const gpxData = stravaToGPXData(activity)
       onLoadGPX(gpxData, `${activity.name}.gpx`)
     } catch (e) {
-      console.error("Failed to load Strava activity", e)
+      console.error('Failed to load Strava activity', e)
     }
   }
 
@@ -39,18 +40,20 @@ export function StravaActivitiesList({ onLoadGPX }: StravaActivitiesListProps) {
     <div className="flex flex-col gap-3">
       <div className="flex items-center gap-2 px-1">
         <Activity className="h-4 w-4 text-[#FC6719]" />
-        <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Mis Actividades de Strava</h3>
+        <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+          {t('stravaTitle')}
+        </h3>
       </div>
-      
+
       <ScrollArea className="h-[500px] pr-4">
         <div className="flex flex-col gap-2">
           {activities.map((activity) => (
-            <button 
+            <button
               key={activity.id}
               onClick={() => handleSelectActivity(activity)}
               className="group flex flex-col gap-2 rounded-lg border border-border bg-[#FC6719]/5 p-3 text-left transition-all hover:border-[#FC6719]/30 hover:bg-[#FC6719]/10"
             >
-              <p className="text-sm font-semibold text-foreground line-clamp-1">{activity.name}</p>
+              <p className="line-clamp-1 text-sm font-semibold text-foreground">{activity.name}</p>
               <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-muted-foreground">
                 <span className="flex items-center gap-1">
                   <MapPin className="h-3 w-3" />
