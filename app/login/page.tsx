@@ -68,6 +68,21 @@ export default function LoginPage() {
 
           <Button
             variant="outline"
+            className="h-12 border-border bg-[#FC6719] text-white hover:bg-[#FC6719]/90"
+            onClick={() => signIn('strava', { redirectTo: '/' })}
+          >
+            <svg
+              className="mr-2 h-5 w-5 fill-current"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-4.116l2.736 5.467h4.161L8.379 0 1 13.828h4.161" />
+            </svg>
+            Continuar con Strava
+          </Button>
+
+          <Button
+            variant="outline"
             className="h-12 border-border bg-black text-white hover:bg-black/90"
             onClick={() => signIn('twitter', { redirectTo: '/' })}
           >

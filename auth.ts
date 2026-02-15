@@ -2,12 +2,20 @@ import NextAuth from 'next-auth'
 import Facebook from 'next-auth/providers/facebook'
 import Twitter from 'next-auth/providers/twitter'
 import Google from 'next-auth/providers/google'
+import Strava from 'next-auth/providers/strava'
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     Facebook,
-    Twitter, // Auth.js supports X via the Twitter provider
+    Twitter,
     Google,
+    Strava({
+      authorization: {
+        params: {
+          scope: 'read,activity:read_all',
+        },
+      },
+    }),
   ],
   pages: {
     signIn: '/login',
