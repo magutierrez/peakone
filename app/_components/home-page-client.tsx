@@ -47,7 +47,7 @@ interface HomePageClientProps {
 export default function HomePageClient({ session }: HomePageClientProps) {
   const t = useTranslations('RouteConfigPanel')
   const th = useTranslations('HomePage')
-  
+
   const [config, setConfig] = useState<RouteConfig>({
     date: getDefaultDate(),
     time: '08:00',
@@ -66,6 +66,7 @@ export default function HomePageClient({ session }: HomePageClientProps) {
     gpxFileName,
     rawGPXContent,
     weatherPoints,
+    elevationData,
     routeInfoData,
     selectedPointIndex,
     setSelectedPointIndex,
@@ -104,6 +105,7 @@ export default function HomePageClient({ session }: HomePageClientProps) {
       <Header session={session} />
 
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
+        {/* SIDEBAR: Fixed width configuration */}
         <Sidebar
           gpxData={gpxData}
           onGPXLoaded={handleGPXLoaded}
@@ -115,7 +117,9 @@ export default function HomePageClient({ session }: HomePageClientProps) {
           provider={session?.provider}
         />
 
+        {/* MAIN AREA: Split 60/40 */}
         <main className="relative flex min-w-0 flex-1 flex-col lg:flex-row">
+          {/* Global Route Loading State */}
           {isRouteInfoLoading && (
             <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-background/60 backdrop-blur-sm">
               <div className="flex flex-col items-center gap-4 rounded-2xl border border-border bg-card p-8 shadow-2xl">
@@ -133,6 +137,7 @@ export default function HomePageClient({ session }: HomePageClientProps) {
               <EmptyState />
             ) : (
               <>
+                {/* 1. Path Segments */}
                 <section className="flex flex-col gap-4">
                   <div className="flex items-center gap-2 border-b border-border pb-2">
                     <div className="h-4 w-1 rounded-full bg-primary" />
@@ -151,6 +156,7 @@ export default function HomePageClient({ session }: HomePageClientProps) {
                   />
                 </section>
 
+                {/* 2. Elevation Profile */}
                 <section className="flex flex-col gap-4">
                   <div className="flex items-center gap-2 border-b border-border pb-2">
                     <div className="h-4 w-1 rounded-full bg-primary" />
@@ -159,25 +165,14 @@ export default function HomePageClient({ session }: HomePageClientProps) {
                     </h3>
                   </div>
                   <ElevationProfile
-                    weatherPoints={
-                      weatherPoints.length > 0
-                        ? weatherPoints
-                        : routeInfoData.length > 0
-                          ? routeInfoData.map((d) => ({
-                              point: {
-                                ...d,
-                                ele: d.elevation,
-                                distanceFromStart: d.distanceFromStart || 0,
-                              },
-                              weather: {},
-                            } as any))
-                          : []
-                    }
+                    weatherPoints={weatherPoints}
+                    elevationData={elevationData}
                     selectedIndex={selectedPointIndex}
                     onSelect={setSelectedPointIndex}
                   />
                 </section>
 
+                {/* 3. Activity Configuration */}
                 <section className="flex flex-col gap-6 rounded-xl border border-border bg-card/50 p-6">
                   <div className="flex items-center gap-2 border-b border-border pb-2">
                     <div className="h-4 w-1 rounded-full bg-primary" />
@@ -305,6 +300,7 @@ export default function HomePageClient({ session }: HomePageClientProps) {
                   </div>
                 </section>
 
+                {/* 4. Weather Data */}
                 {weatherPoints.length > 0 && (
                   <section className="flex flex-col gap-8">
                     <div className="flex items-center gap-2 border-b border-border pb-2">
@@ -328,6 +324,7 @@ export default function HomePageClient({ session }: HomePageClientProps) {
             )}
           </div>
 
+          {/* Sticky Map Column (40%) */}
           <div className="sticky top-[57px] h-[50vh] w-full border-l border-border lg:h-[calc(100vh-57px)] lg:w-[40%]">
             <RouteMap
               points={gpxData?.points || []}

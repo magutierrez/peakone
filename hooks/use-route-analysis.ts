@@ -17,11 +17,26 @@ export function useRouteAnalysis(config: RouteConfig) {
   const [gpxFileName, setGPXFileName] = useState<string | null>(null)
   const [rawGPXContent, setRawGPXContent] = useState<string | null>(null)
   const [weatherPoints, setWeatherPoints] = useState<RouteWeatherPoint[]>([])
+  const [elevationData, setElevationData] = useState<{ distance: number; elevation: number }[]>([])
   const [routeInfoData, setRouteInfoData] = useState<any[]>([])
   const [selectedPointIndex, setSelectedPointIndex] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isRouteInfoLoading, setIsRouteInfoLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Update high-density elevation data when GPX loads
+  useEffect(() => {
+    if (gpxData) {
+      // Sample 300 points for a very smooth chart (Komoot style)
+      const dense = sampleRoutePoints(gpxData.points, 300)
+      setElevationData(dense.map(p => ({
+        distance: p.distanceFromStart,
+        elevation: p.ele || 0
+      })))
+    } else {
+      setElevationData([])
+    }
+  }, [gpxData])
 
   const handleReverseRoute = useCallback(() => {
     if (!gpxData) return
@@ -204,6 +219,7 @@ export function useRouteAnalysis(config: RouteConfig) {
     gpxFileName,
     rawGPXContent,
     weatherPoints,
+    elevationData,
     routeInfoData,
     selectedPointIndex,
     setSelectedPointIndex,

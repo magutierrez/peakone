@@ -19,11 +19,12 @@ import { Button } from '@/components/ui/button'
 
 interface ElevationProfileProps {
   weatherPoints: RouteWeatherPoint[]
+  elevationData: { distance: number; elevation: number }[]
   selectedIndex: number | null
   onSelect: (index: number) => void
 }
 
-export function ElevationProfile({ weatherPoints, selectedIndex, onSelect }: ElevationProfileProps) {
+export function ElevationProfile({ weatherPoints, elevationData, selectedIndex, onSelect }: ElevationProfileProps) {
   const t = useTranslations('WeatherTimeline')
   const lastUpdateRef = useRef<number>(0)
   
@@ -35,15 +36,24 @@ export function ElevationProfile({ weatherPoints, selectedIndex, onSelect }: Ele
   const [top, setTop] = useState<any>('dataMax')
   const [bottom, setBottom] = useState<any>('dataMin')
 
-  // Calcular datos y estadísticas de pendiente
+  // Usar elevationData si existe, si no, fallback a weatherPoints
+  const displayData = useMemo(() => {
+    if (elevationData && elevationData.length > 0) return elevationData
+    return weatherPoints.map(wp => ({
+      distance: wp.point.distanceFromStart,
+      elevation: wp.point.ele || 0
+    }))
+  }, [elevationData, weatherPoints])
+
+  // Calcular pendientes basadas en los datos visibles para el color
   const { chartData, maxSlope } = useMemo(() => {
     let currentMaxSlope = 0
-    const data = weatherPoints.map((wp, idx) => {
+    const data = displayData.map((d, idx) => {
       let slope = 0
       if (idx > 0) {
-        const prev = weatherPoints[idx - 1]
-        const distDiff = (wp.point.distanceFromStart - prev.point.distanceFromStart) * 1000 // m
-        const eleDiff = (wp.point.ele || 0) - (prev.point.ele || 0) // m
+        const prev = displayData[idx - 1]
+        const distDiff = (d.distance - prev.distance) * 1000 // m
+        const eleDiff = d.elevation - prev.elevation // m
         if (distDiff > 0) {
           slope = (eleDiff / distDiff) * 100
         }
@@ -52,20 +62,17 @@ export function ElevationProfile({ weatherPoints, selectedIndex, onSelect }: Ele
       if (absSlope > currentMaxSlope) currentMaxSlope = absSlope
 
       return {
-        idx,
-        distance: wp.point.distanceFromStart,
-        elevation: Math.round(wp.point.ele || 0),
+        ...d,
         slope: Math.round(slope * 10) / 10,
       }
     })
     return { chartData: data, maxSlope: currentMaxSlope }
-  }, [weatherPoints])
+  }, [displayData])
 
   const getSlopeColor = (slope: number) => {
     const absSlope = Math.abs(slope)
     if (maxSlope === 0) return 'bg-primary'
     const intensity = absSlope / maxSlope
-    
     if (intensity < 0.33) return 'bg-primary'
     if (intensity < 0.66) return 'bg-accent'
     return 'bg-destructive'
@@ -73,9 +80,23 @@ export function ElevationProfile({ weatherPoints, selectedIndex, onSelect }: Ele
 
   const handleMouseMove = (e: any) => {
     if (e && e.activePayload && e.activePayload[0]) {
+      const activePoint = e.activePayload[0].payload
       const now = Date.now()
-      if (now - lastUpdateRef.current > 32) {
-        onSelect(e.activePayload[0].payload.idx)
+      
+      // Sincronizar con el weather point más cercano
+      if (now - lastUpdateRef.current > 32 && weatherPoints.length > 0) {
+        let closestIdx = 0
+        let minDiff = Infinity
+        
+        weatherPoints.forEach((wp, idx) => {
+          const diff = Math.abs(wp.point.distanceFromStart - activePoint.distance)
+          if (diff < minDiff) {
+            minDiff = diff
+            closestIdx = idx
+          }
+        })
+        
+        onSelect(closestIdx)
         lastUpdateRef.current = now
       }
     }
@@ -94,18 +115,13 @@ export function ElevationProfile({ weatherPoints, selectedIndex, onSelect }: Ele
     let [start, end] = [refAreaLeft, refAreaRight]
     if (start > end) [start, end] = [end, start]
 
-    // Filtrar datos en el rango para ajustar el eje Y
     const filteredData = chartData.filter(d => d.distance >= start && d.distance <= end)
-    
     if (filteredData.length > 0) {
       const elevations = filteredData.map(d => d.elevation)
-      const minEle = Math.min(...elevations)
-      const maxEle = Math.max(...elevations)
-
       setLeft(start)
       setRight(end)
-      setBottom(minEle - 10)
-      setTop(maxEle + 10)
+      setBottom(Math.min(...elevations) - 10)
+      setTop(Math.max(...elevations) + 10)
     }
 
     setRefAreaLeft(null)
@@ -121,7 +137,9 @@ export function ElevationProfile({ weatherPoints, selectedIndex, onSelect }: Ele
     setRefAreaRight(null)
   }
 
-  const selectedData = selectedIndex !== null ? chartData[selectedIndex] : null
+  const selectedDataInChart = selectedIndex !== null && weatherPoints[selectedIndex] 
+    ? { distance: weatherPoints[selectedIndex].point.distanceFromStart }
+    : null
 
   return (
     <div className="rounded-xl border border-border bg-card p-4 select-none">
@@ -141,11 +159,11 @@ export function ElevationProfile({ weatherPoints, selectedIndex, onSelect }: Ele
             </Button>
           )}
         </div>
-        {selectedData && (
+        {selectedIndex !== null && weatherPoints[selectedIndex] && (
           <div className="flex items-center gap-2">
-            <div className={`h-2.5 w-2.5 rounded-full animate-pulse ${getSlopeColor(selectedData.slope)}`} />
+            <div className={`h-2.5 w-2.5 rounded-full animate-pulse ${getSlopeColor(chartData.find(d => Math.abs(d.distance - weatherPoints[selectedIndex].point.distanceFromStart) < 0.1)?.slope || 0)}`} />
             <span className="text-xs font-bold font-mono text-foreground">
-              {selectedData.slope}%
+              {Math.round(weatherPoints[selectedIndex].point.ele || 0)}m
             </span>
           </div>
         )}
@@ -215,25 +233,20 @@ export function ElevationProfile({ weatherPoints, selectedIndex, onSelect }: Ele
               isAnimationActive={false}
             />
             
-            {/* Indicador de posición actual */}
-            {selectedIndex !== null && chartData[selectedIndex] && (
+            {selectedDataInChart && (
               <ReferenceLine
-                x={chartData[selectedIndex].distance}
+                x={selectedDataInChart.distance}
                 stroke="hsl(var(--foreground))"
                 strokeDasharray="3 3"
               />
             )}
 
-            {/* Área de selección visual */}
             {refAreaLeft !== null && refAreaRight !== null && (
               <ReferenceArea x1={refAreaLeft} x2={refAreaRight} strokeOpacity={0.3} fill="hsl(var(--primary))" fillOpacity={0.1} />
             )}
           </AreaChart>
         </ResponsiveContainer>
       </div>
-      <p className="mt-2 text-[9px] text-muted-foreground text-center italic">
-        Arrastra para hacer zoom • Doble clic para restablecer
-      </p>
     </div>
   )
 }
