@@ -30,6 +30,15 @@ export function useRouteAnalysis(config: RouteConfig) {
     setSelectedPointIndex(null)
   }, [gpxData])
 
+  const handleStravaActivityLoaded = useCallback((data: GPXData, fileName: string) => {
+    setGPXData(data)
+    setGPXFileName(fileName)
+    setRawGPXContent(null) // Strava data is already parsed, we don't have raw GPX
+    setWeatherPoints([])
+    setSelectedPointIndex(null)
+    setError(null)
+  }, [])
+
   // Fetch route info (OSM) as soon as GPX is loaded
   useEffect(() => {
     if (!gpxData) {
@@ -190,6 +199,7 @@ export function useRouteAnalysis(config: RouteConfig) {
     isLoading,
     error,
     handleGPXLoaded,
+    handleStravaActivityLoaded,
     handleClearGPX,
     handleReverseRoute,
     handleAnalyze,

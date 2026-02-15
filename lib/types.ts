@@ -1,3 +1,15 @@
+import { DefaultSession } from "next-auth"
+
+declare module "next-auth" {
+  interface Session {
+    accessToken?: string
+    provider?: string
+    user: {
+      id?: string
+    } & DefaultSession["user"]
+  }
+}
+
 export interface RoutePoint {
   lat: number
   lon: number

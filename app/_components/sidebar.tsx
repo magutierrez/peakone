@@ -2,6 +2,7 @@
 
 import { RouteConfigPanel } from '@/components/route-config-panel'
 import { SavedRoutesList } from '@/components/saved-routes-list'
+import { StravaActivitiesList } from '@/components/strava-activities-list'
 import type { RouteConfig, GPXData } from '@/lib/types'
 
 interface SidebarProps {
@@ -12,9 +13,11 @@ interface SidebarProps {
   isLoading: boolean
   error: string | null
   onGPXLoaded: (content: string, fileName: string) => void
+  onStravaActivityLoaded: (data: GPXData, fileName: string) => void
   onClearGPX: () => void
   onReverseRoute: () => void
   onAnalyze: () => void
+  provider?: string
 }
 
 export function Sidebar({
@@ -25,9 +28,11 @@ export function Sidebar({
   isLoading,
   error,
   onGPXLoaded,
+  onStravaActivityLoaded,
   onClearGPX,
   onReverseRoute,
   onAnalyze,
+  provider,
 }: SidebarProps) {
   return (
     <aside className="w-full shrink-0 border-b border-border bg-card p-4 lg:sticky lg:top-[57px] lg:h-[calc(100vh-57px)] lg:w-80 lg:overflow-y-auto lg:border-b-0 lg:border-r">
@@ -43,6 +48,8 @@ export function Sidebar({
           onAnalyze={onAnalyze}
           isLoading={isLoading}
         />
+
+        {provider === 'strava' && <StravaActivitiesList onLoadGPX={onStravaActivityLoaded} />}
 
         <SavedRoutesList onLoadRoute={onGPXLoaded} />
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import dynamic from 'next/dynamic'
 import { useTranslations } from 'next-intl'
 import { useRouteAnalysis } from '@/hooks/use-route-analysis'
@@ -17,7 +17,6 @@ import { RouteSegments } from '@/components/weather-timeline/route-segments'
 import { Sidebar } from './sidebar'
 import { Session } from 'next-auth'
 import { useSavedRoutes } from '@/hooks/use-saved-routes'
-import { useEffect, useRef } from 'react'
 
 const RouteMap = dynamic(() => import('@/components/route-map'), {
   ssr: false,
@@ -49,10 +48,9 @@ export default function HomePageClient({ session }: HomePageClientProps) {
     activityType: 'cycling',
   })
 
-  const [activeFilter, setActiveFilter] = useState<{
-    key: 'pathType' | 'surface'
-    value: string
-  } | null>(null)
+  const [activeFilter, setActiveFilter] = useState<{ key: 'pathType' | 'surface'; value: string } | null>(
+    null,
+  )
   const { saveRoute, routes } = useSavedRoutes()
   const lastSavedRef = useRef<string | null>(null)
 
@@ -67,6 +65,7 @@ export default function HomePageClient({ session }: HomePageClientProps) {
     isLoading,
     error,
     handleGPXLoaded,
+    handleStravaActivityLoaded,
     handleClearGPX,
     handleReverseRoute,
     handleAnalyze,
@@ -99,12 +98,14 @@ export default function HomePageClient({ session }: HomePageClientProps) {
           setConfig={setConfig}
           gpxData={gpxData}
           onGPXLoaded={handleGPXLoaded}
+          onStravaActivityLoaded={handleStravaActivityLoaded}
           gpxFileName={gpxFileName}
           onClearGPX={handleClearGPX}
           onReverseRoute={handleReverseRoute}
           onAnalyze={handleAnalyze}
           isLoading={isLoading}
           error={error}
+          provider={session?.provider}
         />
 
         {/* MAIN AREA: Split 60/40 */}
@@ -148,7 +149,7 @@ export default function HomePageClient({ session }: HomePageClientProps) {
                         ? weatherPoints
                         : gpxData.points
                             .filter((_, i) => i % 10 === 0)
-                            .map((p) => ({ point: p, weather: {} }) as any)
+                            .map((p) => ({ point: p, weather: {} } as any))
                     }
                     selectedIndex={selectedPointIndex}
                     onSelect={setSelectedPointIndex}
@@ -180,7 +181,7 @@ export default function HomePageClient({ session }: HomePageClientProps) {
           </div>
 
           {/* Sticky Map Column (40%) */}
-          <div className="h-[50vh] w-full border-l border-border lg:sticky lg:top-[57px] lg:h-[calc(100vh-57px)] lg:w-[40%]">
+          <div className="sticky top-[57px] h-[50vh] w-full border-l border-border lg:h-[calc(100vh-57px)] lg:w-[40%]">
             <RouteMap
               points={gpxData?.points || []}
               weatherPoints={weatherPoints.length > 0 ? weatherPoints : undefined}

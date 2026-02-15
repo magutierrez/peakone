@@ -121,6 +121,67 @@ export function reverseGPXData(data: GPXData): GPXData {
   }
 }
 
+// Decode Google Polyline algorithm
+export function decodePolyline(encoded: string): [number, number][] {
+  const points: [number, number][] = []
+  let index = 0, len = encoded.length
+  let lat = 0, lng = 0
+
+  while (index < len) {
+    let b, shift = 0, result = 0
+    do {
+      b = encoded.charCodeAt(index++) - 63
+      result |= (b & 0x1f) << shift
+      shift += 5
+    } while (b >= 0x20)
+    const dlat = ((result & 1) ? ~(result >> 1) : (result >> 1))
+    lat += dlat
+
+    shift = 0
+    result = 0
+    do {
+      b = encoded.charCodeAt(index++) - 63
+      result |= (b & 0x1f) << shift
+      shift += 5
+    } while (b >= 0x20)
+    const dlng = ((result & 1) ? ~(result >> 1) : (result >> 1))
+    lng += dlng
+
+    points.push([lat / 1e5, lng / 1e5])
+  }
+  return points
+}
+
+export function stravaToGPXData(activity: any): GPXData {
+  if (!activity.map?.summary_polyline) {
+    throw new Error('No path data in activity')
+  }
+
+  const coords = decodePolyline(activity.map.summary_polyline)
+  const points: RoutePoint[] = []
+  let totalDistance = 0
+
+  coords.forEach((coord, i) => {
+    if (i > 0) {
+      const prev = coords[i - 1]
+      totalDistance += haversineDistance(prev[0], prev[1], coord[0], coord[1])
+    }
+    points.push({
+      lat: coord[0],
+      lon: coord[1],
+      distanceFromStart: totalDistance
+    })
+  })
+
+  return {
+    points,
+    name: activity.name,
+    totalDistance: activity.distance / 1000, // Strava is in meters
+    totalElevationGain: activity.total_elevation_gain,
+    totalElevationLoss: 0, // Strava doesn't provide it in summary
+  }
+}
+
 export function calculateBearing(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const dLon = ((lon2 - lon1) * Math.PI) / 180
   const y = Math.sin(dLon) * Math.cos((lat2 * Math.PI) / 180)
