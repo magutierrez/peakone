@@ -11,7 +11,7 @@ export function EmptyState() {
       </div>
       <div>
         <p className="text-sm font-medium text-foreground">{t('placeholders.title')}</p>
-        <p className="mt-1 max-w-sm text-xs text-muted-foreground leading-relaxed">
+        <p className="mt-1 max-w-sm text-xs leading-relaxed text-muted-foreground">
           {t('placeholders.description')}
         </p>
       </div>

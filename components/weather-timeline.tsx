@@ -11,16 +11,16 @@ interface WeatherTimelineProps {
   weatherPoints: RouteWeatherPoint[]
   selectedIndex: number | null
   onSelect: (index: number) => void
-  activeFilter?: { key: 'pathType' | 'surface', value: string } | null
-  onFilterChange?: (filter: { key: 'pathType' | 'surface', value: string } | null) => void
+  activeFilter?: { key: 'pathType' | 'surface'; value: string } | null
+  onFilterChange?: (filter: { key: 'pathType' | 'surface'; value: string } | null) => void
 }
 
-export function WeatherTimeline({ 
-  weatherPoints, 
-  selectedIndex, 
+export function WeatherTimeline({
+  weatherPoints,
+  selectedIndex,
   onSelect,
   activeFilter,
-  onFilterChange
+  onFilterChange,
 }: WeatherTimelineProps) {
   if (weatherPoints.length === 0) return null
 
@@ -30,24 +30,24 @@ export function WeatherTimeline({
       <WeatherSummary weatherPoints={weatherPoints} />
 
       {/* 2. Horizontal Points List */}
-      <WeatherList 
-        weatherPoints={weatherPoints} 
-        selectedIndex={selectedIndex} 
-        onSelect={onSelect} 
+      <WeatherList
+        weatherPoints={weatherPoints}
+        selectedIndex={selectedIndex}
+        onSelect={onSelect}
       />
 
       {/* 3. Route Segments (Path types & Surfaces) */}
-      <RouteSegments 
-        weatherPoints={weatherPoints} 
+      <RouteSegments
+        weatherPoints={weatherPoints}
         activeFilter={activeFilter}
         onFilterChange={onFilterChange}
       />
 
       {/* 4. Elevation Chart (Komoot style) */}
-      <ElevationProfile 
-        weatherPoints={weatherPoints} 
-        selectedIndex={selectedIndex} 
-        onSelect={onSelect} 
+      <ElevationProfile
+        weatherPoints={weatherPoints}
+        selectedIndex={selectedIndex}
+        onSelect={onSelect}
       />
 
       {/* 5. Selected Point Detail */}

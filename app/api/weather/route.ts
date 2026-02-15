@@ -1,9 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { 
-  openMeteoProvider, 
-  weatherApiProvider, 
-  tomorrowIoProvider 
-} from '@/lib/weather-providers'
+import { openMeteoProvider, weatherApiProvider, tomorrowIoProvider } from '@/lib/weather-providers'
 
 interface WeatherRequest {
   points: Array<{
@@ -23,7 +19,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Group points by unique lat/lon (rounded to reduce API calls)
-    const uniqueLocationsMap = new Map<string, { lat: number; lon: number; times: string[]; indices: number[] }>()
+    const uniqueLocationsMap = new Map<
+      string,
+      { lat: number; lon: number; times: string[]; indices: number[] }
+    >()
 
     points.forEach((point, index) => {
       const key = `${point.lat.toFixed(2)},${point.lon.toFixed(2)}`
@@ -41,20 +40,16 @@ export async function POST(request: NextRequest) {
     })
 
     const locations = Array.from(uniqueLocationsMap.values())
-    
+
     // Get global date range
-    const allTimes = points.map(p => new Date(p.estimatedTime).getTime())
+    const allTimes = points.map((p) => new Date(p.estimatedTime).getTime())
     const minTime = new Date(Math.min(...allTimes))
     const maxTime = new Date(Math.max(...allTimes))
     const startDate = minTime.toISOString().split('T')[0]
     const endDate = maxTime.toISOString().split('T')[0]
 
     // List of providers in priority order
-    const providers = [
-      openMeteoProvider,
-      weatherApiProvider,
-      tomorrowIoProvider
-    ]
+    const providers = [openMeteoProvider, weatherApiProvider, tomorrowIoProvider]
 
     let weatherResults: any[] = []
     let success = false
@@ -80,13 +75,13 @@ export async function POST(request: NextRequest) {
     weatherResults.sort((a, b) => a.index - b.index)
 
     return NextResponse.json({
-      weather: weatherResults.map(r => r.weather),
+      weather: weatherResults.map((r) => r.weather),
     })
   } catch (error) {
     console.error('Weather API error:', error)
     return NextResponse.json(
       { error: 'Failed to fetch weather data from all providers' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

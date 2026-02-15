@@ -45,9 +45,9 @@ export function WeatherList({ weatherPoints, selectedIndex, onSelect }: WeatherL
               minute: '2-digit',
             })
             const hasTranslation = !!tw.raw(wp.weather.weatherCode.toString())
-            const weatherDescription = hasTranslation 
-              ? tw(wp.weather.weatherCode.toString() as any) 
-              : (WEATHER_CODES[wp.weather.weatherCode]?.description || t('unknownWeather'))
+            const weatherDescription = hasTranslation
+              ? tw(wp.weather.weatherCode.toString() as any)
+              : WEATHER_CODES[wp.weather.weatherCode]?.description || t('unknownWeather')
             const isSelected = selectedIndex === idx
 
             return (
@@ -61,14 +61,20 @@ export function WeatherList({ weatherPoints, selectedIndex, onSelect }: WeatherL
                 }`}
                 style={{ minWidth: '100px' }}
               >
-                <span className="text-xs font-bold font-mono text-foreground">{timeStr}</span>
-                <span className="text-[10px] text-muted-foreground">km {wp.point.distanceFromStart.toFixed(1)}</span>
+                <span className="font-mono text-xs font-bold text-foreground">{timeStr}</span>
+                <span className="text-[10px] text-muted-foreground">
+                  km {wp.point.distanceFromStart.toFixed(1)}
+                </span>
                 <WeatherIcon code={wp.weather.weatherCode} className="h-6 w-6" />
                 <span className="text-[10px] text-muted-foreground">{weatherDescription}</span>
-                <span className="text-sm font-bold font-mono text-foreground">{wp.weather.temperature}°</span>
+                <span className="font-mono text-sm font-bold text-foreground">
+                  {wp.weather.temperature}°
+                </span>
                 <div className="flex items-center gap-1">
                   <Wind className="h-3 w-3 text-muted-foreground" />
-                  <span className="text-[10px] font-mono text-muted-foreground">{wp.weather.windSpeed}</span>
+                  <span className="font-mono text-[10px] text-muted-foreground">
+                    {wp.weather.windSpeed}
+                  </span>
                 </div>
                 <div className="flex items-center gap-1">
                   {getWindEffectIcon(wp.windEffect)}

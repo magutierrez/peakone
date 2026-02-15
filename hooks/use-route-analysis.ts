@@ -2,7 +2,13 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
-import { parseGPX, sampleRoutePoints, calculateBearing, getWindEffect } from '@/lib/gpx-parser'
+import {
+  parseGPX,
+  sampleRoutePoints,
+  calculateBearing,
+  getWindEffect,
+  reverseGPXData,
+} from '@/lib/gpx-parser'
 import type { GPXData, RouteConfig, RouteWeatherPoint, WeatherData } from '@/lib/types'
 
 export function useRouteAnalysis(config: RouteConfig) {
@@ -15,6 +21,23 @@ export function useRouteAnalysis(config: RouteConfig) {
   const [selectedPointIndex, setSelectedPointIndex] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const handleReverseRoute = useCallback(() => {
+    if (!gpxData) return
+    const reversed = reverseGPXData(gpxData)
+    setGPXData(reversed)
+    setWeatherPoints([]) // Reset weather as it's no longer accurate for reversed direction
+    setSelectedPointIndex(null)
+  }, [gpxData])
+
+  const handleStravaActivityLoaded = useCallback((data: GPXData, fileName: string) => {
+    setGPXData(data)
+    setGPXFileName(fileName)
+    setRawGPXContent(null) // Strava data is already parsed, we don't have raw GPX
+    setWeatherPoints([])
+    setSelectedPointIndex(null)
+    setError(null)
+  }, [])
 
   // Fetch route info (OSM) as soon as GPX is loaded
   useEffect(() => {
@@ -44,23 +67,26 @@ export function useRouteAnalysis(config: RouteConfig) {
     fetchRouteInfo()
   }, [gpxData])
 
-  const handleGPXLoaded = useCallback((content: string, fileName: string) => {
-    try {
-      const data = parseGPX(content)
-      if (data.points.length < 2) {
-        setError(t('errors.insufficientPoints'))
-        return
+  const handleGPXLoaded = useCallback(
+    (content: string, fileName: string) => {
+      try {
+        const data = parseGPX(content)
+        if (data.points.length < 2) {
+          setError(t('errors.insufficientPoints'))
+          return
+        }
+        setGPXData(data)
+        setGPXFileName(fileName)
+        setRawGPXContent(content)
+        setWeatherPoints([])
+        setSelectedPointIndex(null)
+        setError(null)
+      } catch {
+        setError(t('errors.readError'))
       }
-      setGPXData(data)
-      setGPXFileName(fileName)
-      setRawGPXContent(content)
-      setWeatherPoints([])
-      setSelectedPointIndex(null)
-      setError(null)
-    } catch {
-      setError(t('errors.readError'))
-    }
-  }, [t])
+    },
+    [t],
+  )
 
   const handleClearGPX = useCallback(() => {
     setGPXData(null)
@@ -77,21 +103,25 @@ export function useRouteAnalysis(config: RouteConfig) {
     setIsLoading(true)
     setError(null)
 
-    const fetchWithRetry = async (url: string, options: RequestInit, maxRetries = 3): Promise<Response> => {
+    const fetchWithRetry = async (
+      url: string,
+      options: RequestInit,
+      maxRetries = 3,
+    ): Promise<Response> => {
       let lastError: Error | null = null
       for (let i = 0; i < maxRetries; i++) {
         try {
           const response = await fetch(url, options)
           if (response.status === 429) {
             const waitTime = Math.pow(2, i) * 1000
-            await new Promise(resolve => setTimeout(resolve, waitTime))
+            await new Promise((resolve) => setTimeout(resolve, waitTime))
             continue
           }
           return response
         } catch (err) {
           lastError = err instanceof Error ? err : new Error('Unknown error')
           const waitTime = Math.pow(2, i) * 1000
-          await new Promise(resolve => setTimeout(resolve, waitTime))
+          await new Promise((resolve) => setTimeout(resolve, waitTime))
         }
       }
       throw lastError || new Error('Retry limit reached')
@@ -104,7 +134,7 @@ export function useRouteAnalysis(config: RouteConfig) {
         const hoursElapsed = point.distanceFromStart / config.speed
         return {
           ...point,
-          estimatedTime: new Date(startTime.getTime() + hoursElapsed * 3600000)
+          estimatedTime: new Date(startTime.getTime() + hoursElapsed * 3600000),
         }
       })
 
@@ -121,7 +151,9 @@ export function useRouteAnalysis(config: RouteConfig) {
       })
 
       if (!response.ok) {
-        throw new Error(response.status === 429 ? t('errors.tooManyRequests') : t('errors.weatherFetchError'))
+        throw new Error(
+          response.status === 429 ? t('errors.tooManyRequests') : t('errors.weatherFetchError'),
+        )
       }
 
       const weatherDataObj = await response.json()
@@ -132,7 +164,7 @@ export function useRouteAnalysis(config: RouteConfig) {
         const bearing = calculateBearing(point.lat, point.lon, nextPoint.lat, nextPoint.lon)
         const weather = weatherData[idx]
         const windResult = getWindEffect(bearing, weather.windDirection)
-        
+
         // Match with route info
         const info = routeInfoData[Math.floor(idx)] || {}
 
@@ -143,7 +175,7 @@ export function useRouteAnalysis(config: RouteConfig) {
           windEffectAngle: windResult.angle,
           bearing,
           pathType: info.pathType,
-          surface: info.surface
+          surface: info.surface,
         }
       })
 
@@ -167,7 +199,9 @@ export function useRouteAnalysis(config: RouteConfig) {
     isLoading,
     error,
     handleGPXLoaded,
+    handleStravaActivityLoaded,
     handleClearGPX,
+    handleReverseRoute,
     handleAnalyze,
   }
 }

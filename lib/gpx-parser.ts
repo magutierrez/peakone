@@ -1,16 +1,15 @@
 import type { RoutePoint, GPXData } from './types'
 
-function haversineDistance(
-  lat1: number, lon1: number,
-  lat2: number, lon2: number
-): number {
+function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371 // km
-  const dLat = (lat2 - lat1) * Math.PI / 180
-  const dLon = (lon2 - lon1) * Math.PI / 180
+  const dLat = ((lat2 - lat1) * Math.PI) / 180
+  const dLon = ((lon2 - lon1) * Math.PI) / 180
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-    Math.sin(dLon / 2) * Math.sin(dLon / 2)
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2)
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
   return R * c
 }
@@ -104,18 +103,98 @@ export function parseGPX(gpxString: string): GPXData {
   }
 }
 
+export function reverseGPXData(data: GPXData): GPXData {
+  const reversedPoints = [...data.points].reverse()
+  const totalDist = data.totalDistance
+
+  // Recalculate distances from the new start
+  const points = reversedPoints.map((p) => ({
+    ...p,
+    distanceFromStart: totalDist - p.distanceFromStart,
+  }))
+
+  return {
+    ...data,
+    points,
+    totalElevationGain: data.totalElevationLoss,
+    totalElevationLoss: data.totalElevationGain,
+  }
+}
+
+// Decode Google Polyline algorithm
+export function decodePolyline(encoded: string): [number, number][] {
+  const points: [number, number][] = []
+  let index = 0, len = encoded.length
+  let lat = 0, lng = 0
+
+  while (index < len) {
+    let b, shift = 0, result = 0
+    do {
+      b = encoded.charCodeAt(index++) - 63
+      result |= (b & 0x1f) << shift
+      shift += 5
+    } while (b >= 0x20)
+    const dlat = ((result & 1) ? ~(result >> 1) : (result >> 1))
+    lat += dlat
+
+    shift = 0
+    result = 0
+    do {
+      b = encoded.charCodeAt(index++) - 63
+      result |= (b & 0x1f) << shift
+      shift += 5
+    } while (b >= 0x20)
+    const dlng = ((result & 1) ? ~(result >> 1) : (result >> 1))
+    lng += dlng
+
+    points.push([lat / 1e5, lng / 1e5])
+  }
+  return points
+}
+
+export function stravaToGPXData(activity: any): GPXData {
+  if (!activity.map?.summary_polyline) {
+    throw new Error('No path data in activity')
+  }
+
+  const coords = decodePolyline(activity.map.summary_polyline)
+  const points: RoutePoint[] = []
+  let totalDistance = 0
+
+  coords.forEach((coord, i) => {
+    if (i > 0) {
+      const prev = coords[i - 1]
+      totalDistance += haversineDistance(prev[0], prev[1], coord[0], coord[1])
+    }
+    points.push({
+      lat: coord[0],
+      lon: coord[1],
+      distanceFromStart: totalDistance
+    })
+  })
+
+  return {
+    points,
+    name: activity.name,
+    totalDistance: activity.distance / 1000, // Strava is in meters
+    totalElevationGain: activity.total_elevation_gain,
+    totalElevationLoss: 0, // Strava doesn't provide it in summary
+  }
+}
+
 export function calculateBearing(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const dLon = (lon2 - lon1) * Math.PI / 180
-  const y = Math.sin(dLon) * Math.cos(lat2 * Math.PI / 180)
-  const x = Math.cos(lat1 * Math.PI / 180) * Math.sin(lat2 * Math.PI / 180) -
-    Math.sin(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.cos(dLon)
-  const bearing = Math.atan2(y, x) * 180 / Math.PI
+  const dLon = ((lon2 - lon1) * Math.PI) / 180
+  const y = Math.sin(dLon) * Math.cos((lat2 * Math.PI) / 180)
+  const x =
+    Math.cos((lat1 * Math.PI) / 180) * Math.sin((lat2 * Math.PI) / 180) -
+    Math.sin((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.cos(dLon)
+  const bearing = (Math.atan2(y, x) * 180) / Math.PI
   return (bearing + 360) % 360
 }
 
 export function getWindEffect(
   travelBearing: number,
-  windDirection: number
+  windDirection: number,
 ): { effect: 'tailwind' | 'headwind' | 'crosswind-left' | 'crosswind-right'; angle: number } {
   // Wind direction is where wind COMES FROM, so wind blowing TO is windDirection + 180
   const windTo = (windDirection + 180) % 360
@@ -138,7 +217,7 @@ export function getWindEffect(
 
 export function sampleRoutePoints(points: RoutePoint[], numSamples: number = 20): RoutePoint[] {
   if (points.length <= numSamples) return points
-  
+
   const totalDist = points[points.length - 1].distanceFromStart
   const interval = totalDist / (numSamples - 1)
   const sampled: RoutePoint[] = [points[0]]
@@ -146,7 +225,9 @@ export function sampleRoutePoints(points: RoutePoint[], numSamples: number = 20)
   let targetDist = interval
   for (let i = 1; i < numSamples - 1; i++) {
     const closest = points.reduce((prev, curr) =>
-      Math.abs(curr.distanceFromStart - targetDist) < Math.abs(prev.distanceFromStart - targetDist) ? curr : prev
+      Math.abs(curr.distanceFromStart - targetDist) < Math.abs(prev.distanceFromStart - targetDist)
+        ? curr
+        : prev,
     )
     sampled.push(closest)
     targetDist += interval

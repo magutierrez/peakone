@@ -24,7 +24,7 @@ export function GPXUpload({ onFileLoaded, fileName, onClear }: GPXUploadProps) {
       }
       reader.readAsText(file)
     },
-    [onFileLoaded]
+    [onFileLoaded],
   )
 
   const handleDrop = useCallback(
@@ -35,7 +35,7 @@ export function GPXUpload({ onFileLoaded, fileName, onClear }: GPXUploadProps) {
         handleFile(file)
       }
     },
-    [handleFile]
+    [handleFile],
   )
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -47,16 +47,14 @@ export function GPXUpload({ onFileLoaded, fileName, onClear }: GPXUploadProps) {
       const file = e.target.files?.[0]
       if (file) handleFile(file)
     },
-    [handleFile]
+    [handleFile],
   )
 
   if (fileName) {
     return (
       <div className="flex items-center gap-3 rounded-lg border border-primary/30 bg-primary/5 p-3">
         <FileText className="h-5 w-5 shrink-0 text-primary" />
-        <span className="flex-1 truncate text-sm font-medium text-foreground">
-          {fileName}
-        </span>
+        <span className="flex-1 truncate text-sm font-medium text-foreground">{fileName}</span>
         <Button
           variant="ghost"
           size="icon"
@@ -90,12 +88,8 @@ export function GPXUpload({ onFileLoaded, fileName, onClear }: GPXUploadProps) {
         <Upload className="h-5 w-5" />
       </div>
       <div className="text-center">
-        <p className="text-sm font-medium text-foreground">
-          {t('dragDrop')}
-        </p>
-        <p className="mt-1 text-xs text-muted-foreground">
-          {t('clickSelect')}
-        </p>
+        <p className="text-sm font-medium text-foreground">{t('dragDrop')}</p>
+        <p className="mt-1 text-xs text-muted-foreground">{t('clickSelect')}</p>
       </div>
       <input
         ref={inputRef}

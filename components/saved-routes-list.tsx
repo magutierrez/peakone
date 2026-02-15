@@ -37,70 +37,87 @@ export function SavedRoutesList({ onLoadRoute }: SavedRoutesListProps) {
     setEditingId(null)
   }
 
-  if (isLoading) return <div className="p-4 text-center text-xs text-muted-foreground animate-pulse">Cargando rutas...</div>
+  if (isLoading)
+    return (
+      <div className="animate-pulse p-4 text-center text-xs text-muted-foreground">
+        Cargando rutas...
+      </div>
+    )
   if (routes.length === 0) return null
 
   return (
-    <div className="flex flex-col gap-3 w-full min-w-0">
+    <div className="flex w-full min-w-0 flex-col gap-3">
       <div className="flex items-center gap-2 px-1">
         <Route className="h-4 w-4 text-primary" />
-        <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Mis Rutas Guardadas</h3>
+        <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+          Mis Rutas Guardadas
+        </h3>
       </div>
-      
+
       <ScrollArea className="h-[350px] w-full pr-4">
-        <div className="flex flex-col gap-2 w-full">
+        <div className="flex w-full flex-col gap-2">
           {routes.map((route) => (
-            <div 
+            <div
               key={route.id}
-              className="group relative flex flex-col rounded-lg border border-border bg-secondary/30 p-3 transition-all hover:border-primary/30 hover:bg-secondary/50 min-w-0"
+              className="group relative flex min-w-0 flex-col rounded-lg border border-border bg-secondary/30 p-3 transition-all hover:border-primary/30 hover:bg-secondary/50"
             >
               {editingId === route.id ? (
-                <div className="flex items-start gap-1 w-full" onClick={(e) => e.stopPropagation()}>
-                  <Input 
+                <div className="flex w-full items-start gap-1" onClick={(e) => e.stopPropagation()}>
+                  <Input
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
-                    className="h-8 text-xs py-0 flex-1 bg-background border-primary/50 focus-visible:ring-1 min-w-0"
+                    className="h-8 min-w-0 flex-1 border-primary/50 bg-background py-0 text-xs focus-visible:ring-1"
                     autoFocus
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') handleSaveEdit(e as any, route.id)
                       if (e.key === 'Escape') handleCancelEdit(e as any)
                     }}
                   />
-                  <div className="flex items-center shrink-0">
-                    <Button size="icon" variant="ghost" className="h-8 w-8 text-primary hover:bg-primary/10" onClick={(e) => handleSaveEdit(e, route.id)}>
+                  <div className="flex shrink-0 items-center">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-8 w-8 text-primary hover:bg-primary/10"
+                      onClick={(e) => handleSaveEdit(e, route.id)}
+                    >
                       <Check className="h-4 w-4" />
                     </Button>
-                    <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:bg-muted" onClick={handleCancelEdit}>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-8 w-8 text-muted-foreground hover:bg-muted"
+                      onClick={handleCancelEdit}
+                    >
                       <X className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
               ) : (
-                <div className="flex items-start justify-between w-full gap-3">
-                  <button 
-                    className="flex-1 min-w-0 text-left block"
+                <div className="flex w-full items-start justify-between gap-3">
+                  <button
+                    className="block min-w-0 flex-1 text-left"
                     onClick={() => onLoadRoute(route.gpx_content, route.name)}
                   >
-                    <p className="text-sm font-semibold text-foreground break-words whitespace-normal leading-tight">
+                    <p className="whitespace-normal break-words text-sm font-semibold leading-tight text-foreground">
                       {stripExtension(route.name)}
                     </p>
                     <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-muted-foreground">
-                      <span className="flex items-center gap-1 shrink-0">
+                      <span className="flex shrink-0 items-center gap-1">
                         <MapPin className="h-3 w-3" />
                         {Number(route.distance).toFixed(1)} km
                       </span>
-                      <span className="flex items-center gap-1 shrink-0">
+                      <span className="flex shrink-0 items-center gap-1">
                         <Calendar className="h-3 w-3" />
                         {new Date(route.created_at).toLocaleDateString()}
                       </span>
                     </div>
                   </button>
-                  
+
                   <div className="flex shrink-0 items-center gap-0.5">
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/5 transition-colors"
+                      className="h-8 w-8 text-muted-foreground transition-colors hover:bg-primary/5 hover:text-primary"
                       onClick={(e) => handleStartEdit(e, route)}
                     >
                       <Pencil className="h-3.5 w-3.5" />
@@ -108,8 +125,11 @@ export function SavedRoutesList({ onLoadRoute }: SavedRoutesListProps) {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors"
-                      onClick={(e) => { e.stopPropagation(); deleteRoute(route.id); }}
+                      className="h-8 w-8 text-muted-foreground transition-colors hover:bg-destructive/5 hover:text-destructive"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        deleteRoute(route.id)
+                      }}
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>

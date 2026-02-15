@@ -1,6 +1,15 @@
 'use client'
 
-import { Wind, Thermometer, Droplets, Eye, ArrowUp, ArrowDown, ArrowLeft, ArrowRight } from 'lucide-react'
+import {
+  Wind,
+  Thermometer,
+  Droplets,
+  Eye,
+  ArrowUp,
+  ArrowDown,
+  ArrowLeft,
+  ArrowRight,
+} from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { WeatherIcon } from '@/components/weather-icon'
 import { WindArrow } from '@/components/wind-arrow'
@@ -40,11 +49,11 @@ export function WeatherPointDetail({ point }: WeatherPointDetailProps) {
     day: 'numeric',
     month: 'short',
   })
-  
+
   const hasTranslation = !!tw.raw(point.weather.weatherCode.toString())
-  const weatherDescription = hasTranslation 
-    ? tw(point.weather.weatherCode.toString() as any) 
-    : (WEATHER_CODES[point.weather.weatherCode]?.description || t('unknownWeather'))
+  const weatherDescription = hasTranslation
+    ? tw(point.weather.weatherCode.toString() as any)
+    : WEATHER_CODES[point.weather.weatherCode]?.description || t('unknownWeather')
 
   const windEffectLabel = t(`windEffect.${point.windEffect}` as any).toLowerCase()
 
@@ -53,15 +62,19 @@ export function WeatherPointDetail({ point }: WeatherPointDetailProps) {
       <div className="mb-4 flex items-start justify-between">
         <div>
           <p className="text-sm text-muted-foreground">{dateStr}</p>
-          <p className="text-2xl font-bold font-mono text-foreground">{timeStr}</p>
-          <p className="text-xs text-muted-foreground">km {point.point.distanceFromStart.toFixed(1)}</p>
+          <p className="font-mono text-2xl font-bold text-foreground">{timeStr}</p>
+          <p className="text-xs text-muted-foreground">
+            km {point.point.distanceFromStart.toFixed(1)}
+          </p>
           {point.point.ele !== undefined && (
-            <p className="text-xs text-muted-foreground">{t('detail.altitude', { ele: Math.round(point.point.ele) })}</p>
+            <p className="text-xs text-muted-foreground">
+              {t('detail.altitude', { ele: Math.round(point.point.ele) })}
+            </p>
           )}
         </div>
         <div className="flex flex-col items-center gap-1">
           <WeatherIcon code={point.weather.weatherCode} className="h-10 w-10" />
-          <span className="text-xs text-muted-foreground text-center">{weatherDescription}</span>
+          <span className="text-center text-xs text-muted-foreground">{weatherDescription}</span>
         </div>
       </div>
 
@@ -71,8 +84,12 @@ export function WeatherPointDetail({ point }: WeatherPointDetailProps) {
           <Thermometer className="h-4 w-4 shrink-0 text-destructive" />
           <div>
             <p className="text-xs text-muted-foreground">{t('detail.temperature')}</p>
-            <p className="text-sm font-bold font-mono text-foreground">{point.weather.temperature}°C</p>
-            <p className="text-[10px] text-muted-foreground">{t('detail.feelsLike', { temp: point.weather.apparentTemperature })}</p>
+            <p className="font-mono text-sm font-bold text-foreground">
+              {point.weather.temperature}°C
+            </p>
+            <p className="text-[10px] text-muted-foreground">
+              {t('detail.feelsLike', { temp: point.weather.apparentTemperature })}
+            </p>
           </div>
         </div>
 
@@ -86,8 +103,12 @@ export function WeatherPointDetail({ point }: WeatherPointDetailProps) {
           />
           <div>
             <p className="text-xs text-muted-foreground">{t('detail.wind')}</p>
-            <p className="text-sm font-bold font-mono text-foreground">{point.weather.windSpeed} km/h</p>
-            <p className="text-[10px] text-muted-foreground">{t('detail.gusts', { speed: point.weather.windGusts })}</p>
+            <p className="font-mono text-sm font-bold text-foreground">
+              {point.weather.windSpeed} km/h
+            </p>
+            <p className="text-[10px] text-muted-foreground">
+              {t('detail.gusts', { speed: point.weather.windGusts })}
+            </p>
           </div>
         </div>
 
@@ -96,8 +117,12 @@ export function WeatherPointDetail({ point }: WeatherPointDetailProps) {
           <Droplets className="h-4 w-4 shrink-0 text-chart-2" />
           <div>
             <p className="text-xs text-muted-foreground">{t('detail.rain')}</p>
-            <p className="text-sm font-bold font-mono text-foreground">{point.weather.precipitation}mm</p>
-            <p className="text-[10px] text-muted-foreground">{t('detail.prob', { percent: point.weather.precipitationProbability })}</p>
+            <p className="font-mono text-sm font-bold text-foreground">
+              {point.weather.precipitation}mm
+            </p>
+            <p className="text-[10px] text-muted-foreground">
+              {t('detail.prob', { percent: point.weather.precipitationProbability })}
+            </p>
           </div>
         </div>
 
@@ -106,10 +131,12 @@ export function WeatherPointDetail({ point }: WeatherPointDetailProps) {
           <Eye className="h-4 w-4 shrink-0 text-muted-foreground" />
           <div>
             <p className="text-xs text-muted-foreground">{t('detail.visibility')}</p>
-            <p className="text-sm font-bold font-mono text-foreground">
+            <p className="font-mono text-sm font-bold text-foreground">
               {(point.weather.visibility / 1000).toFixed(1)} km
             </p>
-            <p className="text-[10px] text-muted-foreground">{t('detail.clouds', { percent: point.weather.cloudCover })}</p>
+            <p className="text-[10px] text-muted-foreground">
+              {t('detail.clouds', { percent: point.weather.cloudCover })}
+            </p>
           </div>
         </div>
       </div>
@@ -127,7 +154,7 @@ export function WeatherPointDetail({ point }: WeatherPointDetailProps) {
         </div>
         <div className="text-right">
           <p className="text-xs text-muted-foreground">{t('windEffect.bearing')}</p>
-          <p className="text-sm font-mono font-bold text-foreground">{point.bearing.toFixed(0)}°</p>
+          <p className="font-mono text-sm font-bold text-foreground">{point.bearing.toFixed(0)}°</p>
         </div>
       </div>
     </div>
