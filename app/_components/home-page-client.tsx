@@ -16,6 +16,8 @@ import { ElevationProfile } from '@/components/weather-timeline/elevation-profil
 import { RouteSegments } from '@/components/weather-timeline/route-segments'
 import { Sidebar } from "./sidebar";
 import { Session } from "next-auth"
+import { useSavedRoutes } from '@/hooks/use-saved-routes'
+import { useEffect, useRef } from 'react'
 
 const RouteMap = dynamic(() => import('@/components/route-map'), {
   ssr: false,
@@ -48,10 +50,13 @@ export default function HomePageClient({ session }: HomePageClientProps) {
   })
 
   const [activeFilter, setActiveFilter] = useState<{ key: 'pathType' | 'surface', value: string } | null>(null)
+  const { saveRoute, routes } = useSavedRoutes()
+  const lastSavedRef = useRef<string | null>(null)
 
   const {
     gpxData,
     gpxFileName,
+    rawGPXContent,
     weatherPoints,
     routeInfoData,
     selectedPointIndex,
@@ -62,6 +67,18 @@ export default function HomePageClient({ session }: HomePageClientProps) {
     handleClearGPX,
     handleAnalyze,
   } = useRouteAnalysis(config)
+
+  // AUTO-SAVE logic
+  useEffect(() => {
+    if (gpxData && rawGPXContent && gpxFileName && session?.user?.email) {
+      const routeExists = routes.some(r => r.name === gpxFileName && Number(r.distance).toFixed(2) === gpxData.totalDistance.toFixed(2))
+      
+      if (!routeExists && lastSavedRef.current !== rawGPXContent) {
+        saveRoute(gpxFileName, rawGPXContent, gpxData.totalDistance, gpxData.totalElevationGain)
+        lastSavedRef.current = rawGPXContent
+      }
+    }
+  }, [gpxData, rawGPXContent, gpxFileName, session?.user?.email, routes, saveRoute])
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
