@@ -52,7 +52,11 @@ export function useRouteAnalysis(config: RouteConfig) {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            points: sampleRoutePoints(gpxData.points, 24).map((p) => ({ lat: p.lat, lon: p.lon })),
+            points: sampleRoutePoints(gpxData.points, 24).map((p) => ({ 
+              lat: p.lat, 
+              lon: p.lon,
+              distanceFromStart: p.distanceFromStart 
+            })),
           }),
         })
         if (response.ok) {
@@ -166,10 +170,13 @@ export function useRouteAnalysis(config: RouteConfig) {
         const windResult = getWindEffect(bearing, weather.windDirection)
 
         // Match with route info
-        const info = routeInfoData[Math.floor(idx)] || {}
+        const info = routeInfoData[idx] || {}
 
         return {
-          point,
+          point: {
+            ...point,
+            ele: point.ele || info.elevation, // Fallback to OSM/Meteo elevation
+          },
           weather,
           windEffect: windResult.effect,
           windEffectAngle: windResult.angle,

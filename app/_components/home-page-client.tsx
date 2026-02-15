@@ -147,9 +147,14 @@ export default function HomePageClient({ session }: HomePageClientProps) {
                     weatherPoints={
                       weatherPoints.length > 0
                         ? weatherPoints
-                        : gpxData.points
-                            .filter((_, i) => i % 10 === 0)
-                            .map((p) => ({ point: p, weather: {} } as any))
+                        : routeInfoData.length > 0
+                          ? routeInfoData.map((d) => ({
+                              point: { ...d, ele: d.elevation, distanceFromStart: d.distanceFromStart || 0 },
+                              weather: {},
+                            } as any))
+                          : gpxData.points
+                              .filter((_, i) => i % 10 === 0)
+                              .map((p) => ({ point: p, weather: {} } as any))
                     }
                     selectedIndex={selectedPointIndex}
                     onSelect={setSelectedPointIndex}
