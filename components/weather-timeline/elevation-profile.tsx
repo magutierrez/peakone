@@ -59,26 +59,25 @@ export function ElevationProfile({ weatherPoints, selectedIndex, onSelect }: Ele
               tickFormatter={(val) => `${val.toFixed(0)} km`}
               minTickGap={30}
             />
-            <YAxis 
-              tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
-              axisLine={{ stroke: 'hsl(var(--border))' }}
-              tickFormatter={(val) => `${val}m`}
-            />
-            <Tooltip 
-              content={({ active, payload }) => {
-                if (active && payload && payload.length) {
-                  const data = payload[0].payload
-                  return (
-                    <div className="rounded-lg border border-border bg-background p-2 shadow-md">
-                      <p className="text-[10px] font-bold text-foreground">km {data.distance.toFixed(1)}</p>
-                      <p className="text-xs font-bold text-primary">{data.elevation} {t('chart.m')}</p>
-                    </div>
-                  )
-                }
-                return null
-              }}
-            />
-            <Area 
+                          <YAxis 
+                            tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                            axisLine={{ stroke: 'hsl(var(--border))' }}
+                            tickFormatter={(val) => `${Math.round(val)}m`}
+                          />
+                          <Tooltip 
+                            content={({ active, payload }) => {
+                              if (active && payload && payload.length) {
+                                const data = payload[0].payload
+                                return (
+                                  <div className="rounded-lg border border-border bg-background p-2 shadow-md">
+                                    <p className="text-[10px] font-bold text-foreground">km {data.distance.toFixed(1)}</p>
+                                    <p className="text-xs font-bold text-primary">{Math.round(data.elevation)} {t('chart.m')}</p>
+                                  </div>
+                                )
+                              }
+                              return null
+                            }}
+                          />            <Area 
               type="monotone" 
               dataKey="elevation" 
               stroke="hsl(var(--primary))" 
