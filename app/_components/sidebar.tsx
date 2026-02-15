@@ -1,6 +1,7 @@
 'use client'
 
 import { RouteConfigPanel } from '@/components/route-config-panel'
+import { SavedRoutesList } from '@/components/saved-routes-list'
 import type { RouteConfig, GPXData } from '@/lib/types'
 
 interface SidebarProps {
@@ -28,7 +29,7 @@ export function Sidebar({
 }: SidebarProps) {
   return (
     <aside className="w-full shrink-0 border-b border-border bg-card p-4 lg:w-80 lg:border-b-0 lg:border-r lg:overflow-y-auto lg:h-[calc(100vh-57px)] lg:sticky lg:top-[57px]">
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-8">
         <RouteConfigPanel
           config={config}
           onConfigChange={setConfig}
@@ -39,6 +40,8 @@ export function Sidebar({
           onAnalyze={onAnalyze}
           isLoading={isLoading}
         />
+
+        <SavedRoutesList onLoadRoute={onGPXLoaded} />
 
         {error && (
           <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-3">

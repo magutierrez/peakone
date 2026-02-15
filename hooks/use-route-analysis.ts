@@ -9,6 +9,7 @@ export function useRouteAnalysis(config: RouteConfig) {
   const t = useTranslations('HomePage')
   const [gpxData, setGPXData] = useState<GPXData | null>(null)
   const [gpxFileName, setGPXFileName] = useState<string | null>(null)
+  const [rawGPXContent, setRawGPXContent] = useState<string | null>(null)
   const [weatherPoints, setWeatherPoints] = useState<RouteWeatherPoint[]>([])
   const [routeInfoData, setRouteInfoData] = useState<any[]>([])
   const [selectedPointIndex, setSelectedPointIndex] = useState<number | null>(null)
@@ -52,6 +53,7 @@ export function useRouteAnalysis(config: RouteConfig) {
       }
       setGPXData(data)
       setGPXFileName(fileName)
+      setRawGPXContent(content)
       setWeatherPoints([])
       setSelectedPointIndex(null)
       setError(null)
@@ -63,6 +65,7 @@ export function useRouteAnalysis(config: RouteConfig) {
   const handleClearGPX = useCallback(() => {
     setGPXData(null)
     setGPXFileName(null)
+    setRawGPXContent(null)
     setWeatherPoints([])
     setRouteInfoData([])
     setSelectedPointIndex(null)
@@ -156,6 +159,7 @@ export function useRouteAnalysis(config: RouteConfig) {
   return {
     gpxData,
     gpxFileName,
+    rawGPXContent,
     weatherPoints,
     routeInfoData,
     selectedPointIndex,
