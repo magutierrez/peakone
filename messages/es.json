@@ -97,7 +97,10 @@
       "elevation": "Elevacion",
       "distance": "Distancia",
       "m": "m",
-      "km": "km"
+      "km": "km",
+      "slopeEasy": "Fácil",
+      "slopeModerate": "Moderada",
+      "slopeHard": "Difícil"
     },
     "windEffect": {
       "tailwind": "A favor",
