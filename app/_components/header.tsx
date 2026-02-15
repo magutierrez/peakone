@@ -5,8 +5,14 @@ import { useTranslations } from 'next-intl'
 import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { Session } from "next-auth"
+import { UserMenu } from "./user-menu"
 
-export function Header() {
+interface HeaderProps {
+  session: Session | null
+}
+
+export function Header({ session }: HeaderProps) {
   const t = useTranslations('HomePage')
   const { theme, setTheme, resolvedTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
@@ -37,23 +43,27 @@ export function Header() {
             <span className="text-xs text-muted-foreground">{t('header.apiVersion')}</span>
           </div>
           
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
-            title="Cambiar tema"
-          >
-            {mounted ? (
-              resolvedTheme === 'dark' ? (
-                <Sun className="h-5 w-5 text-orange-400" />
+          <div className="flex items-center gap-2 border-l border-border pl-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
+              title="Cambiar tema"
+            >
+              {mounted ? (
+                resolvedTheme === 'dark' ? (
+                  <Sun className="h-5 w-5 text-orange-400" />
+                ) : (
+                  <Moon className="h-5 w-5 text-slate-700" />
+                )
               ) : (
-                <Moon className="h-5 w-5 text-slate-700" />
-              )
-            ) : (
-              <div className="h-5 w-5" />
-            )}
-            <span className="sr-only">Toggle theme</span>
-          </Button>
+                <div className="h-5 w-5" />
+              )}
+              <span className="sr-only">Toggle theme</span>
+            </Button>
+
+            {session?.user && <UserMenu user={session.user} />}
+          </div>
         </div>
       </div>
     </header>
