@@ -17,10 +17,26 @@ export function useRouteAnalysis(config: RouteConfig) {
   const [gpxFileName, setGPXFileName] = useState<string | null>(null)
   const [rawGPXContent, setRawGPXContent] = useState<string | null>(null)
   const [weatherPoints, setWeatherPoints] = useState<RouteWeatherPoint[]>([])
+  const [elevationData, setElevationData] = useState<{ distance: number; elevation: number }[]>([])
   const [routeInfoData, setRouteInfoData] = useState<any[]>([])
   const [selectedPointIndex, setSelectedPointIndex] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [isRouteInfoLoading, setIsRouteInfoLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Update high-density elevation data when GPX loads
+  useEffect(() => {
+    if (gpxData) {
+      // Sample 300 points for a very smooth chart (Komoot style)
+      const dense = sampleRoutePoints(gpxData.points, 300)
+      setElevationData(dense.map(p => ({
+        distance: p.distanceFromStart,
+        elevation: p.ele || 0
+      })))
+    } else {
+      setElevationData([])
+    }
+  }, [gpxData])
 
   const handleReverseRoute = useCallback(() => {
     if (!gpxData) return
@@ -47,12 +63,17 @@ export function useRouteAnalysis(config: RouteConfig) {
     }
 
     const fetchRouteInfo = async () => {
+      setIsRouteInfoLoading(true)
       try {
         const response = await fetch('/api/route-info', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            points: sampleRoutePoints(gpxData.points, 24).map((p) => ({ lat: p.lat, lon: p.lon })),
+            points: sampleRoutePoints(gpxData.points, 24).map((p) => ({
+              lat: p.lat,
+              lon: p.lon,
+              distanceFromStart: p.distanceFromStart,
+            })),
           }),
         })
         if (response.ok) {
@@ -60,7 +81,9 @@ export function useRouteAnalysis(config: RouteConfig) {
           setRouteInfoData(data.pathData || [])
         }
       } catch (e) {
-        console.error('Failed to fetch route info')
+        console.error('Failed to fetch route info', e)
+      } finally {
+        setIsRouteInfoLoading(false)
       }
     }
 
@@ -165,11 +188,14 @@ export function useRouteAnalysis(config: RouteConfig) {
         const weather = weatherData[idx]
         const windResult = getWindEffect(bearing, weather.windDirection)
 
-        // Match with route info
-        const info = routeInfoData[Math.floor(idx)] || {}
+        // Match with route info (nearest point)
+        const info = routeInfoData[idx] || {}
 
         return {
-          point,
+          point: {
+            ...point,
+            ele: point.ele || info.elevation, // Fallback to OSM/Meteo elevation
+          },
           weather,
           windEffect: windResult.effect,
           windEffectAngle: windResult.angle,
@@ -193,10 +219,12 @@ export function useRouteAnalysis(config: RouteConfig) {
     gpxFileName,
     rawGPXContent,
     weatherPoints,
+    elevationData,
     routeInfoData,
     selectedPointIndex,
     setSelectedPointIndex,
     isLoading,
+    isRouteInfoLoading,
     error,
     handleGPXLoaded,
     handleStravaActivityLoaded,

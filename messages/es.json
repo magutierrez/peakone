@@ -1,6 +1,11 @@
 {
   "HomePage": {
     "loadingMap": "Cargando mapa...",
+    "processingRoute": "Procesando ruta...",
+    "obtainingData": "Obteniendo datos de elevación y terreno",
+    "analyzeFirst": "Analiza la ruta para ver los datos meteorológicos",
+    "clickAnalyze": "Haz clic en 'Analizar meteorología' para ver el pronóstico por tramos",
+    "uploadFirst": "Sube un archivo GPX para empezar",
     "errors": {
       "insufficientPoints": "El archivo GPX no contiene suficientes puntos.",
       "readError": "Error al leer el archivo GPX. Verifica el formato.",
@@ -16,10 +21,17 @@
     "placeholders": {
       "title": "Sube un archivo GPX para empezar",
       "description": "Configura la fecha, hora y velocidad, y analiza tu ruta para ver el forecast meteorologico punto a punto con el analisis de vientos."
+    },
+    "sections": {
+      "terrain": "Terreno y Vía",
+      "altitude": "Altitud",
+      "activityConfig": "Configuración de la Actividad",
+      "weatherAnalysis": "Análisis Meteorológico"
     }
   },
   "RouteConfigPanel": {
     "gpxFile": "Archivo GPX",
+    "reverseRoute": "Invertir sentido",
     "km": "km",
     "elevationGain": "m D+",
     "elevationLoss": "m D-",
@@ -31,7 +43,7 @@
     "averageSpeed": "Velocidad media (km/h)",
     "estimatedDuration": "Duracion estimada",
     "durationFormat": "{hours}h {minutes}min",
-    "analyze": "Analizar ruta",
+    "analyze": "Analizar meteorología",
     "analyzing": "Analizando..."
   },
   "GPXUpload": {
@@ -55,6 +67,39 @@
     "elevationTitle": "Perfil de elevacion",
     "segmentsTitle": "Tipos de vía y superficies",
     "unknownWeather": "Desconocido",
+    "windFrom": "Viento desde {direction} grados",
+    "loading": "Cargando...",
+    "slope": "Pendiente",
+    "chart": {
+      "elevation": "Elevacion",
+      "distance": "Distancia",
+      "m": "m",
+      "km": "km",
+      "slopeEasy": "Fácil",
+      "slopeModerate": "Moderada",
+      "slopeHard": "Difícil",
+      "resetZoom": "Restablecer zoom"
+    },
+    "windEffect": {
+      "tailwind": "A favor",
+      "headwind": "En contra",
+      "crosswind-left": "Lateral izq.",
+      "crosswind-right": "Lateral der.",
+      "summary": "Viento {label}",
+      "relativeAngle": "Angulo relativo: {angle}° respecto a tu direccion de viaje",
+      "bearing": "Rumbo viaje"
+    },
+    "detail": {
+      "temperature": "Temperatura",
+      "feelsLike": "Sens. {temp}°C",
+      "wind": "Viento",
+      "gusts": "Rachas: {speed} km/h",
+      "rain": "Lluvia",
+      "prob": "Prob: {percent}%",
+      "visibility": "Visibilidad",
+      "clouds": "Nubes: {percent}%",
+      "altitude": "Alt: {ele}m"
+    },
     "pathTypes": {
       "title": "Tipos de vía",
       "cycleway": "Carril bici",
@@ -91,34 +136,22 @@
       "sand": "Arena",
       "grass": "Hierba",
       "unknown": "Desconocido"
-    },
-    "windFrom": "Viento desde {direction} grados",
-    "chart": {
-      "elevation": "Elevacion",
-      "distance": "Distancia",
-      "m": "m",
-      "km": "km"
-    },
-    "windEffect": {
-      "tailwind": "A favor",
-      "headwind": "En contra",
-      "crosswind-left": "Lateral izq.",
-      "crosswind-right": "Lateral der.",
-      "summary": "Viento {label}",
-      "relativeAngle": "Angulo relativo: {angle}° respecto a tu direccion de viaje",
-      "bearing": "Rumbo viaje"
-    },
-    "detail": {
-      "temperature": "Temperatura",
-      "feelsLike": "Sens. {temp}°C",
-      "wind": "Viento",
-      "gusts": "Rachas: {speed} km/h",
-      "rain": "Lluvia",
-      "prob": "Prob: {percent}%",
-      "visibility": "Visibilidad",
-      "clouds": "Nubes: {percent}%",
-      "altitude": "Alt: {ele}m"
     }
+  },
+  "Auth": {
+    "welcome": "Bienvenido a RouteWeather",
+    "loginDescription": "Inicia sesión para analizar tus rutas y ver el pronóstico meteorológico detallado.",
+    "continueGoogle": "Continuar con Google",
+    "continueFacebook": "Continuar con Facebook",
+    "continueX": "Continuar con X (Twitter)",
+    "continueStrava": "Continuar con Strava",
+    "terms": "Al continuar, aceptas nuestros términos de servicio y política de privacidad.",
+    "logout": "Cerrar sesión"
+  },
+  "SavedRoutes": {
+    "title": "Mis Rutas Guardadas",
+    "loading": "Cargando rutas...",
+    "stravaTitle": "Mis Actividades de Strava"
   },
   "RouteMap": {
     "start": "Inicio",

@@ -36,12 +36,7 @@ export function Header({ session }: HeaderProps) {
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="hidden items-center gap-2 md:flex">
-            <Wind className="h-4 w-4 text-muted-foreground" />
-            <span className="text-xs text-muted-foreground">{t('header.apiVersion')}</span>
-          </div>
-
-          <div className="flex items-center gap-2 border-l border-border pl-4">
+          <div className="flex items-center gap-2  pl-4">
             <Button
               variant="ghost"
               size="icon"
