@@ -3,21 +3,26 @@
 import { useState } from 'react'
 import dynamic from 'next/dynamic'
 import { useTranslations } from 'next-intl'
-import { WeatherTimeline } from '@/components/weather-timeline'
 import { useRouteAnalysis } from '@/hooks/use-route-analysis'
 import type { RouteConfig } from '@/lib/types'
 
 // Components
 import { Header } from './_components/header'
-import { Sidebar } from './_components/sidebar'
 import { EmptyState } from './_components/empty-state'
+import { RouteConfigPanel } from '@/components/route-config-panel'
+import { WeatherSummary } from '@/components/weather-timeline/weather-summary'
+import { WeatherList } from '@/components/weather-timeline/weather-list'
+import { WeatherPointDetail } from '@/components/weather-timeline/weather-point-detail'
+import { ElevationProfile } from '@/components/weather-timeline/elevation-profile'
+import { RouteSegments } from '@/components/weather-timeline/route-segments'
+import {Sidebar} from "@/app/_components/sidebar";
 
 const RouteMap = dynamic(() => import('@/components/route-map'), {
   ssr: false,
   loading: function Loading() {
     const t = useTranslations('HomePage')
     return (
-      <div className="flex h-full items-center justify-center bg-card">
+      <div className="flex h-full items-center justify-center bg-card rounded-lg">
         <span className="text-sm text-muted-foreground">{t('loadingMap')}</span>
       </div>
     )
@@ -44,6 +49,7 @@ export default function HomePage() {
     gpxData,
     gpxFileName,
     weatherPoints,
+    routeInfoData,
     selectedPointIndex,
     setSelectedPointIndex,
     isLoading,
@@ -57,7 +63,7 @@ export default function HomePage() {
     <div className="flex min-h-screen flex-col bg-background">
       <Header />
 
-      <div className="flex flex-1 flex-col lg:flex-row">
+      <div className="flex flex-1 flex-col lg:flex-row min-h-0">
         <Sidebar
           config={config}
           setConfig={setConfig}
@@ -70,8 +76,58 @@ export default function HomePage() {
           onAnalyze={handleAnalyze}
         />
 
-        <main className="flex flex-1 flex-col min-w-0">
-          <div className="h-[40vh] lg:h-[50vh]">
+        <main className="flex-1 flex flex-col lg:flex-row min-w-0">
+          <div className="w-full lg:w-[60%] p-6 md:p-8 flex flex-col gap-10">
+            {!gpxData ? (
+              <EmptyState />
+            ) : (
+              <>
+                <section className="flex flex-col gap-4">
+                  <div className="flex items-center gap-2 border-b border-border pb-2">
+                    <div className="h-4 w-1 bg-primary rounded-full" />
+                    <h3 className="text-sm font-bold uppercase tracking-wider text-foreground/80">Terreno y Vía</h3>
+                  </div>
+                  <RouteSegments 
+                    weatherPoints={weatherPoints.length > 0 ? weatherPoints : routeInfoData.map(d => ({ ...d, point: d }))} 
+                    activeFilter={activeFilter}
+                    onFilterChange={setActiveFilter}
+                  />
+                </section>
+
+                <section className="flex flex-col gap-4">
+                  <div className="flex items-center gap-2 border-b border-border pb-2">
+                    <div className="h-4 w-1 bg-primary rounded-full" />
+                    <h3 className="text-sm font-bold uppercase tracking-wider text-foreground/80">Altitud</h3>
+                  </div>
+                  <ElevationProfile 
+                    weatherPoints={weatherPoints.length > 0 ? weatherPoints : gpxData.points.filter((_, i) => i % 10 === 0).map(p => ({ point: p, weather: {} } as any))} 
+                    selectedIndex={selectedPointIndex} 
+                    onSelect={setSelectedPointIndex} 
+                  />
+                </section>
+
+                {weatherPoints.length > 0 && (
+                  <section className="flex flex-col gap-8">
+                    <div className="flex items-center gap-2 border-b border-border pb-2">
+                      <div className="h-4 w-1 bg-primary rounded-full" />
+                      <h3 className="text-sm font-bold uppercase tracking-wider text-foreground/80">Análisis Meteorológico</h3>
+                    </div>
+                    <WeatherSummary weatherPoints={weatherPoints} />
+                    <WeatherList 
+                      weatherPoints={weatherPoints} 
+                      selectedIndex={selectedPointIndex} 
+                      onSelect={setSelectedPointIndex} 
+                    />
+                    {selectedPointIndex !== null && weatherPoints[selectedPointIndex] && (
+                      <WeatherPointDetail point={weatherPoints[selectedPointIndex]} />
+                    )}
+                  </section>
+                )}
+              </>
+            )}
+          </div>
+
+          <div className="w-full lg:w-[40%] h-[50vh] lg:h-[calc(100vh-57px)] lg:sticky lg:top-[57px] border-l border-border">
             <RouteMap
               points={gpxData?.points || []}
               weatherPoints={weatherPoints.length > 0 ? weatherPoints : undefined}
@@ -79,20 +135,6 @@ export default function HomePage() {
               onPointSelect={setSelectedPointIndex}
               activeFilter={activeFilter}
             />
-          </div>
-
-          <div className="flex-1 overflow-y-auto border-t border-border bg-background p-4">
-            {weatherPoints.length > 0 ? (
-              <WeatherTimeline
-                weatherPoints={weatherPoints}
-                selectedIndex={selectedPointIndex}
-                onSelect={setSelectedPointIndex}
-                activeFilter={activeFilter}
-                onFilterChange={setActiveFilter}
-              />
-            ) : (
-              <EmptyState />
-            )}
           </div>
         </main>
       </div>

@@ -1,4 +1,6 @@
-import { useState, useCallback } from 'react'
+'use client'
+
+import { useState, useCallback, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
 import { parseGPX, sampleRoutePoints, calculateBearing, getWindEffect } from '@/lib/gpx-parser'
 import type { GPXData, RouteConfig, RouteWeatherPoint, WeatherData } from '@/lib/types'
@@ -8,9 +10,38 @@ export function useRouteAnalysis(config: RouteConfig) {
   const [gpxData, setGPXData] = useState<GPXData | null>(null)
   const [gpxFileName, setGPXFileName] = useState<string | null>(null)
   const [weatherPoints, setWeatherPoints] = useState<RouteWeatherPoint[]>([])
+  const [routeInfoData, setRouteInfoData] = useState<any[]>([])
   const [selectedPointIndex, setSelectedPointIndex] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Fetch route info (OSM) as soon as GPX is loaded
+  useEffect(() => {
+    if (!gpxData) {
+      setRouteInfoData([])
+      return
+    }
+
+    const fetchRouteInfo = async () => {
+      try {
+        const response = await fetch('/api/route-info', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            points: sampleRoutePoints(gpxData.points, 24).map((p) => ({ lat: p.lat, lon: p.lon })),
+          }),
+        })
+        if (response.ok) {
+          const data = await response.json()
+          setRouteInfoData(data.pathData || [])
+        }
+      } catch (e) {
+        console.error('Failed to fetch route info')
+      }
+    }
+
+    fetchRouteInfo()
+  }, [gpxData])
 
   const handleGPXLoaded = useCallback((content: string, fileName: string) => {
     try {
@@ -33,6 +64,7 @@ export function useRouteAnalysis(config: RouteConfig) {
     setGPXData(null)
     setGPXFileName(null)
     setWeatherPoints([])
+    setRouteInfoData([])
     setSelectedPointIndex(null)
     setError(null)
   }, [])
@@ -73,39 +105,24 @@ export function useRouteAnalysis(config: RouteConfig) {
         }
       })
 
-      const [weatherResponse, routeInfoResponse] = await Promise.all([
-        fetchWithRetry('/api/weather', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            points: pointsWithTime.map((p) => ({
-              lat: p.lat,
-              lon: p.lon,
-              estimatedTime: p.estimatedTime.toISOString(),
-            })),
-          }),
+      const response = await fetchWithRetry('/api/weather', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          points: pointsWithTime.map((p) => ({
+            lat: p.lat,
+            lon: p.lon,
+            estimatedTime: p.estimatedTime.toISOString(),
+          })),
         }),
-        fetch('/api/route-info', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            points: pointsWithTime.map((p) => ({ lat: p.lat, lon: p.lon })),
-          }),
-        }).catch(() => null)
-      ])
+      })
 
-      if (!weatherResponse.ok) {
-        throw new Error(weatherResponse.status === 429 ? t('errors.tooManyRequests') : t('errors.weatherFetchError'))
+      if (!response.ok) {
+        throw new Error(response.status === 429 ? t('errors.tooManyRequests') : t('errors.weatherFetchError'))
       }
 
-      const weatherDataObj = await weatherResponse.json()
+      const weatherDataObj = await response.json()
       const weatherData: WeatherData[] = weatherDataObj.weather
-      
-      let routeInfoData: any[] = []
-      if (routeInfoResponse?.ok) {
-        const info = await routeInfoResponse.json()
-        routeInfoData = info.pathData || []
-      }
 
       const routeWeatherPoints: RouteWeatherPoint[] = pointsWithTime.map((point, idx) => {
         const nextPoint = pointsWithTime[Math.min(idx + 1, pointsWithTime.length - 1)]
@@ -113,8 +130,8 @@ export function useRouteAnalysis(config: RouteConfig) {
         const weather = weatherData[idx]
         const windResult = getWindEffect(bearing, weather.windDirection)
         
-        // Match with route info (nearest point)
-        const info = routeInfoData[Math.floor(idx / 2)] || {}
+        // Match with route info
+        const info = routeInfoData[Math.floor(idx)] || {}
 
         return {
           point,
@@ -134,18 +151,19 @@ export function useRouteAnalysis(config: RouteConfig) {
     } finally {
       setIsLoading(false)
     }
-  }, [gpxData, config, t])
+  }, [gpxData, config, t, routeInfoData])
 
   return {
     gpxData,
     gpxFileName,
     weatherPoints,
+    routeInfoData,
     selectedPointIndex,
     setSelectedPointIndex,
     isLoading,
     error,
     handleGPXLoaded,
     handleClearGPX,
-    handleAnalyze
+    handleAnalyze,
   }
 }
