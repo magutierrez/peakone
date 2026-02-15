@@ -42,7 +42,7 @@ export function StravaActivitiesList({ onLoadGPX }: StravaActivitiesListProps) {
         <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Mis Actividades de Strava</h3>
       </div>
       
-      <ScrollArea className="h-[300px] pr-4">
+      <ScrollArea className="h-[500px] pr-4">
         <div className="flex flex-col gap-2">
           {activities.map((activity) => (
             <button 

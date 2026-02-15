@@ -20,6 +20,7 @@ export function useRouteAnalysis(config: RouteConfig) {
   const [routeInfoData, setRouteInfoData] = useState<any[]>([])
   const [selectedPointIndex, setSelectedPointIndex] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [isRouteInfoLoading, setIsRouteInfoLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const handleReverseRoute = useCallback(() => {
@@ -47,15 +48,16 @@ export function useRouteAnalysis(config: RouteConfig) {
     }
 
     const fetchRouteInfo = async () => {
+      setIsRouteInfoLoading(true)
       try {
         const response = await fetch('/api/route-info', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            points: sampleRoutePoints(gpxData.points, 24).map((p) => ({ 
-              lat: p.lat, 
+            points: sampleRoutePoints(gpxData.points, 24).map((p) => ({
+              lat: p.lat,
               lon: p.lon,
-              distanceFromStart: p.distanceFromStart 
+              distanceFromStart: p.distanceFromStart,
             })),
           }),
         })
@@ -64,7 +66,9 @@ export function useRouteAnalysis(config: RouteConfig) {
           setRouteInfoData(data.pathData || [])
         }
       } catch (e) {
-        console.error('Failed to fetch route info')
+        console.error('Failed to fetch route info', e)
+      } finally {
+        setIsRouteInfoLoading(false)
       }
     }
 
@@ -169,7 +173,7 @@ export function useRouteAnalysis(config: RouteConfig) {
         const weather = weatherData[idx]
         const windResult = getWindEffect(bearing, weather.windDirection)
 
-        // Match with route info
+        // Match with route info (nearest point)
         const info = routeInfoData[idx] || {}
 
         return {
@@ -204,6 +208,7 @@ export function useRouteAnalysis(config: RouteConfig) {
     selectedPointIndex,
     setSelectedPointIndex,
     isLoading,
+    isRouteInfoLoading,
     error,
     handleGPXLoaded,
     handleStravaActivityLoaded,

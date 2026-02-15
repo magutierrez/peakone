@@ -74,7 +74,8 @@
       "tertiary_link": "Enlace local",
       "unclassified": "Camino",
       "raceway": "Circuito",
-      "unknown": "Otros"
+      "unknown": "Otros",
+      "construction": "En construcción"
     },
     "surfaces": {
       "title": "Superficies",

@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic'
 import { useTranslations } from 'next-intl'
 import { useRouteAnalysis } from '@/hooks/use-route-analysis'
 import type { RouteConfig } from '@/lib/types'
-import { Bike, Footprints, Calendar as CalendarIcon, Clock, Gauge } from 'lucide-react'
+import { Bike, Footprints, Calendar as CalendarIcon, Clock, Gauge, Loader2 } from 'lucide-react'
 
 // Components
 import { Header } from './header'
@@ -68,6 +68,7 @@ export default function HomePageClient({ session }: HomePageClientProps) {
     selectedPointIndex,
     setSelectedPointIndex,
     isLoading,
+    isRouteInfoLoading,
     error,
     handleGPXLoaded,
     handleStravaActivityLoaded,
@@ -114,7 +115,20 @@ export default function HomePageClient({ session }: HomePageClientProps) {
         />
 
         {/* MAIN AREA: Split 60/40 */}
-        <main className="flex min-w-0 flex-1 flex-col lg:flex-row">
+        <main className="flex min-w-0 flex-1 flex-col lg:flex-row relative">
+          {/* Global Route Loading State */}
+          {isRouteInfoLoading && (
+            <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-background/60 backdrop-blur-sm">
+              <div className="flex flex-col items-center gap-4 p-8 rounded-2xl bg-card border border-border shadow-2xl">
+                <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                <div className="text-center">
+                  <p className="font-bold text-foreground">Procesando ruta...</p>
+                  <p className="text-xs text-muted-foreground mt-1">Obteniendo datos de elevación y terreno</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Data Column (60%) */}
           <div className="flex w-full flex-col gap-10 p-6 md:p-8 lg:w-[60%]">
             {!gpxData ? (
@@ -161,9 +175,7 @@ export default function HomePageClient({ session }: HomePageClientProps) {
                               },
                               weather: {},
                             } as any))
-                          : gpxData.points
-                              .filter((_, i) => i % 10 === 0)
-                              .map((p) => ({ point: p, weather: {} } as any))
+                          : []
                     }
                     selectedIndex={selectedPointIndex}
                     onSelect={setSelectedPointIndex}
