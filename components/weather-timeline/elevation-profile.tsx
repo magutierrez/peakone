@@ -38,10 +38,17 @@ export function ElevationProfile({ weatherPoints, elevationData, selectedIndex, 
 
   // Usar elevationData si existe, si no, fallback a weatherPoints
   const displayData = useMemo(() => {
-    if (elevationData && elevationData.length > 0) return elevationData
-    return weatherPoints.map(wp => ({
-      distance: wp.point.distanceFromStart,
-      elevation: wp.point.ele || 0
+    const rawData = (elevationData && elevationData.length > 0) 
+      ? elevationData 
+      : weatherPoints.map(wp => ({
+          distance: wp.point.distanceFromStart,
+          elevation: wp.point.ele || 0
+        }))
+    
+    // Redondear siempre la elevación a enteros
+    return rawData.map(d => ({
+      ...d,
+      elevation: Math.round(d.elevation)
     }))
   }, [elevationData, weatherPoints])
 

@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
         lon: p.lon,
         pathType: tags.highway,
         surface: tags.surface || (tags.highway === 'cycleway' ? 'asphalt' : undefined),
-        elevation: elevations[idx], // Use fetched elevation
+        elevation: elevations[idx] !== undefined ? Math.round(elevations[idx]) : undefined, // Use fetched elevation rounded
         // @ts-ignore - p might have distanceFromStart if passed
         distanceFromStart: p.distanceFromStart
       }
