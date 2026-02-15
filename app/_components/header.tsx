@@ -23,7 +23,7 @@ export function Header({ session }: HeaderProps) {
   }, [])
 
   return (
-    <header className="border-b border-border bg-card">
+    <header className="sticky top-0 z-50 border-b border-border bg-card/80 backdrop-blur-md">
       <div className="flex items-center justify-between px-4 py-3 lg:px-6">
         <div className="flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
