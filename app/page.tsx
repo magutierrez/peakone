@@ -38,6 +38,8 @@ export default function HomePage() {
     activityType: 'cycling',
   })
 
+  const [activeFilter, setActiveFilter] = useState<{ key: 'pathType' | 'surface', value: string } | null>(null)
+
   const {
     gpxData,
     gpxFileName,
@@ -68,13 +70,14 @@ export default function HomePage() {
           onAnalyze={handleAnalyze}
         />
 
-        <main className="flex flex-1 flex-col">
+        <main className="flex flex-1 flex-col min-w-0">
           <div className="h-[40vh] lg:h-[50vh]">
             <RouteMap
               points={gpxData?.points || []}
               weatherPoints={weatherPoints.length > 0 ? weatherPoints : undefined}
               selectedPointIndex={selectedPointIndex}
               onPointSelect={setSelectedPointIndex}
+              activeFilter={activeFilter}
             />
           </div>
 
@@ -84,6 +87,8 @@ export default function HomePage() {
                 weatherPoints={weatherPoints}
                 selectedIndex={selectedPointIndex}
                 onSelect={setSelectedPointIndex}
+                activeFilter={activeFilter}
+                onFilterChange={setActiveFilter}
               />
             ) : (
               <EmptyState />

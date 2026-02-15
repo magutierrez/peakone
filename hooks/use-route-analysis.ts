@@ -73,30 +73,48 @@ export function useRouteAnalysis(config: RouteConfig) {
         }
       })
 
-      const response = await fetchWithRetry('/api/weather', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          points: pointsWithTime.map((p) => ({
-            lat: p.lat,
-            lon: p.lon,
-            estimatedTime: p.estimatedTime.toISOString(),
-          })),
+      const [weatherResponse, routeInfoResponse] = await Promise.all([
+        fetchWithRetry('/api/weather', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            points: pointsWithTime.map((p) => ({
+              lat: p.lat,
+              lon: p.lon,
+              estimatedTime: p.estimatedTime.toISOString(),
+            })),
+          }),
         }),
-      })
+        fetch('/api/route-info', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            points: pointsWithTime.map((p) => ({ lat: p.lat, lon: p.lon })),
+          }),
+        }).catch(() => null)
+      ])
 
-      if (!response.ok) {
-        throw new Error(response.status === 429 ? t('errors.tooManyRequests') : t('errors.weatherFetchError'))
+      if (!weatherResponse.ok) {
+        throw new Error(weatherResponse.status === 429 ? t('errors.tooManyRequests') : t('errors.weatherFetchError'))
       }
 
-      const data = await response.json()
-      const weatherData: WeatherData[] = data.weather
+      const weatherDataObj = await weatherResponse.json()
+      const weatherData: WeatherData[] = weatherDataObj.weather
+      
+      let routeInfoData: any[] = []
+      if (routeInfoResponse?.ok) {
+        const info = await routeInfoResponse.json()
+        routeInfoData = info.pathData || []
+      }
 
       const routeWeatherPoints: RouteWeatherPoint[] = pointsWithTime.map((point, idx) => {
         const nextPoint = pointsWithTime[Math.min(idx + 1, pointsWithTime.length - 1)]
         const bearing = calculateBearing(point.lat, point.lon, nextPoint.lat, nextPoint.lon)
         const weather = weatherData[idx]
         const windResult = getWindEffect(bearing, weather.windDirection)
+        
+        // Match with route info (nearest point)
+        const info = routeInfoData[Math.floor(idx / 2)] || {}
 
         return {
           point,
@@ -104,6 +122,8 @@ export function useRouteAnalysis(config: RouteConfig) {
           windEffect: windResult.effect,
           windEffectAngle: windResult.angle,
           bearing,
+          pathType: info.pathType,
+          surface: info.surface
         }
       })
 

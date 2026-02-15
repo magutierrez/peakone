@@ -26,7 +26,6 @@ export function WindArrow({ direction, effect, size = 40 }: WindArrowProps) {
       className="shrink-0"
       aria-label={t('windFrom', { direction: Math.round(direction) })}
     >
-      <circle cx="20" cy="20" r="18" fill="none" stroke="hsl(220, 14%, 18%)" strokeWidth="1.5" />
       <g transform={`rotate(${direction}, 20, 20)`}>
         <path
           d="M20 6 L26 24 L20 20 L14 24 Z"
@@ -34,16 +33,6 @@ export function WindArrow({ direction, effect, size = 40 }: WindArrowProps) {
           opacity="0.9"
         />
       </g>
-      <text
-        x="20"
-        y="35"
-        textAnchor="middle"
-        fill="hsl(215, 12%, 55%)"
-        fontSize="7"
-        fontFamily="system-ui"
-      >
-        {Math.round(direction)}
-      </text>
     </svg>
   )
 }
