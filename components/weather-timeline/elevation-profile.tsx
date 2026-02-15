@@ -204,7 +204,7 @@ export function ElevationProfile({ weatherPoints, elevationData, selectedIndex, 
             />
             <YAxis
               type="number"
-              domain={[bottom, top]}
+              domain={[bottom, top === 'dataMax' ? 'dataMax + 50' : top]}
               tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
               axisLine={{ stroke: 'hsl(var(--border))' }}
               tickFormatter={(val) => `${Math.round(val)}m`}
