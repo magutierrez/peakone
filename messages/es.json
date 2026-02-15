@@ -77,7 +77,8 @@
       "km": "km",
       "slopeEasy": "Fácil",
       "slopeModerate": "Moderada",
-      "slopeHard": "Difícil"
+      "slopeHard": "Difícil",
+      "resetZoom": "Restablecer zoom"
     },
     "windEffect": {
       "tailwind": "A favor",
