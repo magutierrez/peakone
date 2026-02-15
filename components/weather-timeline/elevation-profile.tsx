@@ -2,15 +2,15 @@
 
 import { TrendingUp } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { 
-  AreaChart, 
-  Area, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
-  ReferenceLine
+  ReferenceLine,
 } from 'recharts'
 import type { RouteWeatherPoint } from '@/lib/types'
 
@@ -20,7 +20,11 @@ interface ElevationProfileProps {
   onSelect: (index: number) => void
 }
 
-export function ElevationProfile({ weatherPoints, selectedIndex, onSelect }: ElevationProfileProps) {
+export function ElevationProfile({
+  weatherPoints,
+  selectedIndex,
+  onSelect,
+}: ElevationProfileProps) {
   const t = useTranslations('WeatherTimeline')
 
   const chartData = weatherPoints.map((wp, idx) => ({
@@ -37,8 +41,8 @@ export function ElevationProfile({ weatherPoints, selectedIndex, onSelect }: Ele
       </div>
       <div className="h-48 w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart 
-            data={chartData} 
+          <AreaChart
+            data={chartData}
             onMouseMove={(e) => {
               if (e.activePayload && e.activePayload[0]) {
                 onSelect(e.activePayload[0].payload.idx)
@@ -47,49 +51,54 @@ export function ElevationProfile({ weatherPoints, selectedIndex, onSelect }: Ele
           >
             <defs>
               <linearGradient id="colorEle" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
-                <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-            <XAxis 
-              dataKey="distance" 
+            <XAxis
+              dataKey="distance"
               tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
               axisLine={{ stroke: 'hsl(var(--border))' }}
               tickFormatter={(val) => `${val.toFixed(0)} km`}
               minTickGap={30}
             />
-                          <YAxis 
-                            tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
-                            axisLine={{ stroke: 'hsl(var(--border))' }}
-                            tickFormatter={(val) => `${Math.round(val)}m`}
-                          />
-                          <Tooltip 
-                            content={({ active, payload }) => {
-                              if (active && payload && payload.length) {
-                                const data = payload[0].payload
-                                return (
-                                  <div className="rounded-lg border border-border bg-background p-2 shadow-md">
-                                    <p className="text-[10px] font-bold text-foreground">km {data.distance.toFixed(1)}</p>
-                                    <p className="text-xs font-bold text-primary">{Math.round(data.elevation)} {t('chart.m')}</p>
-                                  </div>
-                                )
-                              }
-                              return null
-                            }}
-                          />            <Area 
-              type="monotone" 
-              dataKey="elevation" 
-              stroke="hsl(var(--primary))" 
+            <YAxis
+              tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+              axisLine={{ stroke: 'hsl(var(--border))' }}
+              tickFormatter={(val) => `${Math.round(val)}m`}
+            />
+            <Tooltip
+              content={({ active, payload }) => {
+                if (active && payload && payload.length) {
+                  const data = payload[0].payload
+                  return (
+                    <div className="rounded-lg border border-border bg-background p-2 shadow-md">
+                      <p className="text-[10px] font-bold text-foreground">
+                        km {data.distance.toFixed(1)}
+                      </p>
+                      <p className="text-xs font-bold text-primary">
+                        {Math.round(data.elevation)} {t('chart.m')}
+                      </p>
+                    </div>
+                  )
+                }
+                return null
+              }}
+            />{' '}
+            <Area
+              type="monotone"
+              dataKey="elevation"
+              stroke="hsl(var(--primary))"
               strokeWidth={2}
-              fillOpacity={1} 
-              fill="url(#colorEle)" 
+              fillOpacity={1}
+              fill="url(#colorEle)"
               isAnimationActive={false}
             />
             {selectedIndex !== null && (
-              <ReferenceLine 
-                x={weatherPoints[selectedIndex].point.distanceFromStart} 
-                stroke="hsl(var(--foreground))" 
+              <ReferenceLine
+                x={weatherPoints[selectedIndex].point.distanceFromStart}
+                stroke="hsl(var(--foreground))"
                 strokeDasharray="3 3"
               />
             )}

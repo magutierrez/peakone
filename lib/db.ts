@@ -10,7 +10,7 @@ export async function getDb() {
   dbPromise = (async () => {
     // Usamos idb:// para que los datos persistan en el IndexedDB del navegador
     const instance = await PGlite.create('idb://peakone-storage')
-    
+
     // Inicializamos el esquema
     await instance.exec(`
       CREATE TABLE IF NOT EXISTS saved_routes (
@@ -24,7 +24,7 @@ export async function getDb() {
       );
       CREATE INDEX IF NOT EXISTS idx_user_email ON saved_routes(user_email);
     `)
-    
+
     return instance
   })()
 

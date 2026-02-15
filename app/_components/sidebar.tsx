@@ -30,7 +30,7 @@ export function Sidebar({
   onAnalyze,
 }: SidebarProps) {
   return (
-    <aside className="w-full shrink-0 border-b border-border bg-card p-4 lg:w-80 lg:border-b-0 lg:border-r lg:overflow-y-auto lg:h-[calc(100vh-57px)] lg:sticky lg:top-[57px]">
+    <aside className="w-full shrink-0 border-b border-border bg-card p-4 lg:sticky lg:top-[57px] lg:h-[calc(100vh-57px)] lg:w-80 lg:overflow-y-auto lg:border-b-0 lg:border-r">
       <div className="flex flex-col gap-8">
         <RouteConfigPanel
           config={config}

@@ -1,7 +1,7 @@
-import NextAuth from "next-auth"
-import Facebook from "next-auth/providers/facebook"
-import Twitter from "next-auth/providers/twitter"
-import Google from "next-auth/providers/google"
+import NextAuth from 'next-auth'
+import Facebook from 'next-auth/providers/facebook'
+import Twitter from 'next-auth/providers/twitter'
+import Google from 'next-auth/providers/google'
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -10,16 +10,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     Google,
   ],
   pages: {
-    signIn: "/login",
+    signIn: '/login',
   },
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user
-      const isLoginPage = nextUrl.pathname.startsWith("/login")
-      const isPublicApi = nextUrl.pathname.startsWith("/api/auth")
+      const isLoginPage = nextUrl.pathname.startsWith('/login')
+      const isPublicApi = nextUrl.pathname.startsWith('/api/auth')
 
       if (isLoginPage || isPublicApi) {
-        if (isLoggedIn) return Response.redirect(new URL("/", nextUrl))
+        if (isLoggedIn) return Response.redirect(new URL('/', nextUrl))
         return true
       }
 

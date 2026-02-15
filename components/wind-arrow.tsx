@@ -11,12 +11,7 @@ interface WindArrowProps {
 
 export function WindArrow({ direction, effect, size = 40 }: WindArrowProps) {
   const t = useTranslations('WeatherTimeline')
-  const color =
-    effect === 'tailwind'
-      ? '#22c55e'
-      : effect === 'headwind'
-        ? '#ef4444'
-        : '#f59e0b'
+  const color = effect === 'tailwind' ? '#22c55e' : effect === 'headwind' ? '#ef4444' : '#f59e0b'
 
   return (
     <svg
@@ -27,11 +22,7 @@ export function WindArrow({ direction, effect, size = 40 }: WindArrowProps) {
       aria-label={t('windFrom', { direction: Math.round(direction) })}
     >
       <g transform={`rotate(${direction}, 20, 20)`}>
-        <path
-          d="M20 6 L26 24 L20 20 L14 24 Z"
-          fill={color}
-          opacity="0.9"
-        />
+        <path d="M20 6 L26 24 L20 20 L14 24 Z" fill={color} opacity="0.9" />
       </g>
     </svg>
   )

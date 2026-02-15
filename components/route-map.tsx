@@ -17,15 +17,15 @@ interface RouteMapProps {
   weatherPoints?: RouteWeatherPoint[]
   selectedPointIndex?: number | null
   onPointSelect?: (index: number) => void
-  activeFilter?: { key: 'pathType' | 'surface', value: string } | null
+  activeFilter?: { key: 'pathType' | 'surface'; value: string } | null
 }
 
-export default function RouteMap({ 
-  points, 
-  weatherPoints, 
-  selectedPointIndex = null, 
+export default function RouteMap({
+  points,
+  weatherPoints,
+  selectedPointIndex = null,
   onPointSelect,
-  activeFilter = null
+  activeFilter = null,
 }: RouteMapProps) {
   const { resolvedTheme } = useTheme()
   const mapRef = useRef<MapRef>(null)
@@ -47,16 +47,19 @@ export default function RouteMap({
   // Fit map to bounds
   useEffect(() => {
     if (points.length > 0 && mapRef.current) {
-      const lons = points.map(p => p.lon)
-      const lats = points.map(p => p.lat)
+      const lons = points.map((p) => p.lon)
+      const lats = points.map((p) => p.lat)
       const minLon = Math.min(...lons)
       const maxLon = Math.max(...lons)
       const minLat = Math.min(...lats)
       const maxLat = Math.max(...lats)
-      
+
       mapRef.current.fitBounds(
-        [[minLon, minLat], [maxLon, maxLat]],
-        { padding: 40, duration: 1000 }
+        [
+          [minLon, minLat],
+          [maxLon, maxLat],
+        ],
+        { padding: 40, duration: 1000 },
       )
     }
   }, [points])
@@ -67,7 +70,7 @@ export default function RouteMap({
       const point = weatherPoints[selectedPointIndex].point
       mapRef.current.easeTo({
         center: [point.lon, point.lat],
-        duration: 500
+        duration: 500,
       })
     }
   }, [selectedPointIndex, weatherPoints])
@@ -77,7 +80,7 @@ export default function RouteMap({
     if (idx !== null && weatherPoints?.[idx]) {
       return {
         ...weatherPoints[idx],
-        index: idx
+        index: idx,
       }
     }
     return null
@@ -93,7 +96,7 @@ export default function RouteMap({
         initialViewState={{
           longitude: -3.7038,
           latitude: 40.4168,
-          zoom: 5
+          zoom: 5,
         }}
         style={{ width: '100%', height: '100%' }}
         mapStyle={mapStyle}
@@ -108,7 +111,7 @@ export default function RouteMap({
               paint={{
                 'line-color': '#3ecf8e',
                 'line-width': 3,
-                'line-opacity': activeFilter ? 0.2 : 0.8
+                'line-opacity': activeFilter ? 0.2 : 0.8,
               }}
             />
           </Source>
@@ -123,7 +126,7 @@ export default function RouteMap({
                 'line-color': '#3ecf8e',
                 'line-width': 6,
                 'line-opacity': 1,
-                'line-blur': 2
+                'line-blur': 2,
               }}
             />
             <Layer
@@ -132,7 +135,7 @@ export default function RouteMap({
               paint={{
                 'line-color': '#ffffff',
                 'line-width': 2,
-                'line-opacity': 0.8
+                'line-opacity': 0.8,
               }}
             />
           </Source>
@@ -147,12 +150,7 @@ export default function RouteMap({
           onHoverPoint={setHoveredPointIndex}
         />
 
-        {popupInfo && (
-          <MapPopup 
-            popupInfo={popupInfo} 
-            onClose={() => setHoveredPointIndex(null)} 
-          />
-        )}
+        {popupInfo && <MapPopup popupInfo={popupInfo} onClose={() => setHoveredPointIndex(null)} />}
       </Map>
 
       <style jsx global>{`

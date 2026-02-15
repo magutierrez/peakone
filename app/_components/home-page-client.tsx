@@ -14,8 +14,8 @@ import { WeatherList } from '@/components/weather-timeline/weather-list'
 import { WeatherPointDetail } from '@/components/weather-timeline/weather-point-detail'
 import { ElevationProfile } from '@/components/weather-timeline/elevation-profile'
 import { RouteSegments } from '@/components/weather-timeline/route-segments'
-import { Sidebar } from "./sidebar";
-import { Session } from "next-auth"
+import { Sidebar } from './sidebar'
+import { Session } from 'next-auth'
 import { useSavedRoutes } from '@/hooks/use-saved-routes'
 import { useEffect, useRef } from 'react'
 
@@ -24,7 +24,7 @@ const RouteMap = dynamic(() => import('@/components/route-map'), {
   loading: function Loading() {
     const t = useTranslations('HomePage')
     return (
-      <div className="flex h-full items-center justify-center bg-card rounded-lg">
+      <div className="flex h-full items-center justify-center rounded-lg bg-card">
         <span className="text-sm text-muted-foreground">{t('loadingMap')}</span>
       </div>
     )
@@ -49,7 +49,10 @@ export default function HomePageClient({ session }: HomePageClientProps) {
     activityType: 'cycling',
   })
 
-  const [activeFilter, setActiveFilter] = useState<{ key: 'pathType' | 'surface', value: string } | null>(null)
+  const [activeFilter, setActiveFilter] = useState<{
+    key: 'pathType' | 'surface'
+    value: string
+  } | null>(null)
   const { saveRoute, routes } = useSavedRoutes()
   const lastSavedRef = useRef<string | null>(null)
 
@@ -72,8 +75,12 @@ export default function HomePageClient({ session }: HomePageClientProps) {
   // AUTO-SAVE logic
   useEffect(() => {
     if (gpxData && rawGPXContent && gpxFileName && session?.user?.email) {
-      const routeExists = routes.some(r => r.name === gpxFileName && Number(r.distance).toFixed(2) === gpxData.totalDistance.toFixed(2))
-      
+      const routeExists = routes.some(
+        (r) =>
+          r.name === gpxFileName &&
+          Number(r.distance).toFixed(2) === gpxData.totalDistance.toFixed(2),
+      )
+
       if (!routeExists && lastSavedRef.current !== rawGPXContent) {
         saveRoute(gpxFileName, rawGPXContent, gpxData.totalDistance, gpxData.totalElevationGain)
         lastSavedRef.current = rawGPXContent
@@ -85,7 +92,7 @@ export default function HomePageClient({ session }: HomePageClientProps) {
     <div className="flex min-h-screen flex-col bg-background">
       <Header session={session} />
 
-      <div className="flex flex-1 flex-col lg:flex-row min-h-0">
+      <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
         {/* SIDEBAR: Fixed width configuration */}
         <Sidebar
           config={config}
@@ -101,9 +108,9 @@ export default function HomePageClient({ session }: HomePageClientProps) {
         />
 
         {/* MAIN AREA: Split 60/40 */}
-        <main className="flex-1 flex flex-col lg:flex-row min-w-0">
+        <main className="flex min-w-0 flex-1 flex-col lg:flex-row">
           {/* Data Column (60%) */}
-          <div className="w-full lg:w-[60%] p-6 md:p-8 flex flex-col gap-10">
+          <div className="flex w-full flex-col gap-10 p-6 md:p-8 lg:w-[60%]">
             {!gpxData ? (
               <EmptyState />
             ) : (
@@ -111,11 +118,17 @@ export default function HomePageClient({ session }: HomePageClientProps) {
                 {/* 1. Path Segments */}
                 <section className="flex flex-col gap-4">
                   <div className="flex items-center gap-2 border-b border-border pb-2">
-                    <div className="h-4 w-1 bg-primary rounded-full" />
-                    <h3 className="text-sm font-bold uppercase tracking-wider text-foreground/80">Terreno y Vía</h3>
+                    <div className="h-4 w-1 rounded-full bg-primary" />
+                    <h3 className="text-sm font-bold uppercase tracking-wider text-foreground/80">
+                      Terreno y Vía
+                    </h3>
                   </div>
-                  <RouteSegments 
-                    weatherPoints={weatherPoints.length > 0 ? weatherPoints : routeInfoData.map(d => ({ ...d, point: d }))} 
+                  <RouteSegments
+                    weatherPoints={
+                      weatherPoints.length > 0
+                        ? weatherPoints
+                        : routeInfoData.map((d) => ({ ...d, point: d }))
+                    }
                     activeFilter={activeFilter}
                     onFilterChange={setActiveFilter}
                   />
@@ -124,13 +137,21 @@ export default function HomePageClient({ session }: HomePageClientProps) {
                 {/* 2. Elevation Profile */}
                 <section className="flex flex-col gap-4">
                   <div className="flex items-center gap-2 border-b border-border pb-2">
-                    <div className="h-4 w-1 bg-primary rounded-full" />
-                    <h3 className="text-sm font-bold uppercase tracking-wider text-foreground/80">Altitud</h3>
+                    <div className="h-4 w-1 rounded-full bg-primary" />
+                    <h3 className="text-sm font-bold uppercase tracking-wider text-foreground/80">
+                      Altitud
+                    </h3>
                   </div>
-                  <ElevationProfile 
-                    weatherPoints={weatherPoints.length > 0 ? weatherPoints : gpxData.points.filter((_, i) => i % 10 === 0).map(p => ({ point: p, weather: {} } as any))} 
-                    selectedIndex={selectedPointIndex} 
-                    onSelect={setSelectedPointIndex} 
+                  <ElevationProfile
+                    weatherPoints={
+                      weatherPoints.length > 0
+                        ? weatherPoints
+                        : gpxData.points
+                            .filter((_, i) => i % 10 === 0)
+                            .map((p) => ({ point: p, weather: {} }) as any)
+                    }
+                    selectedIndex={selectedPointIndex}
+                    onSelect={setSelectedPointIndex}
                   />
                 </section>
 
@@ -138,14 +159,16 @@ export default function HomePageClient({ session }: HomePageClientProps) {
                 {weatherPoints.length > 0 && (
                   <section className="flex flex-col gap-8">
                     <div className="flex items-center gap-2 border-b border-border pb-2">
-                      <div className="h-4 w-1 bg-primary rounded-full" />
-                      <h3 className="text-sm font-bold uppercase tracking-wider text-foreground/80">Análisis Meteorológico</h3>
+                      <div className="h-4 w-1 rounded-full bg-primary" />
+                      <h3 className="text-sm font-bold uppercase tracking-wider text-foreground/80">
+                        Análisis Meteorológico
+                      </h3>
                     </div>
                     <WeatherSummary weatherPoints={weatherPoints} />
-                    <WeatherList 
-                      weatherPoints={weatherPoints} 
-                      selectedIndex={selectedPointIndex} 
-                      onSelect={setSelectedPointIndex} 
+                    <WeatherList
+                      weatherPoints={weatherPoints}
+                      selectedIndex={selectedPointIndex}
+                      onSelect={setSelectedPointIndex}
                     />
                     {selectedPointIndex !== null && weatherPoints[selectedPointIndex] && (
                       <WeatherPointDetail point={weatherPoints[selectedPointIndex]} />
@@ -157,7 +180,7 @@ export default function HomePageClient({ session }: HomePageClientProps) {
           </div>
 
           {/* Sticky Map Column (40%) */}
-          <div className="w-full lg:w-[40%] h-[50vh] lg:h-[calc(100vh-57px)] lg:sticky lg:top-[57px] border-l border-border">
+          <div className="h-[50vh] w-full border-l border-border lg:sticky lg:top-[57px] lg:h-[calc(100vh-57px)] lg:w-[40%]">
             <RouteMap
               points={gpxData?.points || []}
               weatherPoints={weatherPoints.length > 0 ? weatherPoints : undefined}

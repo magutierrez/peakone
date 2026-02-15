@@ -16,9 +16,9 @@ export function MapPopup({ popupInfo, onClose }: MapPopupProps) {
   const tw = useTranslations('WeatherCodes')
 
   const hasTranslation = !!tw.raw(popupInfo.weather.weatherCode.toString())
-  const weatherDescription = hasTranslation 
-    ? tw(popupInfo.weather.weatherCode.toString() as any) 
-    : (WEATHER_CODES[popupInfo.weather.weatherCode]?.description || tTimeline('unknownWeather'))
+  const weatherDescription = hasTranslation
+    ? tw(popupInfo.weather.weatherCode.toString() as any)
+    : WEATHER_CODES[popupInfo.weather.weatherCode]?.description || tTimeline('unknownWeather')
 
   return (
     <Popup
@@ -39,11 +39,11 @@ export function MapPopup({ popupInfo, onClose }: MapPopupProps) {
               minute: '2-digit',
             })}
           </strong>
-          <span className="text-muted-foreground">km {popupInfo.point.distanceFromStart.toFixed(1)}</span>
+          <span className="text-muted-foreground">
+            km {popupInfo.point.distanceFromStart.toFixed(1)}
+          </span>
         </div>
-        <div className="font-medium">
-          {weatherDescription}
-        </div>
+        <div className="font-medium">{weatherDescription}</div>
         <div className="mt-0.5 flex items-center justify-between">
           <span>{popupInfo.weather.temperature}°C</span>
           <span className="text-muted-foreground">

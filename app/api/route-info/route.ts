@@ -18,9 +18,9 @@ export async function POST(request: NextRequest) {
 
     // Construct Overpass query to find nearest ways for these points
     // Radius of 50m handles GPS inaccuracies
-    const queries = sampledPoints.map((p) => 
-      `way(around:50, ${p.lat}, ${p.lon})[highway];`
-    ).join('')
+    const queries = sampledPoints
+      .map((p) => `way(around:50, ${p.lat}, ${p.lon})[highway];`)
+      .join('')
 
     const overpassQuery = `[out:json][timeout:30];
       (
@@ -33,8 +33,8 @@ export async function POST(request: NextRequest) {
       body: `data=${encodeURIComponent(overpassQuery)}`,
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
-        'User-Agent': 'RouteWeather/1.0'
-      }
+        'User-Agent': 'RouteWeather/1.0',
+      },
     })
 
     if (!response.ok) {
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
 
     const data = await response.json()
     const elements = data.elements || []
-    
+
     // Simple Euclidean distance squared for matching (fine for small local distances)
     const getDistSq = (p1: Point, p2: { lat: number; lon: number }) => {
       return Math.pow(p1.lat - p2.lat, 2) + Math.pow(p1.lon - p2.lon, 2)
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
         lat: p.lat,
         lon: p.lon,
         pathType: tags.highway || 'unknown',
-        surface: tags.surface || (tags.highway === 'cycleway' ? 'asphalt' : 'unknown')
+        surface: tags.surface || (tags.highway === 'cycleway' ? 'asphalt' : 'unknown'),
       }
     })
 

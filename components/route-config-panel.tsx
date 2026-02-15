@@ -36,24 +36,22 @@ export function RouteConfigPanel({
 }: RouteConfigPanelProps) {
   const t = useTranslations('RouteConfigPanel')
 
-  const estimatedDuration = gpxData
-    ? (gpxData.totalDistance / config.speed) * 60
-    : 0
+  const estimatedDuration = gpxData ? (gpxData.totalDistance / config.speed) * 60 : 0
   const hours = Math.floor(estimatedDuration / 60)
   const minutes = Math.round(estimatedDuration % 60)
 
   return (
     <div className="flex flex-col gap-5">
       {/* GPX Upload */}
-      <div className="flex items-center justify-between mb-2">
+      <div className="mb-2 flex items-center justify-between">
         <Label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           {t('gpxFile')}
         </Label>
         {gpxData && (
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="h-7 px-2 text-[10px] gap-1.5 text-muted-foreground hover:text-primary"
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 gap-1.5 px-2 text-[10px] text-muted-foreground hover:text-primary"
             onClick={onReverseRoute}
           >
             <span className="rotate-90">⇄</span> Invertir sentido
@@ -61,30 +59,26 @@ export function RouteConfigPanel({
         )}
       </div>
       <div>
-        <GPXUpload
-          onFileLoaded={onGPXLoaded}
-          fileName={gpxFileName}
-          onClear={onClearGPX}
-        />
+        <GPXUpload onFileLoaded={onGPXLoaded} fileName={gpxFileName} onClear={onClearGPX} />
       </div>
 
       {/* Route Stats */}
       {gpxData && (
         <div className="grid grid-cols-3 gap-2">
           <div className="rounded-lg bg-secondary p-3 text-center">
-            <p className="text-lg font-bold text-foreground font-mono">
+            <p className="font-mono text-lg font-bold text-foreground">
               {gpxData.totalDistance.toFixed(1)}
             </p>
             <p className="text-xs text-muted-foreground">{t('km')}</p>
           </div>
           <div className="rounded-lg bg-secondary p-3 text-center">
-            <p className="text-lg font-bold text-primary font-mono">
+            <p className="font-mono text-lg font-bold text-primary">
               +{Math.round(gpxData.totalElevationGain)}
             </p>
             <p className="text-xs text-muted-foreground">{t('elevationGain')}</p>
           </div>
           <div className="rounded-lg bg-secondary p-3 text-center">
-            <p className="text-lg font-bold text-destructive font-mono">
+            <p className="font-mono text-lg font-bold text-destructive">
               -{Math.round(gpxData.totalElevationLoss)}
             </p>
             <p className="text-xs text-muted-foreground">{t('elevationLoss')}</p>
@@ -99,9 +93,7 @@ export function RouteConfigPanel({
         </Label>
         <div className="grid grid-cols-2 gap-2">
           <button
-            onClick={() =>
-              onConfigChange({ ...config, activityType: 'cycling', speed: 25 })
-            }
+            onClick={() => onConfigChange({ ...config, activityType: 'cycling', speed: 25 })}
             className={`flex items-center justify-center gap-2 rounded-lg border p-3 text-sm font-medium transition-all ${
               config.activityType === 'cycling'
                 ? 'border-primary bg-primary/10 text-primary'
@@ -112,9 +104,7 @@ export function RouteConfigPanel({
             {t('cycling')}
           </button>
           <button
-            onClick={() =>
-              onConfigChange({ ...config, activityType: 'walking', speed: 5 })
-            }
+            onClick={() => onConfigChange({ ...config, activityType: 'walking', speed: 5 })}
             className={`flex items-center justify-center gap-2 rounded-lg border p-3 text-sm font-medium transition-all ${
               config.activityType === 'walking'
                 ? 'border-primary bg-primary/10 text-primary'
@@ -142,7 +132,7 @@ export function RouteConfigPanel({
             type="date"
             value={config.date}
             onChange={(e) => onConfigChange({ ...config, date: e.target.value })}
-            className="bg-secondary border-border"
+            className="border-border bg-secondary"
           />
         </div>
         <div>
@@ -158,7 +148,7 @@ export function RouteConfigPanel({
             type="time"
             value={config.time}
             onChange={(e) => onConfigChange({ ...config, time: e.target.value })}
-            className="bg-secondary border-border"
+            className="border-border bg-secondary"
           />
         </div>
       </div>
@@ -178,10 +168,8 @@ export function RouteConfigPanel({
           min={1}
           max={60}
           value={config.speed}
-          onChange={(e) =>
-            onConfigChange({ ...config, speed: parseFloat(e.target.value) || 1 })
-          }
-          className="bg-secondary border-border font-mono"
+          onChange={(e) => onConfigChange({ ...config, speed: parseFloat(e.target.value) || 1 })}
+          className="border-border bg-secondary font-mono"
         />
       </div>
 
@@ -189,7 +177,7 @@ export function RouteConfigPanel({
       {gpxData && (
         <div className="rounded-lg border border-border bg-muted/50 p-3">
           <p className="text-xs text-muted-foreground">{t('estimatedDuration')}</p>
-          <p className="text-lg font-bold text-foreground font-mono">
+          <p className="font-mono text-lg font-bold text-foreground">
             {t('durationFormat', { hours, minutes: minutes.toString().padStart(2, '0') })}
           </p>
         </div>
@@ -199,7 +187,7 @@ export function RouteConfigPanel({
       <Button
         onClick={onAnalyze}
         disabled={!gpxData || isLoading}
-        className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
+        className="w-full bg-primary font-semibold text-primary-foreground hover:bg-primary/90"
         size="lg"
       >
         {isLoading ? (

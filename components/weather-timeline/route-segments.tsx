@@ -6,8 +6,8 @@ import type { RouteWeatherPoint } from '@/lib/types'
 
 interface RouteSegmentsProps {
   weatherPoints: RouteWeatherPoint[]
-  activeFilter?: { key: 'pathType' | 'surface', value: string } | null
-  onFilterChange?: (filter: { key: 'pathType' | 'surface', value: string } | null) => void
+  activeFilter?: { key: 'pathType' | 'surface'; value: string } | null
+  onFilterChange?: (filter: { key: 'pathType' | 'surface'; value: string } | null) => void
 }
 
 const PATH_TYPE_COLORS: Record<string, string> = {
@@ -51,10 +51,10 @@ export function RouteSegments({ weatherPoints, activeFilter, onFilterChange }: R
   const t = useTranslations('WeatherTimeline')
 
   const totalPoints = weatherPoints.length
-  
+
   const getBreakdown = (key: 'pathType' | 'surface', colorMap: Record<string, string>) => {
     const counts: Record<string, number> = {}
-    weatherPoints.forEach(wp => {
+    weatherPoints.forEach((wp) => {
       const val = wp[key] || 'unknown'
       counts[val] = (counts[val] || 0) + 1
     })
@@ -63,9 +63,9 @@ export function RouteSegments({ weatherPoints, activeFilter, onFilterChange }: R
       .map(([name, count]) => ({
         name,
         percent: (count / totalPoints) * 100,
-        color: colorMap[name] || colorMap.unknown
+        color: colorMap[name] || colorMap.unknown,
       }))
-      .filter(item => item.percent > 0)
+      .filter((item) => item.percent > 0)
       .sort((a, b) => b.percent - a.percent)
   }
 
@@ -80,7 +80,17 @@ export function RouteSegments({ weatherPoints, activeFilter, onFilterChange }: R
   const pathBreakdown = getBreakdown('pathType', PATH_TYPE_COLORS)
   const surfaceBreakdown = getBreakdown('surface', SURFACE_COLORS)
 
-  const SegmentBar = ({ title, data, translationNamespace, typeKey }: { title: string, data: any[], translationNamespace: string, typeKey: 'pathType' | 'surface' }) => (
+  const SegmentBar = ({
+    title,
+    data,
+    translationNamespace,
+    typeKey,
+  }: {
+    title: string
+    data: any[]
+    translationNamespace: string
+    typeKey: 'pathType' | 'surface'
+  }) => (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
         <span className="text-xs font-medium text-muted-foreground">{title}</span>
@@ -88,16 +98,17 @@ export function RouteSegments({ weatherPoints, activeFilter, onFilterChange }: R
       <div className="flex h-3 w-full overflow-hidden rounded-full bg-secondary ring-1 ring-border">
         {data.map((item, idx) => {
           const isActive = activeFilter?.key === typeKey && activeFilter.value === item.name
-          const isFilteringOther = activeFilter && (activeFilter.key !== typeKey || activeFilter.value !== item.name)
-          
+          const isFilteringOther =
+            activeFilter && (activeFilter.key !== typeKey || activeFilter.value !== item.name)
+
           return (
             <button
               key={idx}
               onClick={() => handleSegmentClick(typeKey, item.name)}
-              style={{ 
-                width: `${item.percent}%`, 
+              style={{
+                width: `${item.percent}%`,
                 backgroundColor: item.color,
-                opacity: isFilteringOther ? 0.3 : 1
+                opacity: isFilteringOther ? 0.3 : 1,
               }}
               className={`h-full transition-all hover:brightness-110 ${isActive ? 'ring-2 ring-inset ring-white' : ''}`}
               title={`${item.name}: ${item.percent.toFixed(0)}%`}
@@ -109,13 +120,13 @@ export function RouteSegments({ weatherPoints, activeFilter, onFilterChange }: R
         {data.map((item, idx) => {
           const isActive = activeFilter?.key === typeKey && activeFilter.value === item.name
           return (
-            <button 
-              key={idx} 
+            <button
+              key={idx}
               onClick={() => handleSegmentClick(typeKey, item.name)}
-              className={`flex items-center gap-1.5 transition-all rounded px-1.5 py-0.5 border ${
-                isActive 
-                  ? 'bg-primary/10 border-primary text-primary' 
-                  : 'bg-secondary/50 border-transparent hover:border-border text-foreground'
+              className={`flex items-center gap-1.5 rounded border px-1.5 py-0.5 transition-all ${
+                isActive
+                  ? 'border-primary bg-primary/10 text-primary'
+                  : 'border-transparent bg-secondary/50 text-foreground hover:border-border'
               }`}
             >
               <div className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color }} />
@@ -136,17 +147,17 @@ export function RouteSegments({ weatherPoints, activeFilter, onFilterChange }: R
         <MapIcon className="h-4 w-4 text-primary" />
         <h3 className="text-sm font-semibold text-foreground">{t('segmentsTitle')}</h3>
       </div>
-      
+
       <div className="grid gap-6 md:grid-cols-2">
-        <SegmentBar 
-          title={t('pathTypes.title')} 
-          data={pathBreakdown} 
+        <SegmentBar
+          title={t('pathTypes.title')}
+          data={pathBreakdown}
           translationNamespace="pathTypes"
           typeKey="pathType"
         />
-        <SegmentBar 
-          title={t('surfaces.title')} 
-          data={surfaceBreakdown} 
+        <SegmentBar
+          title={t('surfaces.title')}
+          data={surfaceBreakdown}
           translationNamespace="surfaces"
           typeKey="surface"
         />

@@ -5,7 +5,7 @@ import type { Feature, LineString, MultiLineString } from 'geojson'
 export function useMapLayers(
   points: RoutePoint[],
   weatherPoints?: RouteWeatherPoint[],
-  activeFilter?: { key: 'pathType' | 'surface', value: string } | null
+  activeFilter?: { key: 'pathType' | 'surface'; value: string } | null,
 ) {
   const routeData = useMemo<Feature<LineString> | null>(() => {
     if (points.length === 0) return null
@@ -27,11 +27,11 @@ export function useMapLayers(
 
     weatherPoints.forEach((wp, i) => {
       const matches = (wp[activeFilter.key] || 'unknown') === activeFilter.value
-      
+
       if (matches) {
         currentSegment.push([wp.point.lon, wp.point.lat])
         if (i < weatherPoints.length - 1) {
-          const nextWp = weatherPoints[i+1]
+          const nextWp = weatherPoints[i + 1]
           currentSegment.push([nextWp.point.lon, nextWp.point.lat])
         }
       } else {

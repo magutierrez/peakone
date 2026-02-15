@@ -5,8 +5,8 @@ import { useTranslations } from 'next-intl'
 import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Session } from "next-auth"
-import { UserMenu } from "./user-menu"
+import { Session } from 'next-auth'
+import { UserMenu } from './user-menu'
 
 interface HeaderProps {
   session: Session | null
@@ -30,19 +30,17 @@ export function Header({ session }: HeaderProps) {
             <Mountain className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-foreground leading-tight">
-              {t('header.title')}
-            </h1>
+            <h1 className="text-lg font-bold leading-tight text-foreground">{t('header.title')}</h1>
             <p className="text-xs text-muted-foreground">{t('header.subtitle')}</p>
           </div>
         </div>
-        
+
         <div className="flex items-center gap-4">
           <div className="hidden items-center gap-2 md:flex">
             <Wind className="h-4 w-4 text-muted-foreground" />
             <span className="text-xs text-muted-foreground">{t('header.apiVersion')}</span>
           </div>
-          
+
           <div className="flex items-center gap-2 border-l border-border pl-4">
             <Button
               variant="ghost"

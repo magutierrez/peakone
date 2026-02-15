@@ -8,7 +8,7 @@ interface MapMarkersProps {
   points: RoutePoint[]
   weatherPoints?: RouteWeatherPoint[]
   selectedPointIndex: number | null
-  activeFilter?: { key: 'pathType' | 'surface', value: string } | null
+  activeFilter?: { key: 'pathType' | 'surface'; value: string } | null
   onPointSelect?: (index: number) => void
   onHoverPoint: (index: number | null) => void
 }
@@ -26,8 +26,9 @@ export function MapMarkers({
       <>
         {weatherPoints.map((wp, idx) => {
           const isSelected = selectedPointIndex === idx
-          const isFiltered = activeFilter && (wp[activeFilter.key] || 'unknown') !== activeFilter.value
-          
+          const isFiltered =
+            activeFilter && (wp[activeFilter.key] || 'unknown') !== activeFilter.value
+
           if (isFiltered && !isSelected) return null
 
           return (
@@ -36,7 +37,7 @@ export function MapMarkers({
               longitude={wp.point.lon}
               latitude={wp.point.lat}
               anchor="center"
-              onClick={e => {
+              onClick={(e) => {
                 e.originalEvent.stopPropagation()
                 onPointSelect?.(idx)
               }}
@@ -46,14 +47,14 @@ export function MapMarkers({
                 onMouseEnter={() => onHoverPoint(idx)}
                 onMouseLeave={() => onHoverPoint(null)}
               >
-                <WindArrow 
+                <WindArrow
                   direction={wp.weather.windDirection}
                   travelBearing={wp.bearing}
                   effect={wp.windEffect}
                   size={isSelected ? 36 : 28}
                 />
                 {isSelected && (
-                  <div className="absolute inset-0 rounded-full border-2 border-white/50 animate-pulse" />
+                  <div className="absolute inset-0 animate-pulse rounded-full border-2 border-white/50" />
                 )}
               </button>
             </Marker>
@@ -67,7 +68,11 @@ export function MapMarkers({
     return (
       <>
         <Marker longitude={points[0].lon} latitude={points[0].lat} color="#3ecf8e" />
-        <Marker longitude={points[points.length - 1].lon} latitude={points[points.length - 1].lat} color="#ef4444" />
+        <Marker
+          longitude={points[points.length - 1].lon}
+          latitude={points[points.length - 1].lat}
+          color="#ef4444"
+        />
       </>
     )
   }

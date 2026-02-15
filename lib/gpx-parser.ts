@@ -1,16 +1,15 @@
 import type { RoutePoint, GPXData } from './types'
 
-function haversineDistance(
-  lat1: number, lon1: number,
-  lat2: number, lon2: number
-): number {
+function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371 // km
-  const dLat = (lat2 - lat1) * Math.PI / 180
-  const dLon = (lon2 - lon1) * Math.PI / 180
+  const dLat = ((lat2 - lat1) * Math.PI) / 180
+  const dLon = ((lon2 - lon1) * Math.PI) / 180
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-    Math.sin(dLon / 2) * Math.sin(dLon / 2)
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2)
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
   return R * c
 }
@@ -123,17 +122,18 @@ export function reverseGPXData(data: GPXData): GPXData {
 }
 
 export function calculateBearing(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const dLon = (lon2 - lon1) * Math.PI / 180
-  const y = Math.sin(dLon) * Math.cos(lat2 * Math.PI / 180)
-  const x = Math.cos(lat1 * Math.PI / 180) * Math.sin(lat2 * Math.PI / 180) -
-    Math.sin(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.cos(dLon)
-  const bearing = Math.atan2(y, x) * 180 / Math.PI
+  const dLon = ((lon2 - lon1) * Math.PI) / 180
+  const y = Math.sin(dLon) * Math.cos((lat2 * Math.PI) / 180)
+  const x =
+    Math.cos((lat1 * Math.PI) / 180) * Math.sin((lat2 * Math.PI) / 180) -
+    Math.sin((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.cos(dLon)
+  const bearing = (Math.atan2(y, x) * 180) / Math.PI
   return (bearing + 360) % 360
 }
 
 export function getWindEffect(
   travelBearing: number,
-  windDirection: number
+  windDirection: number,
 ): { effect: 'tailwind' | 'headwind' | 'crosswind-left' | 'crosswind-right'; angle: number } {
   // Wind direction is where wind COMES FROM, so wind blowing TO is windDirection + 180
   const windTo = (windDirection + 180) % 360
@@ -156,7 +156,7 @@ export function getWindEffect(
 
 export function sampleRoutePoints(points: RoutePoint[], numSamples: number = 20): RoutePoint[] {
   if (points.length <= numSamples) return points
-  
+
   const totalDist = points[points.length - 1].distanceFromStart
   const interval = totalDist / (numSamples - 1)
   const sampled: RoutePoint[] = [points[0]]
@@ -164,7 +164,9 @@ export function sampleRoutePoints(points: RoutePoint[], numSamples: number = 20)
   let targetDist = interval
   for (let i = 1; i < numSamples - 1; i++) {
     const closest = points.reduce((prev, curr) =>
-      Math.abs(curr.distanceFromStart - targetDist) < Math.abs(prev.distanceFromStart - targetDist) ? curr : prev
+      Math.abs(curr.distanceFromStart - targetDist) < Math.abs(prev.distanceFromStart - targetDist)
+        ? curr
+        : prev,
     )
     sampled.push(closest)
     targetDist += interval
