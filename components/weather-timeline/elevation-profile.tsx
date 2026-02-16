@@ -57,8 +57,14 @@ export function ElevationProfile({
     }));
   }, [elevationData, weatherPoints]);
 
-  const { chartData, maxSlope } = useMemo(() => {
-    let currentMaxSlope = 0;
+  const getSlopeColorHex = (slope: number) => {
+    if (slope <= 1) return '#3ecf8e';
+    if (slope < 5) return '#f59e0b';
+    if (slope < 10) return '#ef4444';
+    return '#991b1b';
+  };
+
+  const { chartData } = useMemo(() => {
     const data = displayData.map((d, idx) => {
       let slope = 0;
       if (idx > 0) {
@@ -69,25 +75,57 @@ export function ElevationProfile({
           slope = (eleDiff / distDiff) * 100;
         }
       }
-      const absSlope = Math.abs(slope);
-      if (absSlope > currentMaxSlope) currentMaxSlope = absSlope;
 
       return {
         ...d,
         slope: Math.round(slope * 10) / 10,
+        color: getSlopeColorHex(slope),
       };
     });
-    return { chartData: data, maxSlope: currentMaxSlope };
+    return { chartData: data };
   }, [displayData]);
 
-  const getSlopeColor = (slope: number) => {
-    const absSlope = Math.abs(slope);
-    if (maxSlope === 0) return 'bg-primary';
-    const intensity = absSlope / maxSlope;
-    if (intensity < 0.33) return 'bg-primary';
-    if (intensity < 0.66) return 'bg-accent';
-    return 'bg-destructive';
-  };
+  const gradientId = useMemo(() => `slope-${left}-${right}-${chartData.length}`, [left, right, chartData.length]);
+
+  const gradientStops = useMemo(() => {
+    if (!chartData.length) return [];
+    
+    const actualMin = chartData[0].distance;
+    const actualMax = chartData[chartData.length - 1].distance;
+    
+    const domainMin = left === 'dataMin' ? actualMin : left;
+    const domainMax = right === 'dataMax' ? actualMax : right;
+    const domainRange = domainMax - domainMin;
+
+    const stops: { offset: string; color: string }[] = [];
+
+    const firstIndex = chartData.findIndex(d => d.distance >= domainMin);
+    const lastIndex = [...chartData].reverse().findIndex(d => d.distance <= domainMax);
+    const actualLastIndex = chartData.length - 1 - lastIndex;
+
+    const startIndex = Math.max(0, firstIndex - 1);
+    const endIndex = Math.min(chartData.length - 1, actualLastIndex + 1);
+
+    for (let i = startIndex; i <= endIndex; i++) {
+      const d = chartData[i];
+      const percentage = ((d.distance - domainMin) / domainRange) * 100;
+      stops.push({
+        offset: `${Math.max(0, Math.min(100, percentage))}%`,
+        color: d.color,
+      });
+    }
+
+    if (stops.length > 0) {
+      if (parseFloat(stops[0].offset) > 0) {
+        stops.unshift({ offset: '0%', color: stops[0].color });
+      }
+      if (parseFloat(stops[stops.length - 1].offset) < 100) {
+        stops.push({ offset: '100%', color: stops[stops.length - 1].color });
+      }
+    }
+
+    return stops;
+  }, [chartData, left, right]);
 
   const handleMouseMove = (e: any) => {
     if (e && e.activePayload && e.activePayload[0]) {
@@ -155,7 +193,7 @@ export function ElevationProfile({
       : null;
 
   return (
-    <div className="select-none rounded-xl border border-border bg-card p-4">
+    <div className="rounded-xl border border-border bg-card p-4 select-none">
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <TrendingUp className="h-4 w-4 text-primary" />
@@ -165,7 +203,7 @@ export function ElevationProfile({
               variant="ghost"
               size="sm"
               onClick={resetZoom}
-              className="h-6 gap-1 bg-secondary/50 px-2 text-[10px] text-muted-foreground hover:text-foreground"
+              className="h-6 gap-1 px-2 text-[10px] text-muted-foreground hover:text-foreground bg-secondary/50"
             >
               <RefreshCcw className="h-3 w-3" />
               {t('chart.resetZoom')}
@@ -175,9 +213,17 @@ export function ElevationProfile({
         {selectedIndex !== null && weatherPoints[selectedIndex] && (
           <div className="flex items-center gap-2">
             <div
-              className={`h-2.5 w-2.5 animate-pulse rounded-full ${getSlopeColor(chartData.find((d) => Math.abs(d.distance - weatherPoints[selectedIndex].point.distanceFromStart) < 0.1)?.slope || 0)}`}
+              className="h-2.5 w-2.5 rounded-full animate-pulse"
+              style={{
+                backgroundColor:
+                  chartData.find(
+                    (d) =>
+                      Math.abs(d.distance - weatherPoints[selectedIndex].point.distanceFromStart) <
+                      0.1,
+                  )?.color || '#3ecf8e',
+              }}
             />
-            <span className="font-mono text-xs font-bold text-foreground">
+            <span className="text-xs font-bold font-mono text-foreground">
               {Math.round(weatherPoints[selectedIndex].point.ele || 0)}m
             </span>
           </div>
@@ -194,9 +240,15 @@ export function ElevationProfile({
             onDoubleClick={resetZoom}
           >
             <defs>
-              <linearGradient id="colorEle" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
-                <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+              <linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="0">
+                {gradientStops.map((stop, i) => (
+                  <stop key={`line-${i}`} offset={stop.offset} stopColor={stop.color} />
+                ))}
+              </linearGradient>
+              <linearGradient id={`${gradientId}-fill`} x1="0" y1="0" x2="1" y2="0">
+                {gradientStops.map((stop, i) => (
+                  <stop key={`fill-${i}`} offset={stop.offset} stopColor={stop.color} stopOpacity={0.2} />
+                ))}
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
@@ -223,16 +275,19 @@ export function ElevationProfile({
                 if (active && payload && payload.length) {
                   const data = payload[0].payload;
                   return (
-                    <div className="flex items-center gap-3 rounded-lg border border-border bg-background p-2 shadow-md">
+                    <div className="rounded-lg border border-border bg-background p-2 shadow-md flex items-center gap-3">
                       <div className="flex flex-col">
-                        <p className="text-[10px] font-bold uppercase text-muted-foreground">
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase">
                           km {data.distance.toFixed(1)}
                         </p>
                         <span className="text-sm font-bold text-foreground">{data.elevation}m</span>
                       </div>
                       <div className="flex items-center gap-1.5 border-l border-border pl-3">
-                        <div className={`h-2 w-2 rounded-full ${getSlopeColor(data.slope)}`} />
-                        <span className="font-mono text-xs font-bold text-foreground">
+                        <div
+                          className="h-2 w-2 rounded-full"
+                          style={{ backgroundColor: data.color }}
+                        />
+                        <span className="text-xs font-bold font-mono text-foreground">
                           {data.slope}%
                         </span>
                       </div>
@@ -245,10 +300,10 @@ export function ElevationProfile({
             <Area
               type="monotone"
               dataKey="elevation"
-              stroke="hsl(var(--primary))"
-              strokeWidth={2}
+              stroke={`url(#${gradientId})`}
+              strokeWidth={3}
               fillOpacity={1}
-              fill="url(#colorEle)"
+              fill={`url(#${gradientId}-fill)`}
               isAnimationActive={false}
             />
 
