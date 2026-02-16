@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { useTheme } from 'next-themes'
 import Map, { Source, Layer, NavigationControl, MapRef } from 'react-map-gl/maplibre'
 import maplibregl from 'maplibre-gl'
@@ -17,26 +17,26 @@ interface RouteMapProps {
   weatherPoints?: RouteWeatherPoint[]
   selectedPointIndex?: number | null
   onPointSelect?: (index: number) => void
-  activeFilter?: { key: 'pathType' | 'surface'; value: string } | null
+  activeFilter?: { key: 'pathType' | 'surface', value: string } | null
+  selectedRange?: { start: number; end: number } | null
 }
 
-export default function RouteMap({
-  points,
-  weatherPoints,
-  selectedPointIndex = null,
+export default function RouteMap({ 
+  points, 
+  weatherPoints, 
+  selectedPointIndex = null, 
   onPointSelect,
   activeFilter = null,
+  selectedRange = null
 }: RouteMapProps) {
   const { resolvedTheme } = useTheme()
   const mapRef = useRef<MapRef>(null)
-  const [hoveredPointIndex, setHoveredPointIndex] = useState<number | null>(null)
+  const [hoveredPointIdx, setHoveredPointIdx] = useState<number | null>(null)
   const [mounted, setMounted] = useState(false)
 
-  const { routeData, highlightedData } = useMapLayers(points, weatherPoints, activeFilter)
+  const { routeData, highlightedData, rangeHighlightData, weatherPointsData } = useMapLayers(points, weatherPoints, activeFilter, selectedRange)
 
-  useEffect(() => {
-    setMounted(true)
-  }, [])
+  useEffect(() => { setMounted(true) }, [])
 
   const mapStyle = useMemo(() => {
     return resolvedTheme === 'light'
@@ -44,47 +44,45 @@ export default function RouteMap({
       : 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json'
   }, [resolvedTheme])
 
-  // Fit map to bounds
   useEffect(() => {
-    if (points.length > 0 && mapRef.current) {
-      const lons = points.map((p) => p.lon)
-      const lats = points.map((p) => p.lat)
-      const minLon = Math.min(...lons)
-      const maxLon = Math.max(...lons)
-      const minLat = Math.min(...lats)
-      const maxLat = Math.max(...lats)
-
+    const validPoints = points.filter(p => typeof p.lon === 'number' && typeof p.lat === 'number' && !isNaN(p.lon) && !isNaN(p.lat))
+    if (validPoints.length > 0 && mapRef.current) {
+      const lons = validPoints.map(p => p.lon); const lats = validPoints.map(p => p.lat)
       mapRef.current.fitBounds(
-        [
-          [minLon, minLat],
-          [maxLon, maxLat],
-        ],
-        { padding: 40, duration: 1000 },
+        [[Math.min(...lons), Math.min(...lats)], [Math.max(...lons), Math.max(...lats)]],
+        { padding: 40, duration: 1000 }
       )
     }
   }, [points])
 
-  // Sync center with selected point
   useEffect(() => {
-    if (selectedPointIndex !== null && weatherPoints?.[selectedPointIndex] && mapRef.current) {
-      const point = weatherPoints[selectedPointIndex].point
-      mapRef.current.easeTo({
-        center: [point.lon, point.lat],
-        duration: 500,
-      })
-    }
-  }, [selectedPointIndex, weatherPoints])
-
-  const popupInfo = useMemo(() => {
-    const idx = hoveredPointIndex !== null ? hoveredPointIndex : selectedPointIndex
-    if (idx !== null && weatherPoints?.[idx]) {
-      return {
-        ...weatherPoints[idx],
-        index: idx,
+    if (selectedRange && mapRef.current) {
+      const rangePoints = points.filter(p => 
+        typeof p.lon === 'number' && typeof p.lat === 'number' && !isNaN(p.lon) && !isNaN(p.lat) &&
+        p.distanceFromStart >= selectedRange.start && p.distanceFromStart <= selectedRange.end
+      )
+      if (rangePoints.length > 0) {
+        const lons = rangePoints.map(p => p.lon); const lats = rangePoints.map(p => p.lat)
+        mapRef.current.fitBounds(
+          [[Math.min(...lons), Math.min(...lats)], [Math.max(...lons), Math.max(...lats)]],
+          { padding: 60, duration: 800 }
+        )
       }
     }
+  }, [selectedRange, points])
+
+  const onMapClick = useCallback((event: any) => {
+    const feature = event.features?.[0]
+    if (feature && onPointSelect) {
+      onPointSelect(feature.properties.index)
+    }
+  }, [onPointSelect])
+
+  const popupInfo = useMemo(() => {
+    const idx = hoveredPointIdx !== null ? hoveredPointIdx : selectedPointIndex
+    if (idx !== null && weatherPoints?.[idx]) return { ...weatherPoints[idx], index: idx }
     return null
-  }, [hoveredPointIndex, selectedPointIndex, weatherPoints])
+  }, [hoveredPointIdx, selectedPointIndex, weatherPoints])
 
   if (!mounted) return null
 
@@ -93,26 +91,24 @@ export default function RouteMap({
       <Map
         ref={mapRef}
         mapLib={maplibregl}
-        initialViewState={{
-          longitude: -3.7038,
-          latitude: 40.4168,
-          zoom: 5,
-        }}
+        initialViewState={{ longitude: -3.7038, latitude: 40.4168, zoom: 5 }}
         style={{ width: '100%', height: '100%' }}
         mapStyle={mapStyle}
+        onClick={onMapClick}
       >
         <NavigationControl position="top-right" />
 
         {routeData && (
           <Source id="route-source" type="geojson" data={routeData}>
             <Layer
-              id="route-layer"
+              id="route-base"
               type="line"
               paint={{
                 'line-color': '#3ecf8e',
-                'line-width': 3,
-                'line-opacity': activeFilter ? 0.2 : 0.8,
+                'line-width': 4,
+                'line-opacity': (activeFilter || selectedRange) ? 0.3 : 1
               }}
+              layout={{ 'line-cap': 'round', 'line-join': 'round' }}
             />
           </Source>
         )}
@@ -120,23 +116,29 @@ export default function RouteMap({
         {highlightedData && (
           <Source id="highlight-source" type="geojson" data={highlightedData}>
             <Layer
-              id="highlight-layer"
+              id="highlight-glow"
               type="line"
-              paint={{
-                'line-color': '#3ecf8e',
-                'line-width': 6,
-                'line-opacity': 1,
-                'line-blur': 2,
-              }}
+              paint={{ 'line-color': '#3ecf8e', 'line-width': 8, 'line-opacity': 0.4, 'line-blur': 4 }}
             />
             <Layer
-              id="highlight-layer-inner"
+              id="highlight-line"
               type="line"
-              paint={{
-                'line-color': '#ffffff',
-                'line-width': 2,
-                'line-opacity': 0.8,
-              }}
+              paint={{ 'line-color': '#3ecf8e', 'line-width': 4, 'line-opacity': 1 }}
+            />
+          </Source>
+        )}
+
+        {rangeHighlightData && (
+          <Source id="range-source" type="geojson" data={rangeHighlightData}>
+            <Layer
+              id="range-glow"
+              type="line"
+              paint={{ 'line-color': '#007aff', 'line-width': 10, 'line-opacity': 0.3, 'line-blur': 6 }}
+            />
+            <Layer
+              id="range-line"
+              type="line"
+              paint={{ 'line-color': '#007aff', 'line-width': 5, 'line-opacity': 1 }}
             />
           </Source>
         )}
@@ -147,10 +149,10 @@ export default function RouteMap({
           selectedPointIndex={selectedPointIndex}
           activeFilter={activeFilter}
           onPointSelect={onPointSelect}
-          onHoverPoint={setHoveredPointIndex}
+          onHoverPoint={setHoveredPointIdx}
         />
 
-        {popupInfo && <MapPopup popupInfo={popupInfo} onClose={() => setHoveredPointIndex(null)} />}
+        {popupInfo && <MapPopup popupInfo={popupInfo} onClose={() => setHoveredPointIdx(null)} />}
       </Map>
 
       <style jsx global>{`
@@ -160,10 +162,6 @@ export default function RouteMap({
           color: hsl(var(--foreground)) !important;
           border-radius: 8px !important;
           padding: 8px 12px !important;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
-        }
-        .weather-popup .maplibregl-popup-tip {
-          border-top-color: hsl(var(--border)) !important;
         }
       `}</style>
 

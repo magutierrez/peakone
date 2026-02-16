@@ -21,61 +21,62 @@ export function MapMarkers({
   onPointSelect,
   onHoverPoint,
 }: MapMarkersProps) {
-  if (weatherPoints && weatherPoints.length > 0) {
-    return (
-      <>
-        {weatherPoints.map((wp, idx) => {
-          const isSelected = selectedPointIndex === idx
-          const isFiltered =
-            activeFilter && (wp[activeFilter.key] || 'unknown') !== activeFilter.value
+  const startPoint = points[0]
+  const endPoint = points[points.length - 1]
 
-          if (isFiltered && !isSelected) return null
+  return (
+    <>
+      {startPoint && (
+        <Marker longitude={startPoint.lon} latitude={startPoint.lat} anchor="bottom" offset={[0, -5]}>
+          <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-green-600 font-bold text-white shadow-lg transition-transform hover:scale-110">
+            A
+          </div>
+        </Marker>
+      )}
+      {endPoint && endPoint !== startPoint && (
+        <Marker longitude={endPoint.lon} latitude={endPoint.lat} anchor="bottom" offset={[0, -5]}>
+          <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-red-600 font-bold text-white shadow-lg transition-transform hover:scale-110">
+            B
+          </div>
+        </Marker>
+      )}
 
-          return (
-            <Marker
-              key={idx}
-              longitude={wp.point.lon}
-              latitude={wp.point.lat}
-              anchor="center"
-              onClick={(e) => {
-                e.originalEvent.stopPropagation()
-                onPointSelect?.(idx)
-              }}
+      {weatherPoints?.map((wp, idx) => {
+        const isSelected = selectedPointIndex === idx
+        const isFiltered =
+          activeFilter && (wp[activeFilter.key] || 'unknown') !== activeFilter.value
+
+        if (isFiltered && !isSelected) return null
+
+        return (
+          <Marker
+            key={idx}
+            longitude={wp.point.lon}
+            latitude={wp.point.lat}
+            anchor="center"
+            onClick={(e) => {
+              e.originalEvent.stopPropagation()
+              onPointSelect?.(idx)
+            }}
+          >
+            <button
+              className={`group relative flex items-center justify-center transition-all hover:scale-125 ${isSelected ? 'z-10 scale-125' : 'z-0'}`}
+              onMouseEnter={() => onHoverPoint(idx)}
+              onMouseLeave={() => onHoverPoint(null)}
             >
-              <button
-                className={`group relative flex items-center justify-center transition-all hover:scale-125 ${isSelected ? 'z-10 scale-125' : 'z-0'}`}
-                onMouseEnter={() => onHoverPoint(idx)}
-                onMouseLeave={() => onHoverPoint(null)}
-              >
-                <WindArrow
-                  direction={wp.weather.windDirection}
-                  travelBearing={wp.bearing}
-                  effect={wp.windEffect}
-                  size={isSelected ? 36 : 28}
-                />
-                {isSelected && (
-                  <div className="absolute inset-0 animate-pulse rounded-full border-2 border-white/50" />
-                )}
-              </button>
-            </Marker>
-          )
-        })}
-      </>
-    )
-  }
-
-  if (points.length > 0) {
-    return (
-      <>
-        <Marker longitude={points[0].lon} latitude={points[0].lat} color="#3ecf8e" />
-        <Marker
-          longitude={points[points.length - 1].lon}
-          latitude={points[points.length - 1].lat}
-          color="#ef4444"
-        />
-      </>
-    )
-  }
-
-  return null
+              <WindArrow
+                direction={wp.weather.windDirection}
+                travelBearing={wp.bearing}
+                effect={wp.windEffect}
+                size={isSelected ? 36 : 28}
+              />
+              {isSelected && (
+                <div className="absolute inset-0 animate-pulse rounded-full border-2 border-white/50" />
+              )}
+            </button>
+          </Marker>
+        )
+      })}
+    </>
+  )
 }
