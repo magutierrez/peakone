@@ -1,19 +1,19 @@
-'use client'
+'use client';
 
-import { Bike, Footprints, Calendar as CalendarIcon, Clock, Gauge } from 'lucide-react'
-import { useTranslations } from 'next-intl'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import type { RouteConfig } from '@/lib/types'
+import { Bike, Footprints, Calendar as CalendarIcon, Clock, Gauge } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import type { RouteConfig } from '@/lib/types';
 
 interface ActivityConfigSectionProps {
-  config: RouteConfig
-  setConfig: (config: RouteConfig) => void
-  onAnalyze: () => void
-  isLoading: boolean
-  hasGpxData: boolean
-  totalDistance: number
+  config: RouteConfig;
+  setConfig: (config: RouteConfig) => void;
+  onAnalyze: () => void;
+  isLoading: boolean;
+  hasGpxData: boolean;
+  totalDistance: number;
 }
 
 export function ActivityConfigSection({
@@ -22,14 +22,14 @@ export function ActivityConfigSection({
   onAnalyze,
   isLoading,
   hasGpxData,
-  totalDistance
+  totalDistance,
 }: ActivityConfigSectionProps) {
-  const t = useTranslations('RouteConfigPanel')
-  const th = useTranslations('HomePage')
+  const t = useTranslations('RouteConfigPanel');
+  const th = useTranslations('HomePage');
 
-  const estimatedDuration = (totalDistance / config.speed) * 60
-  const hours = Math.floor(estimatedDuration / 60)
-  const minutes = Math.round(estimatedDuration % 60)
+  const estimatedDuration = (totalDistance / config.speed) * 60;
+  const hours = Math.floor(estimatedDuration / 60);
+  const minutes = Math.round(estimatedDuration % 60);
 
   return (
     <section className="flex flex-col gap-6 rounded-xl border border-border bg-card/50 p-6">
@@ -86,16 +86,14 @@ export function ActivityConfigSection({
               min={1}
               max={60}
               value={config.speed}
-              onChange={(e) =>
-                setConfig({ ...config, speed: parseFloat(e.target.value) || 1 })
-              }
-              className="border-border font-mono bg-secondary"
+              onChange={(e) => setConfig({ ...config, speed: parseFloat(e.target.value) || 1 })}
+              className="border-border bg-secondary font-mono"
             />
             <div className="shrink-0 rounded-lg border border-border bg-muted/50 px-4 py-2">
               <p className="text-[10px] uppercase text-muted-foreground">
                 {t('estimatedDuration')}
               </p>
-              <p className="font-mono text-sm font-bold whitespace-nowrap text-foreground">
+              <p className="whitespace-nowrap font-mono text-sm font-bold text-foreground">
                 {t('durationFormat', {
                   hours,
                   minutes: minutes.toString().padStart(2, '0'),
@@ -158,5 +156,5 @@ export function ActivityConfigSection({
         </Button>
       </div>
     </section>
-  )
+  );
 }

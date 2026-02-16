@@ -1,22 +1,22 @@
-'use client'
+'use client';
 
-import { useTranslations } from 'next-intl'
-import { RouteSegments } from '@/components/weather-timeline/route-segments'
-import { ElevationProfile } from '@/components/weather-timeline/elevation-profile'
-import { WeatherSummary } from '@/components/weather-timeline/weather-summary'
-import { WeatherList } from '@/components/weather-timeline/weather-list'
-import { WeatherPointDetail } from '@/components/weather-timeline/weather-point-detail'
-import type { RouteWeatherPoint } from '@/lib/types'
+import { useTranslations } from 'next-intl';
+import { RouteSegments } from '@/components/weather-timeline/route-segments';
+import { ElevationProfile } from '@/components/weather-timeline/elevation-profile';
+import { WeatherSummary } from '@/components/weather-timeline/weather-summary';
+import { WeatherList } from '@/components/weather-timeline/weather-list';
+import { WeatherPointDetail } from '@/components/weather-timeline/weather-point-detail';
+import type { RouteWeatherPoint } from '@/lib/types';
 
 interface AnalysisResultsProps {
-  weatherPoints: RouteWeatherPoint[]
-  routeInfoData: any[]
-  elevationData: { distance: number; elevation: number }[]
-  activeFilter: { key: 'pathType' | 'surface'; value: string } | null
-  setActiveFilter: (filter: { key: 'pathType' | 'surface'; value: string } | null) => void
-  selectedPointIndex: number | null
-  setSelectedPointIndex: (index: number | null) => void
-  onRangeSelect?: (range: { start: number; end: number } | null) => void
+  weatherPoints: RouteWeatherPoint[];
+  routeInfoData: any[];
+  elevationData: { distance: number; elevation: number }[];
+  activeFilter: { key: 'pathType' | 'surface'; value: string } | null;
+  setActiveFilter: (filter: { key: 'pathType' | 'surface'; value: string } | null) => void;
+  selectedPointIndex: number | null;
+  setSelectedPointIndex: (index: number | null) => void;
+  onRangeSelect?: (range: { start: number; end: number } | null) => void;
 }
 
 export function AnalysisResults({
@@ -27,9 +27,9 @@ export function AnalysisResults({
   setActiveFilter,
   selectedPointIndex,
   setSelectedPointIndex,
-  onRangeSelect
+  onRangeSelect,
 }: AnalysisResultsProps) {
-  const th = useTranslations('HomePage')
+  const th = useTranslations('HomePage');
 
   return (
     <>
@@ -87,5 +87,5 @@ export function AnalysisResults({
         </section>
       )}
     </>
-  )
+  );
 }

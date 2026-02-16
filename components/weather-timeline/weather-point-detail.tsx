@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import {
   Wind,
@@ -9,53 +9,53 @@ import {
   ArrowDown,
   ArrowLeft,
   ArrowRight,
-} from 'lucide-react'
-import { useTranslations } from 'next-intl'
-import { WeatherIcon } from '@/components/weather-icon'
-import { WindArrow } from '@/components/wind-arrow'
-import { WEATHER_CODES } from '@/lib/types'
-import type { RouteWeatherPoint } from '@/lib/types'
+} from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import { WeatherIcon } from '@/components/weather-icon';
+import { WindArrow } from '@/components/wind-arrow';
+import { WEATHER_CODES } from '@/lib/types';
+import type { RouteWeatherPoint } from '@/lib/types';
 
 interface WeatherPointDetailProps {
-  point: RouteWeatherPoint
+  point: RouteWeatherPoint;
 }
 
 function getWindEffectIcon(effect: string) {
   switch (effect) {
     case 'tailwind':
-      return <ArrowDown className="h-3.5 w-3.5 text-primary" />
+      return <ArrowDown className="h-3.5 w-3.5 text-primary" />;
     case 'headwind':
-      return <ArrowUp className="h-3.5 w-3.5 text-destructive" />
+      return <ArrowUp className="h-3.5 w-3.5 text-destructive" />;
     case 'crosswind-left':
-      return <ArrowLeft className="h-3.5 w-3.5 text-accent" />
+      return <ArrowLeft className="h-3.5 w-3.5 text-accent" />;
     case 'crosswind-right':
-      return <ArrowRight className="h-3.5 w-3.5 text-accent" />
+      return <ArrowRight className="h-3.5 w-3.5 text-accent" />;
     default:
-      return null
+      return null;
   }
 }
 
 export function WeatherPointDetail({ point }: WeatherPointDetailProps) {
-  const t = useTranslations('WeatherTimeline')
-  const tw = useTranslations('WeatherCodes')
-  const time = new Date(point.weather.time)
-  const locale = 'es-ES'
+  const t = useTranslations('WeatherTimeline');
+  const tw = useTranslations('WeatherCodes');
+  const time = new Date(point.weather.time);
+  const locale = 'es-ES';
   const timeStr = time.toLocaleTimeString(locale, {
     hour: '2-digit',
     minute: '2-digit',
-  })
+  });
   const dateStr = time.toLocaleDateString(locale, {
     weekday: 'short',
     day: 'numeric',
     month: 'short',
-  })
+  });
 
-  const hasTranslation = !!tw.raw(point.weather.weatherCode.toString())
+  const hasTranslation = !!tw.raw(point.weather.weatherCode.toString());
   const weatherDescription = hasTranslation
     ? tw(point.weather.weatherCode.toString() as any)
-    : WEATHER_CODES[point.weather.weatherCode]?.description || t('unknownWeather')
+    : WEATHER_CODES[point.weather.weatherCode]?.description || t('unknownWeather');
 
-  const windEffectLabel = t(`windEffect.${point.windEffect}` as any).toLowerCase()
+  const windEffectLabel = t(`windEffect.${point.windEffect}` as any).toLowerCase();
 
   return (
     <div className="rounded-lg border border-primary/20 bg-card p-4">
@@ -158,5 +158,5 @@ export function WeatherPointDetail({ point }: WeatherPointDetailProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }

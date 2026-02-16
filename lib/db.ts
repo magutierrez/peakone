@@ -1,15 +1,15 @@
-import { PGlite } from '@electric-sql/pglite'
+import { PGlite } from '@electric-sql/pglite';
 
-let dbPromise: Promise<PGlite> | null = null
+let dbPromise: Promise<PGlite> | null = null;
 
 export async function getDb() {
-  if (typeof window === 'undefined') return null
+  if (typeof window === 'undefined') return null;
 
-  if (dbPromise) return dbPromise
+  if (dbPromise) return dbPromise;
 
   dbPromise = (async () => {
     // Usamos idb:// para que los datos persistan en el IndexedDB del navegador
-    const instance = await PGlite.create('idb://peakone-storage')
+    const instance = await PGlite.create('idb://peakone-storage');
 
     // Inicializamos el esquema
     await instance.exec(`
@@ -23,10 +23,10 @@ export async function getDb() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
       CREATE INDEX IF NOT EXISTS idx_user_email ON saved_routes(user_email);
-    `)
+    `);
 
-    return instance
-  })()
+    return instance;
+  })();
 
-  return dbPromise
+  return dbPromise;
 }

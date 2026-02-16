@@ -1,9 +1,9 @@
-'use client'
+'use client';
 
-import { useTranslations } from 'next-intl'
+import { useTranslations } from 'next-intl';
 
 export function MapLegend() {
-  const t = useTranslations('RouteMap')
+  const t = useTranslations('RouteMap');
 
   return (
     <div className="absolute bottom-6 left-3 z-10 rounded-lg border border-border bg-card/95 p-3 shadow-xl backdrop-blur-sm">
@@ -23,5 +23,5 @@ export function MapLegend() {
         </div>
       </div>
     </div>
-  )
+  );
 }

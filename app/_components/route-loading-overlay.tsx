@@ -1,16 +1,16 @@
-'use client'
+'use client';
 
-import { Loader2 } from 'lucide-react'
-import { useTranslations } from 'next-intl'
+import { Loader2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface RouteLoadingOverlayProps {
-  isVisible: boolean
+  isVisible: boolean;
 }
 
 export function RouteLoadingOverlay({ isVisible }: RouteLoadingOverlayProps) {
-  const th = useTranslations('HomePage')
+  const th = useTranslations('HomePage');
 
-  if (!isVisible) return null
+  if (!isVisible) return null;
 
   return (
     <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-background/60 backdrop-blur-sm">
@@ -22,5 +22,5 @@ export function RouteLoadingOverlay({ isVisible }: RouteLoadingOverlayProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }

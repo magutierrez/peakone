@@ -1,51 +1,51 @@
-'use client'
+'use client';
 
-import { useSavedRoutes, SavedRoute } from '@/hooks/use-saved-routes'
-import { MapPin, Trash2, Calendar, Route, Pencil, Check, X } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { useState } from 'react'
-import { Input } from '@/components/ui/input'
-import { useTranslations } from 'next-intl'
+import { useSavedRoutes, SavedRoute } from '@/hooks/use-saved-routes';
+import { MapPin, Trash2, Calendar, Route, Pencil, Check, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { useState } from 'react';
+import { Input } from '@/components/ui/input';
+import { useTranslations } from 'next-intl';
 
 interface SavedRoutesListProps {
-  onLoadRoute: (content: string, fileName: string) => void
+  onLoadRoute: (content: string, fileName: string) => void;
 }
 
 export function SavedRoutesList({ onLoadRoute }: SavedRoutesListProps) {
-  const t = useTranslations('SavedRoutes')
-  const { routes, isLoading, deleteRoute, updateRouteName } = useSavedRoutes()
-  const [editingId, setEditingId] = useState<string | null>(null)
-  const [editName, setEditName] = useState('')
+  const t = useTranslations('SavedRoutes');
+  const { routes, isLoading, deleteRoute, updateRouteName } = useSavedRoutes();
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState('');
 
-  const stripExtension = (name: string) => name.replace(/\.gpx$/i, '')
+  const stripExtension = (name: string) => name.replace(/\.gpx$/i, '');
 
   const handleStartEdit = (e: React.MouseEvent, route: SavedRoute) => {
-    e.stopPropagation()
-    setEditingId(route.id)
-    setEditName(stripExtension(route.name))
-  }
+    e.stopPropagation();
+    setEditingId(route.id);
+    setEditName(stripExtension(route.name));
+  };
 
   const handleSaveEdit = async (e: React.MouseEvent, id: string) => {
-    e.stopPropagation()
+    e.stopPropagation();
     if (editName.trim()) {
-      await updateRouteName(id, `${editName.trim()}.gpx`)
+      await updateRouteName(id, `${editName.trim()}.gpx`);
     }
-    setEditingId(null)
-  }
+    setEditingId(null);
+  };
 
   const handleCancelEdit = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    setEditingId(null)
-  }
+    e.stopPropagation();
+    setEditingId(null);
+  };
 
   if (isLoading)
     return (
       <div className="animate-pulse p-4 text-center text-xs text-muted-foreground">
         {t('loading')}
       </div>
-    )
-  if (routes.length === 0) return null
+    );
+  if (routes.length === 0) return null;
 
   return (
     <div className="flex w-full min-w-0 flex-col gap-3">
@@ -74,8 +74,8 @@ export function SavedRoutesList({ onLoadRoute }: SavedRoutesListProps) {
                     className="h-8 min-w-0 flex-1 border-primary/50 bg-background text-xs focus-visible:ring-1"
                     autoFocus
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter') handleSaveEdit(e as any, route.id)
-                      if (e.key === 'Escape') handleCancelEdit(e as any)
+                      if (e.key === 'Enter') handleSaveEdit(e as any, route.id);
+                      if (e.key === 'Escape') handleCancelEdit(e as any);
                     }}
                   />
                   <div className="flex shrink-0 items-center">
@@ -132,8 +132,8 @@ export function SavedRoutesList({ onLoadRoute }: SavedRoutesListProps) {
                       size="icon"
                       className="h-8 w-8 text-muted-foreground transition-colors hover:bg-destructive/5 hover:text-destructive"
                       onClick={(e) => {
-                        e.stopPropagation()
-                        deleteRoute(route.id)
+                        e.stopPropagation();
+                        deleteRoute(route.id);
                       }}
                     >
                       <Trash2 className="h-3.5 w-3.5" />
@@ -146,5 +146,5 @@ export function SavedRoutesList({ onLoadRoute }: SavedRoutesListProps) {
         </div>
       </ScrollArea>
     </div>
-  )
+  );
 }

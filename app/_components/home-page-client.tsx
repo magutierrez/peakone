@@ -1,41 +1,41 @@
-'use client'
+'use client';
 
-import { useState, useEffect, useRef } from 'react'
-import dynamic from 'next/dynamic'
-import { useTranslations } from 'next-intl'
-import { useRouteAnalysis } from '@/hooks/use-route-analysis'
-import type { RouteConfig } from '@/lib/types'
+import { useState, useEffect, useRef } from 'react';
+import dynamic from 'next/dynamic';
+import { useTranslations } from 'next-intl';
+import { useRouteAnalysis } from '@/hooks/use-route-analysis';
+import type { RouteConfig } from '@/lib/types';
 
-import { Header } from './header'
-import { EmptyState } from './empty-state'
-import { Sidebar } from './sidebar'
-import { Session } from 'next-auth'
-import { useSavedRoutes } from '@/hooks/use-saved-routes'
+import { Header } from './header';
+import { EmptyState } from './empty-state';
+import { Sidebar } from './sidebar';
+import { Session } from 'next-auth';
+import { useSavedRoutes } from '@/hooks/use-saved-routes';
 
-import { RouteLoadingOverlay } from './route-loading-overlay'
-import { ActivityConfigSection } from './activity-config-section'
-import { AnalysisResults } from './analysis-results'
+import { RouteLoadingOverlay } from './route-loading-overlay';
+import { ActivityConfigSection } from './activity-config-section';
+import { AnalysisResults } from './analysis-results';
 
 const RouteMap = dynamic(() => import('@/components/route-map'), {
   ssr: false,
   loading: function Loading() {
-    const th = useTranslations('HomePage')
+    const th = useTranslations('HomePage');
     return (
       <div className="flex h-full items-center justify-center rounded-lg bg-card">
         <span className="text-sm text-muted-foreground">{th('loadingMap')}</span>
       </div>
-    )
+    );
   },
-})
+});
 
 function getDefaultDate(): string {
-  const tomorrow = new Date()
-  tomorrow.setDate(tomorrow.getDate() + 1)
-  return tomorrow.toISOString().split('T')[0]
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  return tomorrow.toISOString().split('T')[0];
 }
 
 interface HomePageClientProps {
-  session: Session | null
+  session: Session | null;
 }
 
 export default function HomePageClient({ session }: HomePageClientProps) {
@@ -44,14 +44,15 @@ export default function HomePageClient({ session }: HomePageClientProps) {
     time: '08:00',
     speed: 25,
     activityType: 'cycling',
-  })
+  });
 
-  const [activeFilter, setActiveFilter] = useState<{ key: 'pathType' | 'surface'; value: string } | null>(
-    null,
-  )
-  const [selectedRange, setSelectedRange] = useState<{ start: number; end: number } | null>(null)
-  const { saveRoute, routes } = useSavedRoutes()
-  const lastSavedRef = useRef<string | null>(null)
+  const [activeFilter, setActiveFilter] = useState<{
+    key: 'pathType' | 'surface';
+    value: string;
+  } | null>(null);
+  const [selectedRange, setSelectedRange] = useState<{ start: number; end: number } | null>(null);
+  const { saveRoute, routes } = useSavedRoutes();
+  const lastSavedRef = useRef<string | null>(null);
 
   const {
     gpxData,
@@ -70,17 +71,17 @@ export default function HomePageClient({ session }: HomePageClientProps) {
     handleClearGPX,
     handleReverseRoute,
     handleAnalyze,
-  } = useRouteAnalysis(config)
+  } = useRouteAnalysis(config);
 
   const onClearGPXWithRange = () => {
-    setSelectedRange(null)
-    handleClearGPX()
-  }
+    setSelectedRange(null);
+    handleClearGPX();
+  };
 
   const onReverseWithRange = () => {
-    setSelectedRange(null)
-    handleReverseRoute()
-  }
+    setSelectedRange(null);
+    handleReverseRoute();
+  };
 
   useEffect(() => {
     if (gpxData && rawGPXContent && gpxFileName && session?.user) {
@@ -88,14 +89,14 @@ export default function HomePageClient({ session }: HomePageClientProps) {
         (r) =>
           r.name === gpxFileName &&
           Number(r.distance).toFixed(2) === gpxData.totalDistance.toFixed(2),
-      )
+      );
 
       if (!routeExists && lastSavedRef.current !== rawGPXContent) {
-        saveRoute(gpxFileName, rawGPXContent, gpxData.totalDistance, gpxData.totalElevationGain)
-        lastSavedRef.current = rawGPXContent
+        saveRoute(gpxFileName, rawGPXContent, gpxData.totalDistance, gpxData.totalElevationGain);
+        lastSavedRef.current = rawGPXContent;
       }
     }
-  }, [gpxData, rawGPXContent, gpxFileName, session?.user, routes, saveRoute])
+  }, [gpxData, rawGPXContent, gpxFileName, session?.user, routes, saveRoute]);
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -157,5 +158,5 @@ export default function HomePageClient({ session }: HomePageClientProps) {
         </main>
       </div>
     </div>
-  )
+  );
 }

@@ -1,7 +1,7 @@
-'use client'
+'use client';
 
-import { signOut } from 'next-auth/react'
-import { LogOut, User } from 'lucide-react'
+import { signOut } from 'next-auth/react';
+import { LogOut, User } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,16 +9,16 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Button } from '@/components/ui/button'
+} from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 
 interface UserMenuProps {
   user: {
-    name?: string | null
-    email?: string | null
-    image?: string | null
-  }
+    name?: string | null;
+    email?: string | null;
+    image?: string | null;
+  };
 }
 
 export function UserMenu({ user }: UserMenuProps) {
@@ -28,7 +28,7 @@ export function UserMenu({ user }: UserMenuProps) {
         .map((n) => n[0])
         .join('')
         .toUpperCase()
-    : 'U'
+    : 'U';
 
   return (
     <DropdownMenu>
@@ -54,5 +54,5 @@ export function UserMenu({ user }: UserMenuProps) {
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  )
+  );
 }

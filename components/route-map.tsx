@@ -1,90 +1,116 @@
-'use client'
+'use client';
 
-import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
-import { useTheme } from 'next-themes'
-import Map, { Source, Layer, NavigationControl, MapRef } from 'react-map-gl/maplibre'
-import maplibregl from 'maplibre-gl'
-import 'maplibre-gl/dist/maplibre-gl.css'
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import { useTheme } from 'next-themes';
+import Map, { Source, Layer, NavigationControl, MapRef } from 'react-map-gl/maplibre';
+import maplibregl from 'maplibre-gl';
+import 'maplibre-gl/dist/maplibre-gl.css';
 
-import type { RoutePoint, RouteWeatherPoint } from '@/lib/types'
-import { useMapLayers } from './route-map/use-map-layers'
-import { MapMarkers } from './route-map/map-markers'
-import { MapPopup } from './route-map/map-popup'
-import { MapLegend } from './route-map/map-legend'
+import type { RoutePoint, RouteWeatherPoint } from '@/lib/types';
+import { useMapLayers } from './route-map/use-map-layers';
+import { MapMarkers } from './route-map/map-markers';
+import { MapPopup } from './route-map/map-popup';
+import { MapLegend } from './route-map/map-legend';
 
 interface RouteMapProps {
-  points: RoutePoint[]
-  weatherPoints?: RouteWeatherPoint[]
-  selectedPointIndex?: number | null
-  onPointSelect?: (index: number) => void
-  activeFilter?: { key: 'pathType' | 'surface', value: string } | null
-  selectedRange?: { start: number; end: number } | null
+  points: RoutePoint[];
+  weatherPoints?: RouteWeatherPoint[];
+  selectedPointIndex?: number | null;
+  onPointSelect?: (index: number) => void;
+  activeFilter?: { key: 'pathType' | 'surface'; value: string } | null;
+  selectedRange?: { start: number; end: number } | null;
 }
 
-export default function RouteMap({ 
-  points, 
-  weatherPoints, 
-  selectedPointIndex = null, 
+export default function RouteMap({
+  points,
+  weatherPoints,
+  selectedPointIndex = null,
   onPointSelect,
   activeFilter = null,
-  selectedRange = null
+  selectedRange = null,
 }: RouteMapProps) {
-  const { resolvedTheme } = useTheme()
-  const mapRef = useRef<MapRef>(null)
-  const [hoveredPointIdx, setHoveredPointIdx] = useState<number | null>(null)
-  const [mounted, setMounted] = useState(false)
+  const { resolvedTheme } = useTheme();
+  const mapRef = useRef<MapRef>(null);
+  const [hoveredPointIdx, setHoveredPointIdx] = useState<number | null>(null);
+  const [mounted, setMounted] = useState(false);
 
-  const { routeData, highlightedData, rangeHighlightData, weatherPointsData } = useMapLayers(points, weatherPoints, activeFilter, selectedRange)
+  const { routeData, highlightedData, rangeHighlightData, weatherPointsData } = useMapLayers(
+    points,
+    weatherPoints,
+    activeFilter,
+    selectedRange,
+  );
 
-  useEffect(() => { setMounted(true) }, [])
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const mapStyle = useMemo(() => {
     return resolvedTheme === 'light'
       ? 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json'
-      : 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json'
-  }, [resolvedTheme])
+      : 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json';
+  }, [resolvedTheme]);
 
   useEffect(() => {
-    const validPoints = points.filter(p => typeof p.lon === 'number' && typeof p.lat === 'number' && !isNaN(p.lon) && !isNaN(p.lat))
+    const validPoints = points.filter(
+      (p) =>
+        typeof p.lon === 'number' && typeof p.lat === 'number' && !isNaN(p.lon) && !isNaN(p.lat),
+    );
     if (validPoints.length > 0 && mapRef.current) {
-      const lons = validPoints.map(p => p.lon); const lats = validPoints.map(p => p.lat)
+      const lons = validPoints.map((p) => p.lon);
+      const lats = validPoints.map((p) => p.lat);
       mapRef.current.fitBounds(
-        [[Math.min(...lons), Math.min(...lats)], [Math.max(...lons), Math.max(...lats)]],
-        { padding: 40, duration: 1000 }
-      )
+        [
+          [Math.min(...lons), Math.min(...lats)],
+          [Math.max(...lons), Math.max(...lats)],
+        ],
+        { padding: 40, duration: 1000 },
+      );
     }
-  }, [points])
+  }, [points]);
 
   useEffect(() => {
     if (selectedRange && mapRef.current) {
-      const rangePoints = points.filter(p => 
-        typeof p.lon === 'number' && typeof p.lat === 'number' && !isNaN(p.lon) && !isNaN(p.lat) &&
-        p.distanceFromStart >= selectedRange.start && p.distanceFromStart <= selectedRange.end
-      )
+      const rangePoints = points.filter(
+        (p) =>
+          typeof p.lon === 'number' &&
+          typeof p.lat === 'number' &&
+          !isNaN(p.lon) &&
+          !isNaN(p.lat) &&
+          p.distanceFromStart >= selectedRange.start &&
+          p.distanceFromStart <= selectedRange.end,
+      );
       if (rangePoints.length > 0) {
-        const lons = rangePoints.map(p => p.lon); const lats = rangePoints.map(p => p.lat)
+        const lons = rangePoints.map((p) => p.lon);
+        const lats = rangePoints.map((p) => p.lat);
         mapRef.current.fitBounds(
-          [[Math.min(...lons), Math.min(...lats)], [Math.max(...lons), Math.max(...lats)]],
-          { padding: 60, duration: 800 }
-        )
+          [
+            [Math.min(...lons), Math.min(...lats)],
+            [Math.max(...lons), Math.max(...lats)],
+          ],
+          { padding: 60, duration: 800 },
+        );
       }
     }
-  }, [selectedRange, points])
+  }, [selectedRange, points]);
 
-  const onMapClick = useCallback((event: any) => {
-    const feature = event.features?.[0]
-    if (feature && onPointSelect) {
-      onPointSelect(feature.properties.index)
-    }
-  }, [onPointSelect])
+  const onMapClick = useCallback(
+    (event: any) => {
+      const feature = event.features?.[0];
+      if (feature && onPointSelect) {
+        onPointSelect(feature.properties.index);
+      }
+    },
+    [onPointSelect],
+  );
 
   const popupInfo = useMemo(() => {
-    const idx = hoveredPointIdx !== null ? hoveredPointIdx : selectedPointIndex
-    if (idx !== null && weatherPoints?.[idx]) return { ...weatherPoints[idx], index: idx }
-    return null
-  }, [hoveredPointIdx, selectedPointIndex, weatherPoints])
+    const idx = hoveredPointIdx !== null ? hoveredPointIdx : selectedPointIndex;
+    if (idx !== null && weatherPoints?.[idx]) return { ...weatherPoints[idx], index: idx };
+    return null;
+  }, [hoveredPointIdx, selectedPointIndex, weatherPoints]);
 
-  if (!mounted) return null
+  if (!mounted) return null;
 
   return (
     <div className="relative h-full w-full overflow-hidden rounded-lg border border-border">
@@ -106,7 +132,7 @@ export default function RouteMap({
               paint={{
                 'line-color': '#3ecf8e',
                 'line-width': 4,
-                'line-opacity': (activeFilter || selectedRange) ? 0.3 : 1
+                'line-opacity': activeFilter || selectedRange ? 0.3 : 1,
               }}
               layout={{ 'line-cap': 'round', 'line-join': 'round' }}
             />
@@ -118,7 +144,12 @@ export default function RouteMap({
             <Layer
               id="highlight-glow"
               type="line"
-              paint={{ 'line-color': '#3ecf8e', 'line-width': 8, 'line-opacity': 0.4, 'line-blur': 4 }}
+              paint={{
+                'line-color': '#3ecf8e',
+                'line-width': 8,
+                'line-opacity': 0.4,
+                'line-blur': 4,
+              }}
             />
             <Layer
               id="highlight-line"
@@ -133,7 +164,12 @@ export default function RouteMap({
             <Layer
               id="range-glow"
               type="line"
-              paint={{ 'line-color': '#007aff', 'line-width': 10, 'line-opacity': 0.3, 'line-blur': 6 }}
+              paint={{
+                'line-color': '#007aff',
+                'line-width': 10,
+                'line-opacity': 0.3,
+                'line-blur': 6,
+              }}
             />
             <Layer
               id="range-line"
@@ -167,5 +203,5 @@ export default function RouteMap({
 
       {weatherPoints && weatherPoints.length > 0 && <MapLegend />}
     </div>
-  )
+  );
 }
