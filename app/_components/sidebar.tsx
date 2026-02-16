@@ -27,25 +27,31 @@ export function Sidebar({
   provider,
 }: SidebarProps) {
   return (
-    <aside className="sticky top-[57px] h-[calc(100vh-57px)] w-full shrink-0 overflow-y-auto border-b border-border bg-card p-4 lg:w-80 lg:border-b-0 lg:border-r">
-      <div className="flex flex-col gap-8">
-        <RouteConfigPanel
-          gpxData={gpxData}
-          onGPXLoaded={onGPXLoaded}
-          gpxFileName={gpxFileName}
-          onClearGPX={onClearGPX}
-          onReverseRoute={onReverseRoute}
-        />
+    <aside className="sticky top-[57px] h-[calc(100vh-57px)] w-full shrink-0 border-b border-border bg-card lg:w-80 lg:border-b-0 lg:border-r">
+      <div className="flex h-full flex-col p-4">
+        <div className="flex flex-col gap-8 flex-1 min-h-0">
+          <RouteConfigPanel
+            gpxData={gpxData}
+            onGPXLoaded={onGPXLoaded}
+            gpxFileName={gpxFileName}
+            onClearGPX={onClearGPX}
+            onReverseRoute={onReverseRoute}
+          />
 
-        {provider === 'strava' && <StravaActivitiesList onLoadGPX={onStravaActivityLoaded} />}
+          {provider === 'strava' && (
+            <div className="flex flex-1 flex-col min-h-0 border-t border-border pt-6">
+              <StravaActivitiesList onLoadGPX={onStravaActivityLoaded} />
+            </div>
+          )}
 
-        <SavedRoutesList onLoadRoute={onGPXLoaded} />
+          {!provider && <SavedRoutesList onLoadRoute={onGPXLoaded} />}
 
-        {error && (
-          <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-3">
-            <p className="text-xs text-destructive">{error}</p>
-          </div>
-        )}
+          {error && (
+            <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 mt-auto">
+              <p className="text-xs text-destructive">{error}</p>
+            </div>
+          )}
+        </div>
       </div>
     </aside>
   )
