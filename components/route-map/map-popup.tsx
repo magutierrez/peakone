@@ -44,7 +44,7 @@ export function MapPopup({ popupInfo, onClose }: MapPopupProps) {
           </span>
         </div>
         <div className="font-medium">{weatherDescription}</div>
-        <div className="mt-0.5 flex items-center justify-between">
+        <div className="gap-x-3 mt-0.5 flex items-center justify-between">
           <span>{popupInfo.weather.temperature}°C</span>
           <span className="text-muted-foreground">
             {t('tooltip.wind')}: {popupInfo.weather.windSpeed} km/h
