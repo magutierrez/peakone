@@ -1,7 +1,9 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { signOut } from 'next-auth/react';
-import { LogOut, User } from 'lucide-react';
+import { LogOut } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,6 +24,13 @@ interface UserMenuProps {
 }
 
 export function UserMenu({ user }: UserMenuProps) {
+  const t = useTranslations('Auth');
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const initials = user.name
     ? user.name
         .split(' ')
@@ -29,6 +38,16 @@ export function UserMenu({ user }: UserMenuProps) {
         .join('')
         .toUpperCase()
     : 'U';
+
+  if (!mounted) {
+    return (
+      <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+        <Avatar className="h-8 w-8">
+          <AvatarFallback>{initials}</AvatarFallback>
+        </Avatar>
+      </Button>
+    );
+  }
 
   return (
     <DropdownMenu>
@@ -50,7 +69,7 @@ export function UserMenu({ user }: UserMenuProps) {
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => signOut()}>
           <LogOut className="mr-2 h-4 w-4" />
-          <span>Cerrar sesión</span>
+          <span>{t('logout')}</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
