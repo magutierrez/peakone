@@ -1,13 +1,20 @@
-'use client'
+'use client';
 
-import { signIn } from 'next-auth/react'
-import { Mountain, Facebook } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { useTranslations } from 'next-intl'
+import { signIn } from 'next-auth/react';
+import { Mountain, Facebook } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { useTranslations } from 'next-intl';
 
 export default function LoginPage() {
-  const t = useTranslations('Auth')
+  const t = useTranslations('Auth');
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
@@ -78,7 +85,12 @@ export default function LoginPage() {
             className="h-12 border-border bg-black text-white hover:bg-black/90"
             onClick={() => signIn('twitter', { redirectTo: '/' })}
           >
-            <svg className="mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <svg
+              className="mr-2 h-4 w-4"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
               <path d="M18.244 2.25h3.308l-7.227 7.717 8.502 11.25h-6.657l-5.214-6.817L4.99 21.25H1.68l7.73-8.235L1.25 2.25h6.826l4.717 6.176L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z"></path>
             </svg>
             {t('continueX')}
@@ -89,5 +101,5 @@ export default function LoginPage() {
         </CardFooter>
       </Card>
     </div>
-  )
+  );
 }

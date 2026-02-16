@@ -1,36 +1,36 @@
-'use client'
+'use client';
 
-import { Wind, ArrowUp, ArrowDown, ArrowLeft, ArrowRight } from 'lucide-react'
-import { useTranslations } from 'next-intl'
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
-import { WeatherIcon } from '@/components/weather-icon'
-import { WEATHER_CODES } from '@/lib/types'
-import type { RouteWeatherPoint } from '@/lib/types'
+import { Wind, ArrowUp, ArrowDown, ArrowLeft, ArrowRight } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { WeatherIcon } from '@/components/weather-icon';
+import { WEATHER_CODES } from '@/lib/types';
+import type { RouteWeatherPoint } from '@/lib/types';
 
 interface WeatherListProps {
-  weatherPoints: RouteWeatherPoint[]
-  selectedIndex: number | null
-  onSelect: (index: number) => void
+  weatherPoints: RouteWeatherPoint[];
+  selectedIndex: number | null;
+  onSelect: (index: number) => void;
 }
 
 function getWindEffectIcon(effect: string) {
   switch (effect) {
     case 'tailwind':
-      return <ArrowDown className="h-3.5 w-3.5 text-primary" />
+      return <ArrowDown className="h-3.5 w-3.5 text-primary" />;
     case 'headwind':
-      return <ArrowUp className="h-3.5 w-3.5 text-destructive" />
+      return <ArrowUp className="h-3.5 w-3.5 text-destructive" />;
     case 'crosswind-left':
-      return <ArrowLeft className="h-3.5 w-3.5 text-accent" />
+      return <ArrowLeft className="h-3.5 w-3.5 text-accent" />;
     case 'crosswind-right':
-      return <ArrowRight className="h-3.5 w-3.5 text-accent" />
+      return <ArrowRight className="h-3.5 w-3.5 text-accent" />;
     default:
-      return null
+      return null;
   }
 }
 
 export function WeatherList({ weatherPoints, selectedIndex, onSelect }: WeatherListProps) {
-  const t = useTranslations('WeatherTimeline')
-  const tw = useTranslations('WeatherCodes')
+  const t = useTranslations('WeatherTimeline');
+  const tw = useTranslations('WeatherCodes');
 
   return (
     <div className="w-full overflow-hidden">
@@ -38,17 +38,17 @@ export function WeatherList({ weatherPoints, selectedIndex, onSelect }: WeatherL
       <ScrollArea className="w-full whitespace-nowrap">
         <div className="flex w-max gap-2 pb-4">
           {weatherPoints.map((wp, idx) => {
-            const time = new Date(wp.weather.time)
-            const locale = 'es-ES'
+            const time = new Date(wp.weather.time);
+            const locale = 'es-ES';
             const timeStr = time.toLocaleTimeString(locale, {
               hour: '2-digit',
               minute: '2-digit',
-            })
-            const hasTranslation = !!tw.raw(wp.weather.weatherCode.toString())
+            });
+            const hasTranslation = !!tw.raw(wp.weather.weatherCode.toString());
             const weatherDescription = hasTranslation
               ? tw(wp.weather.weatherCode.toString() as any)
-              : WEATHER_CODES[wp.weather.weatherCode]?.description || t('unknownWeather')
-            const isSelected = selectedIndex === idx
+              : WEATHER_CODES[wp.weather.weatherCode]?.description || t('unknownWeather');
+            const isSelected = selectedIndex === idx;
 
             return (
               <button
@@ -91,11 +91,11 @@ export function WeatherList({ weatherPoints, selectedIndex, onSelect }: WeatherL
                   </span>
                 </div>
               </button>
-            )
+            );
           })}
         </div>
         <ScrollBar orientation="horizontal" />
       </ScrollArea>
     </div>
-  )
+  );
 }

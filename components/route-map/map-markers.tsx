@@ -1,16 +1,16 @@
-'use client'
+'use client';
 
-import { Marker } from 'react-map-gl/maplibre'
-import { WindArrow } from '@/components/wind-arrow'
-import type { RoutePoint, RouteWeatherPoint } from '@/lib/types'
+import { Marker } from 'react-map-gl/maplibre';
+import { WindArrow } from '@/components/wind-arrow';
+import type { RoutePoint, RouteWeatherPoint } from '@/lib/types';
 
 interface MapMarkersProps {
-  points: RoutePoint[]
-  weatherPoints?: RouteWeatherPoint[]
-  selectedPointIndex: number | null
-  activeFilter?: { key: 'pathType' | 'surface'; value: string } | null
-  onPointSelect?: (index: number) => void
-  onHoverPoint: (index: number | null) => void
+  points: RoutePoint[];
+  weatherPoints?: RouteWeatherPoint[];
+  selectedPointIndex: number | null;
+  activeFilter?: { key: 'pathType' | 'surface'; value: string } | null;
+  onPointSelect?: (index: number) => void;
+  onHoverPoint: (index: number | null) => void;
 }
 
 export function MapMarkers({
@@ -21,13 +21,18 @@ export function MapMarkers({
   onPointSelect,
   onHoverPoint,
 }: MapMarkersProps) {
-  const startPoint = points[0]
-  const endPoint = points[points.length - 1]
+  const startPoint = points[0];
+  const endPoint = points[points.length - 1];
 
   return (
     <>
       {startPoint && (
-        <Marker longitude={startPoint.lon} latitude={startPoint.lat} anchor="bottom" offset={[0, -5]}>
+        <Marker
+          longitude={startPoint.lon}
+          latitude={startPoint.lat}
+          anchor="bottom"
+          offset={[0, -5]}
+        >
           <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-green-600 font-bold text-white shadow-lg transition-transform hover:scale-110">
             A
           </div>
@@ -42,11 +47,11 @@ export function MapMarkers({
       )}
 
       {weatherPoints?.map((wp, idx) => {
-        const isSelected = selectedPointIndex === idx
+        const isSelected = selectedPointIndex === idx;
         const isFiltered =
-          activeFilter && (wp[activeFilter.key] || 'unknown') !== activeFilter.value
+          activeFilter && (wp[activeFilter.key] || 'unknown') !== activeFilter.value;
 
-        if (isFiltered && !isSelected) return null
+        if (isFiltered && !isSelected) return null;
 
         return (
           <Marker
@@ -55,8 +60,8 @@ export function MapMarkers({
             latitude={wp.point.lat}
             anchor="center"
             onClick={(e) => {
-              e.originalEvent.stopPropagation()
-              onPointSelect?.(idx)
+              e.originalEvent.stopPropagation();
+              onPointSelect?.(idx);
             }}
           >
             <button
@@ -75,8 +80,8 @@ export function MapMarkers({
               )}
             </button>
           </Marker>
-        )
+        );
       })}
     </>
-  )
+  );
 }

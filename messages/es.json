@@ -119,7 +119,10 @@
       "tertiary_link": "Enlace local",
       "unclassified": "Camino",
       "raceway": "Circuito",
-      "unknown": "Otros"
+      "motorway": "Autovía",
+      "unknown": "Otros",
+      "construction": "Construcción",
+      "motorway_link": "Enlace autovía"
     },
     "surfaces": {
       "title": "Superficies",
@@ -145,6 +148,8 @@
     "continueFacebook": "Continuar con Facebook",
     "continueX": "Continuar con X (Twitter)",
     "continueStrava": "Continuar con Strava",
+    "connectStrava": "Conectar con Strava",
+    "stravaDescription": "Sincroniza tus rutas y actividades directamente.",
     "terms": "Al continuar, aceptas nuestros términos de servicio y política de privacidad.",
     "logout": "Cerrar sesión"
   },

@@ -1,54 +1,54 @@
-'use client'
+'use client';
 
-import { useCallback, useRef } from 'react'
-import { Upload, FileText, X } from 'lucide-react'
-import { useTranslations } from 'next-intl'
-import { Button } from '@/components/ui/button'
+import { useCallback, useRef } from 'react';
+import { Upload, FileText, X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import { Button } from '@/components/ui/button';
 
 interface GPXUploadProps {
-  onFileLoaded: (content: string, fileName: string) => void
-  fileName: string | null
-  onClear: () => void
+  onFileLoaded: (content: string, fileName: string) => void;
+  fileName: string | null;
+  onClear: () => void;
 }
 
 export function GPXUpload({ onFileLoaded, fileName, onClear }: GPXUploadProps) {
-  const t = useTranslations('GPXUpload')
-  const inputRef = useRef<HTMLInputElement>(null)
+  const t = useTranslations('GPXUpload');
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const handleFile = useCallback(
     (file: File) => {
-      const reader = new FileReader()
+      const reader = new FileReader();
       reader.onload = (e) => {
-        const content = e.target?.result as string
-        onFileLoaded(content, file.name)
-      }
-      reader.readAsText(file)
+        const content = e.target?.result as string;
+        onFileLoaded(content, file.name);
+      };
+      reader.readAsText(file);
     },
     [onFileLoaded],
-  )
+  );
 
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
-      e.preventDefault()
-      const file = e.dataTransfer.files[0]
+      e.preventDefault();
+      const file = e.dataTransfer.files[0];
       if (file && file.name.endsWith('.gpx')) {
-        handleFile(file)
+        handleFile(file);
       }
     },
     [handleFile],
-  )
+  );
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-  }, [])
+    e.preventDefault();
+  }, []);
 
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0]
-      if (file) handleFile(file)
+      const file = e.target.files?.[0];
+      if (file) handleFile(file);
     },
     [handleFile],
-  )
+  );
 
   if (fileName) {
     return (
@@ -65,7 +65,7 @@ export function GPXUpload({ onFileLoaded, fileName, onClear }: GPXUploadProps) {
           <span className="sr-only">{t('removeFile')}</span>
         </Button>
       </div>
-    )
+    );
   }
 
   return (
@@ -79,8 +79,8 @@ export function GPXUpload({ onFileLoaded, fileName, onClear }: GPXUploadProps) {
       aria-label={t('uploadAriaLabel')}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault()
-          inputRef.current?.click()
+          e.preventDefault();
+          inputRef.current?.click();
         }
       }}
     >
@@ -100,5 +100,5 @@ export function GPXUpload({ onFileLoaded, fileName, onClear }: GPXUploadProps) {
         aria-hidden="true"
       />
     </div>
-  )
+  );
 }

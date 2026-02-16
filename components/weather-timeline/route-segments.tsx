@@ -1,13 +1,13 @@
-'use client'
+'use client';
 
-import { Map as MapIcon } from 'lucide-react'
-import { useTranslations } from 'next-intl'
-import type { RouteWeatherPoint } from '@/lib/types'
+import { Map as MapIcon } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import type { RouteWeatherPoint } from '@/lib/types';
 
 interface RouteSegmentsProps {
-  weatherPoints: RouteWeatherPoint[]
-  activeFilter?: { key: 'pathType' | 'surface'; value: string } | null
-  onFilterChange?: (filter: { key: 'pathType' | 'surface'; value: string } | null) => void
+  weatherPoints: RouteWeatherPoint[];
+  activeFilter?: { key: 'pathType' | 'surface'; value: string } | null;
+  onFilterChange?: (filter: { key: 'pathType' | 'surface'; value: string } | null) => void;
 }
 
 const PATH_TYPE_COLORS: Record<string, string> = {
@@ -29,7 +29,7 @@ const PATH_TYPE_COLORS: Record<string, string> = {
   unclassified: '#9ca3af',
   raceway: '#1e1b4b',
   unknown: '#e5e7eb',
-}
+};
 
 const SURFACE_COLORS: Record<string, string> = {
   asphalt: '#4b5563',
@@ -45,19 +45,19 @@ const SURFACE_COLORS: Record<string, string> = {
   sand: '#fcd34d',
   grass: '#10b981',
   unknown: '#e5e7eb',
-}
+};
 
 export function RouteSegments({ weatherPoints, activeFilter, onFilterChange }: RouteSegmentsProps) {
-  const t = useTranslations('WeatherTimeline')
+  const t = useTranslations('WeatherTimeline');
 
-  const totalPoints = weatherPoints.length
+  const totalPoints = weatherPoints.length;
 
   const getBreakdown = (key: 'pathType' | 'surface', colorMap: Record<string, string>) => {
-    const counts: Record<string, number> = {}
+    const counts: Record<string, number> = {};
     weatherPoints.forEach((wp) => {
-      const val = wp[key] || 'unknown'
-      counts[val] = (counts[val] || 0) + 1
-    })
+      const val = wp[key] || 'unknown';
+      counts[val] = (counts[val] || 0) + 1;
+    });
 
     return Object.entries(counts)
       .map(([name, count]) => ({
@@ -66,19 +66,19 @@ export function RouteSegments({ weatherPoints, activeFilter, onFilterChange }: R
         color: colorMap[name] || colorMap.unknown,
       }))
       .filter((item) => item.percent > 0)
-      .sort((a, b) => b.percent - a.percent)
-  }
+      .sort((a, b) => b.percent - a.percent);
+  };
 
   const handleSegmentClick = (key: 'pathType' | 'surface', value: string) => {
     if (activeFilter?.key === key && activeFilter.value === value) {
-      onFilterChange?.(null)
+      onFilterChange?.(null);
     } else {
-      onFilterChange?.({ key, value })
+      onFilterChange?.({ key, value });
     }
-  }
+  };
 
-  const pathBreakdown = getBreakdown('pathType', PATH_TYPE_COLORS)
-  const surfaceBreakdown = getBreakdown('surface', SURFACE_COLORS)
+  const pathBreakdown = getBreakdown('pathType', PATH_TYPE_COLORS);
+  const surfaceBreakdown = getBreakdown('surface', SURFACE_COLORS);
 
   const SegmentBar = ({
     title,
@@ -86,10 +86,10 @@ export function RouteSegments({ weatherPoints, activeFilter, onFilterChange }: R
     translationNamespace,
     typeKey,
   }: {
-    title: string
-    data: any[]
-    translationNamespace: string
-    typeKey: 'pathType' | 'surface'
+    title: string;
+    data: any[];
+    translationNamespace: string;
+    typeKey: 'pathType' | 'surface';
   }) => (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
@@ -97,9 +97,9 @@ export function RouteSegments({ weatherPoints, activeFilter, onFilterChange }: R
       </div>
       <div className="flex h-3 w-full overflow-hidden rounded-full bg-secondary ring-1 ring-border">
         {data.map((item, idx) => {
-          const isActive = activeFilter?.key === typeKey && activeFilter.value === item.name
+          const isActive = activeFilter?.key === typeKey && activeFilter.value === item.name;
           const isFilteringOther =
-            activeFilter && (activeFilter.key !== typeKey || activeFilter.value !== item.name)
+            activeFilter && (activeFilter.key !== typeKey || activeFilter.value !== item.name);
 
           return (
             <button
@@ -113,12 +113,12 @@ export function RouteSegments({ weatherPoints, activeFilter, onFilterChange }: R
               className={`h-full transition-all hover:brightness-110 ${isActive ? 'ring-2 ring-inset ring-white' : ''}`}
               title={`${item.name}: ${item.percent.toFixed(0)}%`}
             />
-          )
+          );
         })}
       </div>
       <div className="flex flex-wrap gap-x-4 gap-y-1">
         {data.map((item, idx) => {
-          const isActive = activeFilter?.key === typeKey && activeFilter.value === item.name
+          const isActive = activeFilter?.key === typeKey && activeFilter.value === item.name;
           return (
             <button
               key={idx}
@@ -135,11 +135,11 @@ export function RouteSegments({ weatherPoints, activeFilter, onFilterChange }: R
               </span>
               <span className="text-[10px] text-muted-foreground">{item.percent.toFixed(0)}%</span>
             </button>
-          )
+          );
         })}
       </div>
     </div>
-  )
+  );
 
   return (
     <div className="rounded-xl border border-border bg-card p-4">
@@ -163,5 +163,5 @@ export function RouteSegments({ weatherPoints, activeFilter, onFilterChange }: R
         />
       </div>
     </div>
-  )
+  );
 }

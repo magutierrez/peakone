@@ -1,26 +1,27 @@
-'use client'
+'use client';
 
-import { Wind, Thermometer, Droplets } from 'lucide-react'
-import { useTranslations } from 'next-intl'
-import type { RouteWeatherPoint } from '@/lib/types'
+import { Wind, Thermometer, Droplets } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import type { RouteWeatherPoint } from '@/lib/types';
 
 interface WeatherSummaryProps {
-  weatherPoints: RouteWeatherPoint[]
+  weatherPoints: RouteWeatherPoint[];
 }
 
 export function WeatherSummary({ weatherPoints }: WeatherSummaryProps) {
-  const t = useTranslations('WeatherTimeline')
+  const t = useTranslations('WeatherTimeline');
 
   const avgTemp =
-    weatherPoints.reduce((s, w) => s + w.weather.temperature, 0) / weatherPoints.length
-  const maxWind = Math.max(...weatherPoints.map((w) => w.weather.windSpeed))
-  const maxGusts = Math.max(...weatherPoints.map((w) => w.weather.windGusts))
+    weatherPoints.reduce((s, w) => s + w.weather.temperature, 0) / weatherPoints.length;
+  const maxWind = Math.max(...weatherPoints.map((w) => w.weather.windSpeed));
+  const maxGusts = Math.max(...weatherPoints.map((w) => w.weather.windGusts));
   const avgPrecipProb =
-    weatherPoints.reduce((s, w) => s + w.weather.precipitationProbability, 0) / weatherPoints.length
+    weatherPoints.reduce((s, w) => s + w.weather.precipitationProbability, 0) /
+    weatherPoints.length;
   const tailwindPercent =
-    (weatherPoints.filter((w) => w.windEffect === 'tailwind').length / weatherPoints.length) * 100
+    (weatherPoints.filter((w) => w.windEffect === 'tailwind').length / weatherPoints.length) * 100;
   const headwindPercent =
-    (weatherPoints.filter((w) => w.windEffect === 'headwind').length / weatherPoints.length) * 100
+    (weatherPoints.filter((w) => w.windEffect === 'headwind').length / weatherPoints.length) * 100;
 
   return (
     <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
@@ -69,5 +70,5 @@ export function WeatherSummary({ weatherPoints }: WeatherSummaryProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }

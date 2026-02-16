@@ -1,72 +1,72 @@
-import { DefaultSession } from "next-auth"
+import { DefaultSession } from 'next-auth';
 
-declare module "next-auth" {
+declare module 'next-auth' {
   interface Session {
-    accessToken?: string
-    provider?: string
+    accessToken?: string;
+    provider?: string;
     user: {
-      id?: string
-    } & DefaultSession["user"]
+      id?: string;
+    } & DefaultSession['user'];
   }
 }
 
 export interface RoutePoint {
-  lat: number
-  lon: number
-  ele?: number
-  distanceFromStart: number // km
-  estimatedTime?: Date
+  lat: number;
+  lon: number;
+  ele?: number;
+  distanceFromStart: number; // km
+  estimatedTime?: Date;
 }
 
 export interface WeatherData {
-  time: string
-  temperature: number
-  apparentTemperature: number
-  humidity: number
-  precipitation: number
-  precipitationProbability: number
-  weatherCode: number
-  windSpeed: number
-  windDirection: number
-  windGusts: number
-  cloudCover: number
-  visibility: number
+  time: string;
+  temperature: number;
+  apparentTemperature: number;
+  humidity: number;
+  precipitation: number;
+  precipitationProbability: number;
+  weatherCode: number;
+  windSpeed: number;
+  windDirection: number;
+  windGusts: number;
+  cloudCover: number;
+  visibility: number;
 }
 
 export interface RouteWeatherPoint {
-  point: RoutePoint
-  weather: WeatherData
-  windEffect: 'tailwind' | 'headwind' | 'crosswind-left' | 'crosswind-right'
-  windEffectAngle: number // angle between travel direction and wind
-  bearing: number // direction of travel at this point
-  pathType?: string // e.g., cycleway, path, primary, etc.
-  surface?: string // e.g., asphalt, gravel, unpaved
+  point: RoutePoint;
+  weather: WeatherData;
+  windEffect: 'tailwind' | 'headwind' | 'crosswind-left' | 'crosswind-right';
+  windEffectAngle: number; // angle between travel direction and wind
+  bearing: number; // direction of travel at this point
+  pathType?: string; // e.g., cycleway, path, primary, etc.
+  surface?: string; // e.g., asphalt, gravel, unpaved
 }
 
 export interface RouteSegmentMetadata {
-  name: string
-  value: number // distance or percentage
-  color: string
+  name: string;
+  value: number; // distance or percentage
+  color: string;
 }
 
 export interface RouteStats {
-  pathTypes: RouteSegmentMetadata[]
-  surfaces: RouteSegmentMetadata[]
+  pathTypes: RouteSegmentMetadata[];
+  surfaces: RouteSegmentMetadata[];
 }
 
 export interface RouteConfig {
-  date: string
-  time: string
-  speed: number
-  activityType: 'cycling' | 'walking'
+  date: string;
+  time: string;
+  speed: number;
+  activityType: 'cycling' | 'walking';
 }
 
 export interface GPXData {
-  points: RoutePoint[]
-  name: string
-  totalDistance: number
-  totalElevationGain: number
-  totalElevationLoss: number
+  points: RoutePoint[];
+  name: string;
+  totalDistance: number;
+  totalElevationGain: number;
+  totalElevationLoss: number;
 }
 
 export const WEATHER_CODES: Record<number, { description: string; icon: string }> = {
@@ -98,4 +98,4 @@ export const WEATHER_CODES: Record<number, { description: string; icon: string }
   95: { description: 'Tormenta', icon: 'cloud-lightning' },
   96: { description: 'Tormenta con granizo ligero', icon: 'cloud-lightning' },
   99: { description: 'Tormenta con granizo intenso', icon: 'cloud-lightning' },
-}
+};

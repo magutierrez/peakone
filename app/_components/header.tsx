@@ -1,26 +1,26 @@
-'use client'
+'use client';
 
-import { Mountain, Wind, Moon, Sun } from 'lucide-react'
-import { useTranslations } from 'next-intl'
-import { useTheme } from 'next-themes'
-import { useEffect, useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Session } from 'next-auth'
-import { UserMenu } from './user-menu'
+import { Mountain, Wind, Moon, Sun } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import { useTheme } from 'next-themes';
+import { useEffect, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Session } from 'next-auth';
+import { UserMenu } from './user-menu';
 
 interface HeaderProps {
-  session: Session | null
+  session: Session | null;
 }
 
 export function Header({ session }: HeaderProps) {
-  const t = useTranslations('HomePage')
-  const { theme, setTheme, resolvedTheme } = useTheme()
-  const [mounted, setMounted] = useState(false)
+  const t = useTranslations('HomePage');
+  const { theme, setTheme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
   // Avoid hydration mismatch
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-card/80 backdrop-blur-md">
@@ -36,7 +36,7 @@ export function Header({ session }: HeaderProps) {
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2  pl-4">
+          <div className="flex items-center gap-2 pl-4">
             <Button
               variant="ghost"
               size="icon"
@@ -60,5 +60,5 @@ export function Header({ session }: HeaderProps) {
         </div>
       </div>
     </header>
-  )
+  );
 }

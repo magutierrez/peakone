@@ -1,18 +1,18 @@
-'use client'
+'use client';
 
-import type { RouteWeatherPoint } from '@/lib/types'
-import { WeatherSummary } from './weather-timeline/weather-summary'
-import { WeatherList } from './weather-timeline/weather-list'
-import { ElevationProfile } from './weather-timeline/elevation-profile'
-import { WeatherPointDetail } from './weather-timeline/weather-point-detail'
-import { RouteSegments } from './weather-timeline/route-segments'
+import type { RouteWeatherPoint } from '@/lib/types';
+import { WeatherSummary } from './weather-timeline/weather-summary';
+import { WeatherList } from './weather-timeline/weather-list';
+import { ElevationProfile } from './weather-timeline/elevation-profile';
+import { WeatherPointDetail } from './weather-timeline/weather-point-detail';
+import { RouteSegments } from './weather-timeline/route-segments';
 
 interface WeatherTimelineProps {
-  weatherPoints: RouteWeatherPoint[]
-  selectedIndex: number | null
-  onSelect: (index: number) => void
-  activeFilter?: { key: 'pathType' | 'surface'; value: string } | null
-  onFilterChange?: (filter: { key: 'pathType' | 'surface'; value: string } | null) => void
+  weatherPoints: RouteWeatherPoint[];
+  selectedIndex: number | null;
+  onSelect: (index: number) => void;
+  activeFilter?: { key: 'pathType' | 'surface'; value: string } | null;
+  onFilterChange?: (filter: { key: 'pathType' | 'surface'; value: string } | null) => void;
 }
 
 export function WeatherTimeline({
@@ -22,7 +22,7 @@ export function WeatherTimeline({
   activeFilter,
   onFilterChange,
 }: WeatherTimelineProps) {
-  if (weatherPoints.length === 0) return null
+  if (weatherPoints.length === 0) return null;
 
   return (
     <div className="flex flex-col gap-6">
@@ -55,5 +55,5 @@ export function WeatherTimeline({
         <WeatherPointDetail point={weatherPoints[selectedIndex]} />
       )}
     </div>
-  )
+  );
 }

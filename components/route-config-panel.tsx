@@ -1,17 +1,17 @@
-'use client'
+'use client';
 
-import { useTranslations } from 'next-intl'
-import { Label } from '@/components/ui/label'
-import { Button } from '@/components/ui/button'
-import { GPXUpload } from '@/components/gpx-upload'
-import type { GPXData } from '@/lib/types'
+import { useTranslations } from 'next-intl';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { GPXUpload } from '@/components/gpx-upload';
+import type { GPXData } from '@/lib/types';
 
 interface RouteConfigPanelProps {
-  gpxData: GPXData | null
-  onGPXLoaded: (content: string, fileName: string) => void
-  gpxFileName: string | null
-  onClearGPX: () => void
-  onReverseRoute: () => void
+  gpxData: GPXData | null;
+  onGPXLoaded: (content: string, fileName: string) => void;
+  gpxFileName: string | null;
+  onClearGPX: () => void;
+  onReverseRoute: () => void;
 }
 
 export function RouteConfigPanel({
@@ -21,7 +21,7 @@ export function RouteConfigPanel({
   onClearGPX,
   onReverseRoute,
 }: RouteConfigPanelProps) {
-  const t = useTranslations('RouteConfigPanel')
+  const t = useTranslations('RouteConfigPanel');
 
   return (
     <div className="flex flex-col gap-5">
@@ -69,5 +69,5 @@ export function RouteConfigPanel({
         </div>
       )}
     </div>
-  )
+  );
 }

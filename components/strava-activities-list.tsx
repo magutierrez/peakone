@@ -1,45 +1,51 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import useSWR from 'swr'
-import { MapPin, Calendar, Activity, Loader2, Route } from 'lucide-react'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { stravaToGPXData, stravaRouteToGPXData } from '@/lib/gpx-parser'
-import type { GPXData } from '@/lib/types'
-import { useTranslations } from 'next-intl'
+import { useState } from 'react';
+import useSWR from 'swr';
+import { MapPin, Calendar, Activity, Loader2, Route } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { stravaToGPXData, stravaRouteToGPXData } from '@/lib/gpx-parser';
+import type { GPXData } from '@/lib/types';
+import { useTranslations } from 'next-intl';
 
 interface StravaActivitiesListProps {
-  onLoadGPX: (data: GPXData, fileName: string) => void
+  onLoadGPX: (data: GPXData, fileName: string) => void;
 }
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json())
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export function StravaActivitiesList({ onLoadGPX }: StravaActivitiesListProps) {
-  const t = useTranslations('SavedRoutes')
-  const [type, setType] = useState<'activities' | 'routes'>('routes')
-  
+  const t = useTranslations('SavedRoutes');
+  const [type, setType] = useState<'activities' | 'routes'>('routes');
+
   const { data, error, isLoading } = useSWR(
-    type === 'activities' ? '/api/strava/activities' : '/api/strava/routes', 
-    fetcher
-  )
+    type === 'activities' ? '/api/strava/activities' : '/api/strava/routes',
+    fetcher,
+  );
 
   const handleSelect = (item: any) => {
     try {
-      const gpxData = type === 'activities' ? stravaToGPXData(item) : stravaRouteToGPXData(item)
-      onLoadGPX(gpxData, `${item.name}.gpx`)
+      const gpxData = type === 'activities' ? stravaToGPXData(item) : stravaRouteToGPXData(item);
+      onLoadGPX(gpxData, `${item.name}.gpx`);
     } catch (e) {
-      console.error('Failed to load Strava data', e)
+      console.error('Failed to load Strava data', e);
     }
-  }
+  };
 
   const getActivityTypeLabel = (activityType: string) => {
-    const types = t.raw('types')
-    return types[activityType] || activityType
-  }
+    const types = t.raw('types');
+    return types[activityType] || activityType;
+  };
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex min-h-0 flex-1 flex-col gap-3">
       <div className="flex items-center justify-between px-1">
         <div className="flex items-center gap-2">
           {type === 'activities' ? (
@@ -51,14 +57,18 @@ export function StravaActivitiesList({ onLoadGPX }: StravaActivitiesListProps) {
             {type === 'activities' ? t('stravaTitle') : t('stravaRoutes')}
           </h3>
         </div>
-        
+
         <Select value={type} onValueChange={(v: any) => setType(v)}>
           <SelectTrigger className="h-7 w-[110px] text-[10px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="routes" className="text-[10px]">{t('routes')}</SelectItem>
-            <SelectItem value="activities" className="text-[10px]">{t('activities')}</SelectItem>
+            <SelectItem value="routes" className="text-[10px]">
+              {t('routes')}
+            </SelectItem>
+            <SelectItem value="activities" className="text-[10px]">
+              {t('activities')}
+            </SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -68,11 +78,9 @@ export function StravaActivitiesList({ onLoadGPX }: StravaActivitiesListProps) {
           <Loader2 className="h-6 w-6 animate-spin text-primary" />
         </div>
       ) : error || !Array.isArray(data) ? (
-        <div className="p-4 text-center text-xs text-muted-foreground">
-          {t('noData')}
-        </div>
+        <div className="p-4 text-center text-xs text-muted-foreground">{t('noData')}</div>
       ) : (
-        <ScrollArea className="h-[500px] pr-4">
+        <ScrollArea className="flex-1 pr-4">
           <div className="flex flex-col gap-2">
             {data.map((item) => (
               <button
@@ -95,12 +103,16 @@ export function StravaActivitiesList({ onLoadGPX }: StravaActivitiesListProps) {
                   {type === 'activities' && item.type && (
                     <span className="capitalize">{getActivityTypeLabel(item.type)}</span>
                   )}
-                  {type === 'routes' && (item.type !== undefined || item.route_type !== undefined) && (
-                    <span className="capitalize">
-                      {(item.type === 1 || item.route_type === 1) ? t('ride') : 
-                       (item.type === 2 || item.route_type === 2) ? t('run') : t('walk')}
-                    </span>
-                  )}
+                  {type === 'routes' &&
+                    (item.type !== undefined || item.route_type !== undefined) && (
+                      <span className="capitalize">
+                        {item.type === 1 || item.route_type === 1
+                          ? t('ride')
+                          : item.type === 2 || item.route_type === 2
+                            ? t('run')
+                            : t('walk')}
+                      </span>
+                    )}
                 </div>
               </button>
             ))}
@@ -108,5 +120,5 @@ export function StravaActivitiesList({ onLoadGPX }: StravaActivitiesListProps) {
         </ScrollArea>
       )}
     </div>
-  )
+  );
 }
