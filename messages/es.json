@@ -119,7 +119,8 @@
       "tertiary_link": "Enlace local",
       "unclassified": "Camino",
       "raceway": "Circuito",
-      "unknown": "Otros"
+      "unknown": "Otros",
+      "motorway_link": "Enlace autovía"
     },
     "surfaces": {
       "title": "Superficies",

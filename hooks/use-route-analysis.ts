@@ -24,10 +24,8 @@ export function useRouteAnalysis(config: RouteConfig) {
   const [isRouteInfoLoading, setIsRouteInfoLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Update high-density elevation data when GPX loads
   useEffect(() => {
     if (gpxData) {
-      // Sample 300 points for a very smooth chart (Komoot style)
       const dense = sampleRoutePoints(gpxData.points, 300)
       setElevationData(dense.map(p => ({
         distance: p.distanceFromStart,
@@ -38,24 +36,33 @@ export function useRouteAnalysis(config: RouteConfig) {
     }
   }, [gpxData])
 
+  useEffect(() => {
+    if (routeInfoData.length > 0 && elevationData.some(d => d.elevation === 0)) {
+      const newElevationData = routeInfoData.map(item => ({
+        distance: item.distanceFromStart,
+        elevation: item.elevation || 0
+      }))
+      setElevationData(newElevationData)
+    }
+  }, [routeInfoData])
+
   const handleReverseRoute = useCallback(() => {
     if (!gpxData) return
     const reversed = reverseGPXData(gpxData)
     setGPXData(reversed)
-    setWeatherPoints([]) // Reset weather as it's no longer accurate for reversed direction
+    setWeatherPoints([]) 
     setSelectedPointIndex(null)
   }, [gpxData])
 
   const handleStravaActivityLoaded = useCallback((data: GPXData, fileName: string) => {
     setGPXData(data)
     setGPXFileName(fileName)
-    setRawGPXContent(null) // Strava data is already parsed, we don't have raw GPX
+    setRawGPXContent(null) 
     setWeatherPoints([])
     setSelectedPointIndex(null)
     setError(null)
   }, [])
 
-  // Fetch route info (OSM) as soon as GPX is loaded
   useEffect(() => {
     if (!gpxData) {
       setRouteInfoData([])
@@ -69,7 +76,7 @@ export function useRouteAnalysis(config: RouteConfig) {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            points: sampleRoutePoints(gpxData.points, 24).map((p) => ({
+            points: sampleRoutePoints(gpxData.points, 100).map((p) => ({
               lat: p.lat,
               lon: p.lon,
               distanceFromStart: p.distanceFromStart,
