@@ -49,6 +49,7 @@ export default function HomePageClient({ session }: HomePageClientProps) {
   const [activeFilter, setActiveFilter] = useState<{ key: 'pathType' | 'surface'; value: string } | null>(
     null,
   )
+  const [selectedRange, setSelectedRange] = useState<{ start: number; end: number } | null>(null)
   const { saveRoute, routes } = useSavedRoutes()
   const lastSavedRef = useRef<string | null>(null)
 
@@ -70,6 +71,16 @@ export default function HomePageClient({ session }: HomePageClientProps) {
     handleReverseRoute,
     handleAnalyze,
   } = useRouteAnalysis(config)
+
+  const onClearGPXWithRange = () => {
+    setSelectedRange(null)
+    handleClearGPX()
+  }
+
+  const onReverseWithRange = () => {
+    setSelectedRange(null)
+    handleReverseRoute()
+  }
 
   useEffect(() => {
     if (gpxData && rawGPXContent && gpxFileName && session?.user?.email) {
@@ -96,8 +107,8 @@ export default function HomePageClient({ session }: HomePageClientProps) {
           onGPXLoaded={handleGPXLoaded}
           onStravaActivityLoaded={handleStravaActivityLoaded}
           gpxFileName={gpxFileName}
-          onClearGPX={handleClearGPX}
-          onReverseRoute={handleReverseRoute}
+          onClearGPX={onClearGPXWithRange}
+          onReverseRoute={onReverseWithRange}
           error={error}
           provider={session?.provider}
         />
@@ -118,6 +129,7 @@ export default function HomePageClient({ session }: HomePageClientProps) {
                   setActiveFilter={setActiveFilter}
                   selectedPointIndex={selectedPointIndex}
                   setSelectedPointIndex={setSelectedPointIndex}
+                  onRangeSelect={setSelectedRange}
                 />
 
                 <ActivityConfigSection
@@ -139,6 +151,7 @@ export default function HomePageClient({ session }: HomePageClientProps) {
               selectedPointIndex={selectedPointIndex}
               onPointSelect={setSelectedPointIndex}
               activeFilter={activeFilter}
+              selectedRange={selectedRange}
             />
           </div>
         </main>

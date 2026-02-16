@@ -139,7 +139,8 @@
       "dirt": "Tierra suelta",
       "sand": "Arena",
       "grass": "Hierba",
-      "unknown": "Desconocido"
+      "unknown": "Desconocido",
+      "sett": "Pavimento"
     }
   },
   "Auth": {

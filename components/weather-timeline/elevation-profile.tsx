@@ -22,13 +22,19 @@ interface ElevationProfileProps {
   elevationData: { distance: number; elevation: number }[]
   selectedIndex: number | null
   onSelect: (index: number) => void
+  onRangeSelect?: (range: { start: number; end: number } | null) => void
 }
 
-export function ElevationProfile({ weatherPoints, elevationData, selectedIndex, onSelect }: ElevationProfileProps) {
+export function ElevationProfile({ 
+  weatherPoints, 
+  elevationData, 
+  selectedIndex, 
+  onSelect,
+  onRangeSelect
+}: ElevationProfileProps) {
   const t = useTranslations('WeatherTimeline')
   const lastUpdateRef = useRef<number>(0)
   
-  // Estados para el zoom interactivo
   const [refAreaLeft, setRefAreaLeft] = useState<any>(null)
   const [refAreaRight, setRefAreaRight] = useState<any>(null)
   const [left, setLeft] = useState<any>('dataMin')
@@ -36,7 +42,6 @@ export function ElevationProfile({ weatherPoints, elevationData, selectedIndex, 
   const [top, setTop] = useState<any>('dataMax')
   const [bottom, setBottom] = useState<any>('dataMin')
 
-  // Usar elevationData si existe, si no, fallback a weatherPoints
   const displayData = useMemo(() => {
     const rawData = (elevationData && elevationData.length > 0) 
       ? elevationData 
@@ -45,22 +50,20 @@ export function ElevationProfile({ weatherPoints, elevationData, selectedIndex, 
           elevation: wp.point.ele || 0
         }))
     
-    // Redondear siempre la elevación a enteros
     return rawData.map(d => ({
       ...d,
       elevation: Math.round(d.elevation)
     }))
   }, [elevationData, weatherPoints])
 
-  // Calcular pendientes basadas en los datos visibles para el color
   const { chartData, maxSlope } = useMemo(() => {
     let currentMaxSlope = 0
     const data = displayData.map((d, idx) => {
       let slope = 0
       if (idx > 0) {
         const prev = displayData[idx - 1]
-        const distDiff = (d.distance - prev.distance) * 1000 // m
-        const eleDiff = d.elevation - prev.elevation // m
+        const distDiff = (d.distance - prev.distance) * 1000 
+        const eleDiff = d.elevation - prev.elevation 
         if (distDiff > 0) {
           slope = (eleDiff / distDiff) * 100
         }
@@ -90,7 +93,6 @@ export function ElevationProfile({ weatherPoints, elevationData, selectedIndex, 
       const activePoint = e.activePayload[0].payload
       const now = Date.now()
       
-      // Sincronizar con el weather point más cercano
       if (now - lastUpdateRef.current > 32 && weatherPoints.length > 0) {
         let closestIdx = 0
         let minDiff = Infinity
@@ -129,6 +131,7 @@ export function ElevationProfile({ weatherPoints, elevationData, selectedIndex, 
       setRight(end)
       setBottom(Math.min(...elevations) - 10)
       setTop(Math.max(...elevations) + 10)
+      onRangeSelect?.({ start, end })
     }
 
     setRefAreaLeft(null)
@@ -142,6 +145,7 @@ export function ElevationProfile({ weatherPoints, elevationData, selectedIndex, 
     setBottom('dataMin')
     setRefAreaLeft(null)
     setRefAreaRight(null)
+    onRangeSelect?.(null)
   }
 
   const selectedDataInChart = selectedIndex !== null && weatherPoints[selectedIndex] 

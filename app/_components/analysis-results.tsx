@@ -16,6 +16,7 @@ interface AnalysisResultsProps {
   setActiveFilter: (filter: { key: 'pathType' | 'surface'; value: string } | null) => void
   selectedPointIndex: number | null
   setSelectedPointIndex: (index: number | null) => void
+  onRangeSelect?: (range: { start: number; end: number } | null) => void
 }
 
 export function AnalysisResults({
@@ -25,7 +26,8 @@ export function AnalysisResults({
   activeFilter,
   setActiveFilter,
   selectedPointIndex,
-  setSelectedPointIndex
+  setSelectedPointIndex,
+  onRangeSelect
 }: AnalysisResultsProps) {
   const th = useTranslations('HomePage')
 
@@ -61,6 +63,7 @@ export function AnalysisResults({
           elevationData={elevationData}
           selectedIndex={selectedPointIndex}
           onSelect={setSelectedPointIndex}
+          onRangeSelect={onRangeSelect}
         />
       </section>
 
