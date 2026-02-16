@@ -113,6 +113,7 @@
       "primary": "Carretera principal",
       "primary_link": "Enlace principal",
       "trunk": "Carretera nacional",
+      "trunk_link": "Enlace carretera nacional",
       "secondary": "Carretera secundaria",
       "secondary_link": "Enlace secundario",
       "tertiary": "Carretera local",
@@ -120,6 +121,8 @@
       "unclassified": "Camino",
       "raceway": "Circuito",
       "unknown": "Otros",
+      "motorway": "Autovía",
+      "construction": "Construcción",
       "motorway_link": "Enlace autovía"
     },
     "surfaces": {
