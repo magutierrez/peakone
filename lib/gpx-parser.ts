@@ -182,6 +182,37 @@ export function stravaToGPXData(activity: any): GPXData {
   }
 }
 
+export function stravaRouteToGPXData(route: any): GPXData {
+  const polyline = route.map?.polyline || route.map?.summary_polyline
+  if (!polyline) {
+    throw new Error('No path data in route')
+  }
+
+  const coords = decodePolyline(polyline)
+  const points: RoutePoint[] = []
+  let totalDistance = 0
+
+  coords.forEach((coord, i) => {
+    if (i > 0) {
+      const prev = coords[i - 1]
+      totalDistance += haversineDistance(prev[0], prev[1], coord[0], coord[1])
+    }
+    points.push({
+      lat: coord[0],
+      lon: coord[1],
+      distanceFromStart: totalDistance
+    })
+  })
+
+  return {
+    points,
+    name: route.name,
+    totalDistance: route.distance / 1000,
+    totalElevationGain: route.elevation_gain,
+    totalElevationLoss: 0,
+  }
+}
+
 export function calculateBearing(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const dLon = ((lon2 - lon1) * Math.PI) / 180
   const y = Math.sin(dLon) * Math.cos((lat2 * Math.PI) / 180)

@@ -151,7 +151,24 @@
   "SavedRoutes": {
     "title": "Mis Rutas Guardadas",
     "loading": "Cargando rutas...",
-    "stravaTitle": "Mis Actividades de Strava"
+    "stravaTitle": "Mis Actividades de Strava",
+    "stravaRoutes": "Mis Rutas de Strava",
+    "activities": "Actividades",
+    "routes": "Rutas",
+    "noData": "No se encontraron datos",
+    "ride": "Bicicleta",
+    "run": "Carrera",
+    "walk": "Andando",
+    "hike": "Senderismo",
+    "types": {
+      "Ride": "Bicicleta",
+      "Run": "Carrera",
+      "Walk": "Andando",
+      "Hike": "Senderismo",
+      "VirtualRide": "Bici Virtual",
+      "MountainBikeRide": "MTB",
+      "GravelRide": "Gravel"
+    }
   },
   "RouteMap": {
     "start": "Inicio",
