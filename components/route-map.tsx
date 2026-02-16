@@ -40,8 +40,8 @@ export default function RouteMap({
 
   const mapStyle = useMemo(() => {
     return resolvedTheme === 'light'
-      ? 'https://tiles.stadiamaps.com/styles/outdoors.json'
-      : 'https://tiles.stadiamaps.com/styles/alidade_smooth_dark.json'
+      ? 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json'
+      : 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json'
   }, [resolvedTheme])
 
   // Fit map to bounds
