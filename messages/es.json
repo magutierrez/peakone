@@ -113,15 +113,14 @@
       "primary": "Carretera principal",
       "primary_link": "Enlace principal",
       "trunk": "Carretera nacional",
-      "trunk_link": "Enlace carretera nacional",
       "secondary": "Carretera secundaria",
       "secondary_link": "Enlace secundario",
       "tertiary": "Carretera local",
       "tertiary_link": "Enlace local",
       "unclassified": "Camino",
       "raceway": "Circuito",
-      "unknown": "Otros",
       "motorway": "Autovía",
+      "unknown": "Otros",
       "construction": "Construcción",
       "motorway_link": "Enlace autovía"
     },
@@ -139,8 +138,7 @@
       "dirt": "Tierra suelta",
       "sand": "Arena",
       "grass": "Hierba",
-      "unknown": "Desconocido",
-      "sett": "Pavimento"
+      "unknown": "Desconocido"
     }
   },
   "Auth": {
@@ -150,6 +148,8 @@
     "continueFacebook": "Continuar con Facebook",
     "continueX": "Continuar con X (Twitter)",
     "continueStrava": "Continuar con Strava",
+    "connectStrava": "Conectar con Strava",
+    "stravaDescription": "Sincroniza tus rutas y actividades directamente.",
     "terms": "Al continuar, aceptas nuestros términos de servicio y política de privacidad.",
     "logout": "Cerrar sesión"
   },

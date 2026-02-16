@@ -40,7 +40,11 @@ export function SavedRoutesList({ onLoadRoute }: SavedRoutesListProps) {
   }
 
   if (isLoading)
-    return <div className="p-4 text-center text-xs animate-pulse text-muted-foreground">{t('loading')}</div>
+    return (
+      <div className="animate-pulse p-4 text-center text-xs text-muted-foreground">
+        {t('loading')}
+      </div>
+    )
   if (routes.length === 0) return null
 
   return (
@@ -60,11 +64,14 @@ export function SavedRoutesList({ onLoadRoute }: SavedRoutesListProps) {
               className="group relative flex min-w-0 flex-col rounded-lg border border-border bg-secondary/30 p-3 transition-all hover:border-primary/30 hover:bg-secondary/50"
             >
               {editingId === route.id ? (
-                <div className="flex w-full min-w-0 items-start gap-1" onClick={(e) => e.stopPropagation()}>
+                <div
+                  className="flex w-full min-w-0 items-start gap-1"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <Input
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
-                    className="h-8 flex-1 border-primary/50 bg-background text-xs focus-visible:ring-1 min-w-0"
+                    className="h-8 min-w-0 flex-1 border-primary/50 bg-background text-xs focus-visible:ring-1"
                     autoFocus
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') handleSaveEdit(e as any, route.id)
@@ -93,10 +100,10 @@ export function SavedRoutesList({ onLoadRoute }: SavedRoutesListProps) {
               ) : (
                 <div className="flex w-full items-start justify-between gap-3">
                   <button
-                    className="block flex-1 min-w-0 text-left"
+                    className="block min-w-0 flex-1 text-left"
                     onClick={() => onLoadRoute(route.gpx_content, route.name)}
                   >
-                    <p className="break-words text-sm font-semibold leading-tight text-foreground whitespace-normal">
+                    <p className="whitespace-normal break-words text-sm font-semibold leading-tight text-foreground">
                       {stripExtension(route.name)}
                     </p>
                     <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-muted-foreground">
