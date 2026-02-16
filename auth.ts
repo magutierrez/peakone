@@ -12,7 +12,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     Strava({
       authorization: {
         params: {
-          scope: 'read,read_all,activity:read_all',
+          scope: 'read,read_all,activity:read_all,email',
         },
       },
     }),
@@ -21,16 +21,20 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     signIn: '/login',
   },
   callbacks: {
-    async jwt({ token, account }) {
+    async jwt({ token, account, profile }) {
       if (account) {
         token.accessToken = account.access_token
         token.provider = account.provider
+        token.id = profile?.id || account.providerAccountId
       }
       return token
     },
     async session({ session, token }) {
       session.accessToken = token.accessToken as string
       session.provider = token.provider as string
+      if (session.user) {
+        session.user.id = (token.id || token.sub) as string
+      }
       return session
     },
     authorized({ auth, request: { nextUrl } }) {

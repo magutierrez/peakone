@@ -57,7 +57,7 @@ export function useRouteAnalysis(config: RouteConfig) {
   const handleStravaActivityLoaded = useCallback((data: GPXData, fileName: string) => {
     setGPXData(data)
     setGPXFileName(fileName)
-    setRawGPXContent(null) 
+    setRawGPXContent(JSON.stringify(data)) 
     setWeatherPoints([])
     setSelectedPointIndex(null)
     setError(null)

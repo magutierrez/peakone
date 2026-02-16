@@ -83,7 +83,7 @@ export default function HomePageClient({ session }: HomePageClientProps) {
   }
 
   useEffect(() => {
-    if (gpxData && rawGPXContent && gpxFileName && session?.user?.email) {
+    if (gpxData && rawGPXContent && gpxFileName && session?.user) {
       const routeExists = routes.some(
         (r) =>
           r.name === gpxFileName &&
@@ -95,7 +95,7 @@ export default function HomePageClient({ session }: HomePageClientProps) {
         lastSavedRef.current = rawGPXContent
       }
     }
-  }, [gpxData, rawGPXContent, gpxFileName, session?.user?.email, routes, saveRoute])
+  }, [gpxData, rawGPXContent, gpxFileName, session?.user, routes, saveRoute])
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
