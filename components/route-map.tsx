@@ -5,12 +5,22 @@ import { useTheme } from 'next-themes';
 import Map, { Source, Layer, NavigationControl, MapRef } from 'react-map-gl/maplibre';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
+import { Layers } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 import type { RoutePoint, RouteWeatherPoint } from '@/lib/types';
 import { useMapLayers } from './route-map/use-map-layers';
 import { MapMarkers } from './route-map/map-markers';
 import { MapPopup } from './route-map/map-popup';
 import { MapLegend } from './route-map/map-legend';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface RouteMapProps {
   points: RoutePoint[];
@@ -21,6 +31,8 @@ interface RouteMapProps {
   selectedRange?: { start: number; end: number } | null;
 }
 
+type MapLayerType = 'standard' | 'satellite' | 'hybrid';
+
 export default function RouteMap({
   points,
   weatherPoints,
@@ -30,9 +42,11 @@ export default function RouteMap({
   selectedRange = null,
 }: RouteMapProps) {
   const { resolvedTheme } = useTheme();
+  const t = useTranslations('RouteMap');
   const mapRef = useRef<MapRef>(null);
   const [hoveredPointIdx, setHoveredPointIdx] = useState<number | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [mapType, setMapType] = useState<MapLayerType>('standard');
 
   const { routeData, highlightedData, rangeHighlightData, weatherPointsData } = useMapLayers(
     points,
@@ -46,15 +60,54 @@ export default function RouteMap({
   }, []);
 
   const mapStyle = useMemo(() => {
-    return resolvedTheme === 'light'
-      ? 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json'
-      : 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json';
-  }, [resolvedTheme]);
+    if (mapType === 'standard') {
+      return resolvedTheme === 'light'
+        ? 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json'
+        : 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json';
+    }
+
+    return {
+      version: 8,
+      sources: {
+        'esri-satellite': {
+          type: 'raster',
+          tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
+          tileSize: 256,
+          attribution: 'Tiles &copy; Esri',
+        },
+        'esri-labels': {
+          type: 'raster',
+          tiles: ['https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}'],
+          tileSize: 256,
+        },
+      },
+      layers: [
+        {
+          id: 'satellite',
+          type: 'raster',
+          source: 'esri-satellite',
+        },
+        ...(mapType === 'hybrid'
+          ? [
+              {
+                id: 'labels',
+                type: 'raster',
+                source: 'esri-labels',
+                paint: { 'raster-opacity': 0.8 },
+              },
+            ]
+          : []),
+      ],
+    };
+  }, [resolvedTheme, mapType]);
 
   useEffect(() => {
     const validPoints = points.filter(
       (p) =>
-        typeof p.lon === 'number' && typeof p.lat === 'number' && !isNaN(p.lon) && !isNaN(p.lat),
+        typeof p.lon === 'number' &&
+        typeof p.lat === 'number' &&
+        !isNaN(p.lon) &&
+        !isNaN(p.lat),
     );
     if (validPoints.length > 0 && mapRef.current) {
       const lons = validPoints.map((p) => p.lon);
@@ -119,10 +172,10 @@ export default function RouteMap({
         mapLib={maplibregl}
         initialViewState={{ longitude: -3.7038, latitude: 40.4168, zoom: 5 }}
         style={{ width: '100%', height: '100%' }}
-        mapStyle={mapStyle}
+        mapStyle={mapStyle as any}
         onClick={onMapClick}
       >
-        <NavigationControl position="top-right" />
+        <NavigationControl position="bottom-right" />
 
         {routeData && (
           <Source id="route-source" type="geojson" data={routeData}>
@@ -130,7 +183,7 @@ export default function RouteMap({
               id="route-base"
               type="line"
               paint={{
-                'line-color': '#3ecf8e',
+                'line-color': mapType === 'standard' ? '#3ecf8e' : '#ffffff',
                 'line-width': 4,
                 'line-opacity': activeFilter || selectedRange ? 0.3 : 1,
               }}
@@ -190,6 +243,23 @@ export default function RouteMap({
 
         {popupInfo && <MapPopup popupInfo={popupInfo} onClose={() => setHoveredPointIdx(null)} />}
       </Map>
+
+      <div className="absolute right-3 top-3 z-10">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="secondary" size="icon" className="h-10 w-10 shadow-md">
+              <Layers className="h-5 w-5" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuRadioGroup value={mapType} onValueChange={(v) => setMapType(v as MapLayerType)}>
+              <DropdownMenuRadioItem value="standard">{t('layers.standard')}</DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="satellite">{t('layers.satellite')}</DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="hybrid">{t('layers.hybrid')}</DropdownMenuRadioItem>
+            </DropdownMenuRadioGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
 
       <style jsx global>{`
         .weather-popup .maplibregl-popup-content {

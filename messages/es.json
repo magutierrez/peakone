@@ -186,6 +186,11 @@
       "tailwind": "A favor",
       "headwind": "En contra",
       "crosswind": "Lateral"
+    },
+    "layers": {
+      "standard": "Estándar",
+      "satellite": "Satélite",
+      "hybrid": "Híbrido"
     }
   },
   "WeatherCodes": {
