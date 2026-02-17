@@ -1,6 +1,6 @@
 'use client';
 
-import { Mountain, Wind, Moon, Sun, Menu } from 'lucide-react';
+import { Mountain, Moon, Sun, Menu } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
@@ -17,7 +17,7 @@ interface HeaderProps {
 
 export function Header({ session, mobileMenuContent }: HeaderProps) {
   const t = useTranslations('HomePage');
-  const { theme, setTheme, resolvedTheme } = useTheme();
+  const { setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
 
