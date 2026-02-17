@@ -5,6 +5,8 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { GPXUpload } from '@/components/gpx-upload';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { HelpCircle } from 'lucide-react';
 import type { GPXData } from '@/lib/types';
 import { calculateIBP, getIBPDifficulty, cn } from '@/lib/utils';
 
@@ -90,9 +92,21 @@ export function RouteConfigPanel({
 
           <div className="flex items-center justify-between rounded-lg bg-secondary/50 px-3 py-2">
             <div className="flex flex-col">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                {tibp('title')}
-              </span>
+              <div className="flex items-center gap-1">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {tibp('title')}
+                </span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="h-3 w-3 text-muted-foreground/50 transition-colors hover:text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent side="right" className="max-w-[200px] text-[11px] leading-relaxed">
+                      {tibp('description')}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
               <span className="font-mono text-lg font-bold text-foreground">
                 {ibpIndex}
               </span>

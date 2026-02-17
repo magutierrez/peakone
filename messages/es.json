@@ -195,6 +195,7 @@
   },
   "IBP": {
     "title": "Índice IBP",
+    "description": "El índice IBP index es un sistema de puntuación automático que valora el grado de dificultad de una ruta. Se calcula analizando las distancias, los desniveles y las pendientes.",
     "difficulty": {
       "veryEasy": "Muy fácil",
       "easy": "Fácil",
