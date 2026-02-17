@@ -15,6 +15,8 @@ import { useSavedRoutes } from '@/hooks/use-saved-routes';
 import { RouteLoadingOverlay } from './route-loading-overlay';
 import { ActivityConfigSection } from './activity-config-section';
 import { AnalysisResults } from './analysis-results';
+import { AnalysisSkeleton } from './analysis-skeleton';
+import { cn } from '@/lib/utils';
 
 const RouteMap = dynamic(() => import('@/components/route-map'), {
   ssr: false,
@@ -101,9 +103,24 @@ export default function HomePageClient({ session }: HomePageClientProps) {
     }
   }, [gpxData, rawGPXContent, gpxFileName, session?.user, routes, saveRoute]);
 
+  const sidebarContent = (
+    <Sidebar
+      gpxData={gpxData}
+      onGPXLoaded={handleGPXLoaded}
+      onStravaActivityLoaded={handleStravaActivityLoaded}
+      gpxFileName={gpxFileName}
+      onClearGPX={onClearGPXWithRange}
+      onReverseRoute={onReverseWithRange}
+      error={error}
+      provider={session?.provider}
+      activityType={config.activityType}
+      className="border-none sticky-none h-full w-full"
+    />
+  );
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <Header session={session} />
+      <Header session={session} mobileMenuContent={sidebarContent} />
 
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
         <Sidebar
@@ -116,14 +133,24 @@ export default function HomePageClient({ session }: HomePageClientProps) {
           error={error}
           provider={session?.provider}
           activityType={config.activityType}
+          className="hidden lg:flex"
         />
 
-        <main className="relative flex min-w-0 flex-1 flex-col lg:flex-row">
-          <RouteLoadingOverlay isVisible={isRouteInfoLoading} />
-
-          <div className="flex w-full flex-col gap-10 p-6 md:p-8 lg:w-[60%]">
+        <main className="relative flex min-w-0 flex-1 flex-col lg:flex-row lg:overflow-hidden">
+          <div className="flex w-full flex-col gap-10 p-4 md:p-8 lg:w-[60%] lg:overflow-y-auto lg:h-[calc(100vh-57px)] custom-scrollbar">
             {!gpxData ? (
-              <EmptyState />
+              <div className="flex flex-col gap-8">
+                {/* Mobile-first: show sidebar content here when empty */}
+                <div className="lg:hidden">
+                  {sidebarContent}
+                </div>
+                {/* Desktop: show empty state */}
+                <div className="hidden lg:block">
+                  <EmptyState />
+                </div>
+              </div>
+            ) : isRouteInfoLoading ? (
+              <AnalysisSkeleton />
             ) : (
               <>
                 <AnalysisResults
@@ -136,6 +163,7 @@ export default function HomePageClient({ session }: HomePageClientProps) {
                   setSelectedPointIndex={setSelectedPointIndex}
                   onRangeSelect={setSelectedRange}
                   activityType={config.activityType}
+                  onClearSelection={() => setSelectedRange(null)}
                 />
 
                 <ActivityConfigSection
@@ -150,7 +178,11 @@ export default function HomePageClient({ session }: HomePageClientProps) {
             )}
           </div>
 
-          <div className="sticky top-[57px] h-[50vh] w-full border-l border-border lg:h-[calc(100vh-57px)] lg:w-[40%]">
+          <div className={cn(
+            "h-[400px] lg:h-[calc(100vh-57px)] w-full border-t lg:border-t-0 lg:border-l border-border lg:w-[40%] relative",
+            !gpxData && "hidden lg:block"
+          )}>
+            <RouteLoadingOverlay isVisible={isRouteInfoLoading} />
             <RouteMap
               points={gpxData?.points || []}
               weatherPoints={weatherPoints.length > 0 ? weatherPoints : undefined}
@@ -159,6 +191,7 @@ export default function HomePageClient({ session }: HomePageClientProps) {
               activeFilter={activeFilter}
               selectedRange={selectedRange}
               activityType={config.activityType}
+              onClearSelection={() => setSelectedRange(null)}
             />
           </div>
         </main>

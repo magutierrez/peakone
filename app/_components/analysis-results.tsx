@@ -7,9 +7,10 @@ import { WeatherSummary } from '@/components/weather-timeline/weather-summary';
 import { WeatherList } from '@/components/weather-timeline/weather-list';
 import { WeatherPointDetail } from '@/components/weather-timeline/weather-point-detail';
 import { RouteAdvice } from '@/components/route-advice';
+import { RouteHazards } from '@/components/route-hazards';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { RouteWeatherPoint } from '@/lib/types';
-import { CloudSun, ShieldAlert } from 'lucide-react';
+import { CloudSun, ShieldAlert, AlertTriangle } from 'lucide-react';
 
 interface AnalysisResultsProps {
   weatherPoints: RouteWeatherPoint[];
@@ -74,7 +75,7 @@ export function AnalysisResults({
 
       {weatherPoints.length > 0 && (
         <Tabs defaultValue="weather" className="w-full mt-8">
-          <TabsList className="grid w-full grid-cols-2 mb-8 bg-secondary/50 p-1">
+          <TabsList className="grid w-full grid-cols-3 mb-8 bg-secondary/50 p-1">
             <TabsTrigger value="weather" className="gap-2">
               <CloudSun className="h-4 w-4" />
               {th('sections.weatherAnalysis')}
@@ -82,6 +83,10 @@ export function AnalysisResults({
             <TabsTrigger value="advice" className="gap-2">
               <ShieldAlert className="h-4 w-4" />
               {th('sections.advice')}
+            </TabsTrigger>
+            <TabsTrigger value="hazards" className="gap-2">
+              <AlertTriangle className="h-4 w-4" />
+              {th('sections.hazards')}
             </TabsTrigger>
           </TabsList>
 
@@ -107,6 +112,17 @@ export function AnalysisResults({
               </p>
             </div>
             <RouteAdvice weatherPoints={weatherPoints} activityType={activityType} />
+          </TabsContent>
+
+          <TabsContent value="hazards" className="animate-in slide-in-from-right-2 fade-in-50 duration-500 outline-none">
+            <div className="mb-6">
+              <h3 className="text-lg font-bold text-foreground mb-1">{th('sections.hazards')}</h3>
+              <p className="text-sm text-muted-foreground">{th('sections.hazardsDesc')}</p>
+            </div>
+            <RouteHazards 
+              weatherPoints={weatherPoints} 
+              onSelectSegment={onRangeSelect}
+            />
           </TabsContent>
         </Tabs>
       )}

@@ -298,7 +298,7 @@ export function ElevationProfile({
               }}
             />
             <Area
-              type="monotone"
+              type="linear"
               dataKey="elevation"
               stroke={`url(#${gradientId})`}
               strokeWidth={3}

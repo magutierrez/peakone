@@ -5,6 +5,7 @@ import { SavedRoutesList } from '@/components/saved-routes-list';
 import { StravaActivitiesList } from '@/components/strava-activities-list';
 import { StravaConnector } from './strava-connector';
 import type { GPXData } from '@/lib/types';
+import { cn } from '@/lib/utils';
 
 interface SidebarProps {
   gpxData: GPXData | null;
@@ -16,6 +17,7 @@ interface SidebarProps {
   onReverseRoute: () => void;
   provider?: string;
   activityType?: 'cycling' | 'walking';
+  className?: string;
 }
 
 export function Sidebar({
@@ -28,9 +30,13 @@ export function Sidebar({
   onReverseRoute,
   provider,
   activityType,
+  className,
 }: SidebarProps) {
   return (
-    <aside className="sticky top-[57px] h-[calc(100vh-57px)] w-full shrink-0 border-b border-border bg-card lg:w-80 lg:border-b-0 lg:border-r">
+    <aside className={cn(
+      "sticky top-[57px] h-[calc(100vh-57px)] w-full shrink-0 border-b border-border bg-card lg:w-80 lg:border-b-0 lg:border-r",
+      className
+    )}>
       <div className="flex h-full flex-col overflow-hidden p-4">
         <div className="flex h-full min-h-0 flex-col gap-6">
           <RouteConfigPanel

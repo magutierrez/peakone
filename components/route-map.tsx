@@ -5,6 +5,9 @@ import { useTheme } from 'next-themes';
 import Map, { NavigationControl, MapRef } from 'react-map-gl/maplibre';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
+import { useTranslations } from 'next-intl';
+import { RefreshCcw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 import type { RoutePoint, RouteWeatherPoint } from '@/lib/types';
 import { useMapLayers } from './route-map/use-map-layers';
@@ -24,6 +27,7 @@ interface RouteMapProps {
   activeFilter?: { key: 'pathType' | 'surface'; value: string } | null;
   selectedRange?: { start: number; end: number } | null;
   activityType?: 'cycling' | 'walking';
+  onClearSelection?: () => void;
 }
 
 export default function RouteMap({
@@ -34,9 +38,11 @@ export default function RouteMap({
   activeFilter = null,
   selectedRange = null,
   activityType = 'cycling',
+  onClearSelection,
 }: RouteMapProps) {
   const { resolvedTheme } = useTheme();
   const mapRef = useRef<MapRef>(null);
+  const t = useTranslations('RouteMap');
   
   const [hoveredPointIdx, setHoveredPointIdx] = useState<number | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -108,6 +114,22 @@ export default function RouteMap({
 
         {popupInfo && <MapPopup popupInfo={popupInfo} onClose={() => setHoveredPointIdx(null)} />}
       </Map>
+
+      {selectedRange && (
+        <div className="absolute left-3 top-3 z-10 animate-in fade-in slide-in-from-left-2">
+          <Button 
+            variant="secondary" 
+            size="sm" 
+            className="h-8 gap-2 bg-card/90 shadow-md backdrop-blur-sm hover:bg-card"
+            onClick={onClearSelection}
+          >
+            <RefreshCcw className="h-3.5 w-3.5" />
+            <span className="text-[10px] font-bold uppercase tracking-wider">
+              {t('layers.standard') === 'Estándar' ? 'Ver ruta completa' : 'Reset View'}
+            </span>
+          </Button>
+        </div>
+      )}
 
       <LayerControl mapType={mapType} setMapType={setMapType} />
 

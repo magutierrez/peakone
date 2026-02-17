@@ -1,7 +1,6 @@
 'use client';
 
 import {
-  Wind,
   Thermometer,
   Droplets,
   Eye,
@@ -13,7 +12,6 @@ import {
   Moon,
   Cloud,
   PhoneOff,
-  Ambulance,
   Signpost,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -141,7 +139,7 @@ export function WeatherPointDetail({ point }: WeatherPointDetailProps) {
         <div className="flex items-center gap-2 rounded-lg bg-secondary p-2.5">
           {point.solarExposure && getSolarIcon(point.solarExposure)}
           <div>
-            <p className="text-xs text-muted-foreground">Intensidad Solar</p>
+            <p className="text-xs text-muted-foreground">{t('summary.solarTitle')}</p>
             <p className={`font-mono text-sm font-bold capitalize ${point.solarIntensity ? getSolarIntensityColor(point.solarIntensity) : ''}`}>
               {point.solarIntensity 
                 ? (point.solarIntensity === 'night' ? t('solarExposure.night') : t(`solarIntensity.${point.solarIntensity}` as any))
