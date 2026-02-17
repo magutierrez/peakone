@@ -71,15 +71,20 @@ export function ElevationProfile({
         const prev = displayData[idx - 1];
         const distDiff = (d.distance - prev.distance) * 1000;
         const eleDiff = d.elevation - prev.elevation;
-        if (distDiff > 0) {
+        if (distDiff > 0.1) { // Only calc slope if distance is relevant
           slope = (eleDiff / distDiff) * 100;
         }
       }
 
+      // Ensure no NaN values
+      const safeSlope = isNaN(slope) ? 0 : slope;
+      const safeEle = isNaN(d.elevation) ? 0 : d.elevation;
+
       return {
         ...d,
-        slope: Math.round(slope * 10) / 10,
-        color: getSlopeColorHex(slope),
+        elevation: safeEle,
+        slope: Math.round(safeSlope * 10) / 10,
+        color: getSlopeColorHex(safeSlope),
       };
     });
     return { chartData: data };
@@ -108,20 +113,16 @@ export function ElevationProfile({
 
     for (let i = startIndex; i <= endIndex; i++) {
       const d = chartData[i];
-      const percentage = ((d.distance - domainMin) / domainRange) * 100;
+      const distanceValue = d.distance;
+      const percentage = domainRange > 0 ? ((distanceValue - domainMin) / domainRange) * 100 : 0;
       stops.push({
         offset: `${Math.max(0, Math.min(100, percentage))}%`,
-        color: d.color,
+        color: d.color || '#3ecf8e',
       });
     }
 
-    if (stops.length > 0) {
-      if (parseFloat(stops[0].offset) > 0) {
-        stops.unshift({ offset: '0%', color: stops[0].color });
-      }
-      if (parseFloat(stops[stops.length - 1].offset) < 100) {
-        stops.push({ offset: '100%', color: stops[stops.length - 1].color });
-      }
+    if (stops.length === 0) {
+      return [{ offset: '0%', color: '#3ecf8e' }, { offset: '100%', color: '#3ecf8e' }];
     }
 
     return stops;
@@ -264,11 +265,13 @@ export function ElevationProfile({
             />
             <YAxis
               type="number"
-              domain={[bottom, top === 'dataMax' ? 'dataMax + 50' : top]}
+              domain={['auto', 'auto']}
+              padding={{ top: 20, bottom: 20 }}
               tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
               axisLine={{ stroke: 'hsl(var(--border))' }}
               tickFormatter={(val) => `${Math.round(val)}m`}
               allowDataOverflow
+              label={{ value: 'm', position: 'insideTopLeft', offset: -10, fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
             />
             <Tooltip
               content={({ active, payload }) => {
@@ -300,11 +303,12 @@ export function ElevationProfile({
             <Area
               type="linear"
               dataKey="elevation"
-              stroke={`url(#${gradientId})`}
-              strokeWidth={3}
+              stroke={gradientStops.length > 0 ? `url(#${gradientId})` : '#3ecf8e'}
+              strokeWidth={2}
               fillOpacity={1}
-              fill={`url(#${gradientId}-fill)`}
+              fill={gradientStops.length > 0 ? `url(#${gradientId}-fill)` : '#3ecf8e'}
               isAnimationActive={false}
+              connectNulls
             />
 
             {selectedDataInChart && (

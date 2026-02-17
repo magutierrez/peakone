@@ -27,20 +27,22 @@ export function useRouteAnalysis(config: RouteConfig) {
 
   useEffect(() => {
     if (gpxData) {
-      const dense = sampleRoutePoints(gpxData.points, 300);
-      setElevationData(
-        dense.map((p) => ({
-          distance: p.distanceFromStart,
-          elevation: p.ele || 0,
-        })),
-      );
+      const dense = sampleRoutePoints(gpxData.points, 200);
+      const initialElevation = dense.map((p) => ({
+        distance: p.distanceFromStart,
+        elevation: p.ele || 0,
+      }));
+      
+      // Always set initial elevation to prepare the chart
+      setElevationData(initialElevation);
     } else {
       setElevationData([]);
     }
   }, [gpxData]);
 
   useEffect(() => {
-    if (routeInfoData.length > 0 && elevationData.some((d) => d.elevation === 0)) {
+    if (routeInfoData.length > 0) {
+      // Update with richer data from API (OSM + Meteo Elevation)
       const newElevationData = routeInfoData.map((item) => ({
         distance: item.distanceFromStart,
         elevation: item.elevation || 0,
@@ -227,14 +229,17 @@ export function useRouteAnalysis(config: RouteConfig) {
         const weather = weatherData[idx];
         const windResult = getWindEffect(bearing, weather.windDirection);
 
-        // Match with route info (nearest point)
-        const info = routeInfoData[idx] || {};
-        const ele = point.ele || info.elevation || 0;
+        // Find closest info by distance (not index) to be robust
+        const info = routeInfoData.reduce((prev, curr) => 
+          Math.abs(curr.distanceFromStart - point.distanceFromStart) < Math.abs(prev.distanceFromStart - point.distanceFromStart) ? curr : prev
+        , routeInfoData[0] || {});
+
+        const ele = point.ele !== undefined && point.ele !== 0 ? point.ele : (info.elevation || 0);
 
         // Calculate slope and aspect for hillshading
-        // Use a window of points for a smoother slope
         const distDiff = (nextPoint.distanceFromStart - prevPoint.distanceFromStart) * 1000; // meters
-        const eleDiff = (nextPoint.ele || info.elevation || 0) - (prevPoint.ele || info.elevation || 0);
+        const eleDiff = (nextPoint.ele !== undefined ? nextPoint.ele : (routeInfoData.find((d: any) => d.distanceFromStart === nextPoint.distanceFromStart)?.elevation || 0)) - 
+                        (prevPoint.ele !== undefined ? prevPoint.ele : (routeInfoData.find((d: any) => d.distanceFromStart === prevPoint.distanceFromStart)?.elevation || 0));
         const slopeRad = distDiff > 0 ? Math.atan(eleDiff / distDiff) : 0;
         const slopeDeg = (slopeRad * 180) / Math.PI;
         

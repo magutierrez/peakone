@@ -51,10 +51,10 @@ export async function POST(request: NextRequest) {
     ]);
 
     const osmData = osmResponse.ok ? await osmResponse.json() : { elements: [] };
-    const elevationData = elevationResponse.ok ? await elevationResponse.json() : { elevation: [] };
+    const elevationResponseJson = elevationResponse.ok ? await elevationResponse.json() : { elevation: [] };
 
     const elements = osmData.elements || [];
-    const elevations = elevationData.elevation || [];
+    const elevations = elevationResponseJson.elevation || [];
 
     const getDistSq = (p1: Point, p2: { lat: number; lon: number }) =>
       Math.sqrt(Math.pow(p1.lat - p2.lat, 2) + Math.pow(p1.lon - p2.lon, 2)) * 111.32; // Approx km
@@ -129,7 +129,7 @@ export async function POST(request: NextRequest) {
         lon: p.lon,
         pathType: tags.highway,
         surface: tags.surface || (tags.highway === 'cycleway' ? 'asphalt' : undefined),
-        elevation: elevations[idx] !== undefined ? Math.round(elevations[idx]) : undefined,
+        elevation: elevations[idx] !== undefined ? Math.round(elevations[idx]) : 0,
         distanceFromStart: (p as any).distanceFromStart,
         mobileCoverage: coverage,
         waterSources,
