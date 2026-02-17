@@ -12,6 +12,9 @@ import {
   Sun,
   Moon,
   Cloud,
+  PhoneOff,
+  Ambulance,
+  Signpost,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { WeatherIcon } from '@/components/weather-icon';
@@ -21,6 +24,14 @@ import type { RouteWeatherPoint } from '@/lib/types';
 
 interface WeatherPointDetailProps {
   point: RouteWeatherPoint;
+}
+
+function getCoverageIconLabel(coverage: string | undefined, t: any) {
+  switch (coverage) {
+    case 'none': return <div className="flex items-center gap-1.5 text-destructive"><PhoneOff className="h-4 w-4" /><span className="text-xs font-bold">{t('safety.noCoverage')}</span></div>;
+    case 'low': return <div className="flex items-center gap-1.5 text-orange-500"><PhoneOff className="h-4 w-4" /><span className="text-xs font-bold">{t('safety.lowCoverage')}</span></div>;
+    default: return null;
+  }
 }
 
 function getSolarIcon(exposure: string) {
@@ -191,6 +202,29 @@ export function WeatherPointDetail({ point }: WeatherPointDetailProps) {
           </div>
         </div>
       </div>
+
+      {/* Safety & Escape info */}
+      {(point.escapePoint || (point.mobileCoverage && point.mobileCoverage !== 'full')) && (
+        <div className="mt-3 flex flex-wrap gap-3 rounded-lg border border-indigo-500/20 bg-indigo-500/5 p-3">
+          {point.escapePoint && (
+            <div className="flex flex-1 items-start gap-3">
+              <Signpost className="mt-0.5 h-4 w-4 shrink-0 text-indigo-500" />
+              <div>
+                <p className="text-xs font-bold text-foreground">{t('safety.evacuation')}</p>
+                <p className="text-[11px] text-muted-foreground">
+                  {t('safety.escapeDesc', { dist: point.escapePoint.distanceFromRoute })}: 
+                  <span className="ml-1 font-semibold text-indigo-600 dark:text-indigo-400">{point.escapePoint.name}</span>
+                </p>
+              </div>
+            </div>
+          )}
+          {point.mobileCoverage && point.mobileCoverage !== 'full' && (
+            <div className="flex shrink-0 items-center border-l border-indigo-500/20 pl-3">
+              {getCoverageIconLabel(point.mobileCoverage, t)}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Wind effect summary */}
       <div className="mt-3 flex items-center gap-3 rounded-lg border border-border p-3">

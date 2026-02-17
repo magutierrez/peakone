@@ -1,8 +1,9 @@
 'use client';
 
-import { Wind, Thermometer, Droplets, Sun } from 'lucide-react';
+import { Wind, Thermometer, Droplets, Sun, Clock, AlertTriangle } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import type { RouteWeatherPoint } from '@/lib/types';
+import { getSunPosition } from '@/lib/utils';
 
 interface WeatherSummaryProps {
   weatherPoints: RouteWeatherPoint[];
@@ -10,6 +11,8 @@ interface WeatherSummaryProps {
 
 export function WeatherSummary({ weatherPoints }: WeatherSummaryProps) {
   const t = useTranslations('WeatherTimeline');
+
+  if (weatherPoints.length === 0) return null;
 
   const avgTemp =
     weatherPoints.reduce((s, w) => s + w.weather.temperature, 0) / weatherPoints.length;
@@ -24,14 +27,30 @@ export function WeatherSummary({ weatherPoints }: WeatherSummaryProps) {
     (weatherPoints.filter((w) => w.windEffect === 'headwind').length / weatherPoints.length) * 100;
 
   // Solar Summary
-  const nightPoints = weatherPoints.filter((w) => w.solarIntensity === 'night').length;
-  const shadePoints = weatherPoints.filter((w) => w.solarIntensity === 'shade').length;
-  const weakPoints = weatherPoints.filter((w) => w.solarIntensity === 'weak').length;
-  const moderatePoints = weatherPoints.filter((w) => w.solarIntensity === 'moderate').length;
   const intensePoints = weatherPoints.filter((w) => w.solarIntensity === 'intense').length;
-
+  const shadePoints = weatherPoints.filter((w) => w.solarIntensity === 'shade').length;
   const total = weatherPoints.length;
   const getPercent = (count: number) => ((count / total) * 100).toFixed(0);
+
+  // Daylight remaining calculation
+  const lastPoint = weatherPoints[weatherPoints.length - 1];
+  const lastTime = new Date(lastPoint.weather.time);
+  
+  // Find sunset time at the last location
+  // We approximate sunset by checking when altitude goes below -0.833 (standard sunset)
+  // But for simplicity, we can just use the last point's sun position vs current time
+  const now = new Date();
+  const sunPosAtLast = getSunPosition(lastTime, lastPoint.point.lat, lastPoint.point.lon);
+  const arrivesAtNight = sunPosAtLast.altitude < 0;
+
+  // Estimate remaining daylight from "now" until sunset at the current/route location
+  // This is a simplified version for the prototype
+  const firstPoint = weatherPoints[0];
+  const sunPosFirst = getSunPosition(now, firstPoint.point.lat, firstPoint.point.lon);
+  
+  // Approximation of sunset: simplified for UI
+  // In a real app we would use a more robust sunset calc
+  const isNightSoon = sunPosAtLast.altitude < 5 && sunPosAtLast.altitude > -5;
 
   return (
     <div className="grid grid-cols-2 gap-2 lg:grid-cols-5">
@@ -49,16 +68,38 @@ export function WeatherSummary({ weatherPoints }: WeatherSummaryProps) {
           <span className="text-xs">{t('summary.solarTitle')}</span>
         </div>
         <div className="mt-2 flex h-2 w-full overflow-hidden rounded-full bg-secondary">
-          {intensePoints > 0 && <div className="bg-red-600" style={{ width: `${getPercent(intensePoints)}%` }} title="Intenso" />}
-          {moderatePoints > 0 && <div className="bg-orange-400" style={{ width: `${getPercent(moderatePoints)}%` }} title="Moderado" />}
-          {weakPoints > 0 && <div className="bg-yellow-200" style={{ width: `${getPercent(weakPoints)}%` }} title="Suave" />}
-          {shadePoints > 0 && <div className="bg-slate-500" style={{ width: `${getPercent(shadePoints)}%` }} title="Sombra" />}
-          {nightPoints > 0 && <div className="bg-slate-900" style={{ width: `${getPercent(nightPoints)}%` }} title="Noche" />}
+          {weatherPoints.map((wp, i) => {
+            const colors: Record<string, string> = {
+              intense: 'bg-red-600',
+              moderate: 'bg-orange-400',
+              weak: 'bg-yellow-200',
+              shade: 'bg-slate-500',
+              night: 'bg-slate-900'
+            };
+            return <div key={i} className={colors[wp.solarIntensity || 'shade']} style={{ width: `${100/total}%` }} />;
+          })}
         </div>
         <div className="mt-1.5 flex flex-wrap gap-x-2 gap-y-0.5">
           {intensePoints > 0 && <span className="text-[9px] font-bold text-red-600">{getPercent(intensePoints)}% Sol Máx</span>}
           {shadePoints > 0 && <span className="text-[9px] font-bold text-slate-500">{getPercent(shadePoints)}% Sombra</span>}
         </div>
+      </div>
+
+      <div className="rounded-lg border border-border bg-card p-3">
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Clock className="h-4 w-4" />
+          <span className="text-xs">{t('summary.daylight')}</span>
+        </div>
+        {arrivesAtNight ? (
+          <div className="mt-1 flex items-center gap-1 text-destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <span className="text-xs font-bold uppercase tracking-tighter">{t('summary.nightArrival')}</span>
+          </div>
+        ) : (
+          <p className="mt-1 font-mono text-xl font-bold text-foreground">
+            {lastTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          </p>
+        )}
       </div>
 
       <div className="rounded-lg border border-border bg-card p-3">

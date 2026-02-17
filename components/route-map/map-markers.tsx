@@ -2,7 +2,9 @@
 
 import { Marker } from 'react-map-gl/maplibre';
 import { WindArrow } from '@/components/wind-arrow';
+import { MapPin, Signal, SignalLow, SignalZero } from 'lucide-react';
 import type { RoutePoint, RouteWeatherPoint } from '@/lib/types';
+import { useTranslations } from 'next-intl';
 
 interface MapMarkersProps {
   points: RoutePoint[];
@@ -13,6 +15,14 @@ interface MapMarkersProps {
   onHoverPoint: (index: number | null) => void;
 }
 
+function getCoverageIcon(coverage: string | undefined) {
+  switch (coverage) {
+    case 'none': return <SignalZero className="h-4 w-4 text-destructive" />;
+    case 'low': return <SignalLow className="h-4 w-4 text-orange-500" />;
+    default: return null;
+  }
+}
+
 export function MapMarkers({
   points,
   weatherPoints,
@@ -21,11 +31,28 @@ export function MapMarkers({
   onPointSelect,
   onHoverPoint,
 }: MapMarkersProps) {
+  const t = useTranslations('WeatherTimeline');
   const startPoint = points[0];
   const endPoint = points[points.length - 1];
 
+  // Unique escape points to avoid clutter
+  const escapePoints = Array.from(new Set(weatherPoints?.map(wp => wp.escapePoint?.name).filter(Boolean)))
+    .map(name => weatherPoints?.find(wp => wp.escapePoint?.name === name)?.escapePoint);
+
   return (
     <>
+      {/* Escape Points */}
+      {escapePoints.map((ep, i) => ep && (
+        <Marker key={`escape-${i}`} longitude={ep.lon} latitude={ep.lat} anchor="bottom">
+          <div className="flex flex-col items-center">
+            <div className="rounded-lg border border-border bg-card px-2 py-1 text-[9px] font-bold shadow-sm whitespace-nowrap">
+              {ep.name}
+            </div>
+            <MapPin className="h-5 w-5 text-indigo-500 fill-indigo-500/20" />
+          </div>
+        </Marker>
+      ))}
+
       {startPoint && (
         <Marker
           longitude={startPoint.lon}
@@ -75,6 +102,11 @@ export function MapMarkers({
                 effect={wp.windEffect}
                 size={isSelected ? 36 : 28}
               />
+              {wp.mobileCoverage && wp.mobileCoverage !== 'full' && (
+                <div className="absolute -top-2 -right-2 rounded-full bg-card p-0.5 shadow-sm">
+                  {getCoverageIcon(wp.mobileCoverage)}
+                </div>
+              )}
               {isSelected && (
                 <div className="absolute inset-0 animate-pulse rounded-full border-2 border-white/50" />
               )}

@@ -37,7 +37,7 @@
     "elevationLoss": "m D-",
     "activity": "Actividad",
     "cycling": "Bicicleta",
-    "walking": "Andando",
+    "walking": "Hiking",
     "date": "Fecha",
     "startTime": "Hora salida",
     "averageSpeed": "Velocidad media (km/h)",
@@ -62,7 +62,17 @@
       "kmh": "km/h",
       "favor": "{percent}% favor",
       "contra": "{percent}% contra",
-      "solarTitle": "Intensidad Solar"
+      "solarTitle": "Intensidad Solar",
+      "daylight": "Luz restante",
+      "nightArrival": "¡Llegarás de noche!",
+      "daylightFormat": "{hours}h {minutes}m"
+    },
+    "safety": {
+      "escapeTitle": "Puntos de Escape",
+      "escapeDesc": "Pueblo o carretera principal a {dist}km",
+      "noCoverage": "Zona sin cobertura",
+      "lowCoverage": "Cobertura débil",
+      "evacuation": "Punto de evacuación"
     },
     "timelineTitle": "Timeline por punto",
     "elevationTitle": "Perfil de elevacion",
@@ -175,12 +185,12 @@
     "noData": "No se encontraron datos",
     "ride": "Bicicleta",
     "run": "Carrera",
-    "walk": "Andando",
+    "walk": "Hiking",
     "hike": "Senderismo",
     "types": {
       "Ride": "Bicicleta",
       "Run": "Carrera",
-      "Walk": "Andando",
+      "Walk": "Hiking",
       "Hike": "Senderismo",
       "VirtualRide": "Bici Virtual",
       "MountainBikeRide": "MTB",

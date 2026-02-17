@@ -234,6 +234,8 @@ export function useRouteAnalysis(config: RouteConfig) {
           surface: info.surface,
           solarExposure,
           solarIntensity,
+          escapePoint: info.escapePoint,
+          mobileCoverage: info.mobileCoverage,
         };
       });
 

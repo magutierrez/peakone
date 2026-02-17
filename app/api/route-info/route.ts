@@ -16,9 +16,11 @@ export async function POST(request: NextRequest) {
     // Sample points for OSM (every 2nd to stay within limits)
     const sampledPoints = points.filter((_, i) => i % 2 === 0);
 
-    // 1. Fetch OSM Data (Highway/Surface)
+    // 1. Fetch OSM Data (Highway/Surface + Escape points)
     const queries = sampledPoints
-      .map((p) => `way(around:50, ${p.lat}, ${p.lon})[highway];`)
+      .map((p) => `way(around:100, ${p.lat}, ${p.lon})[highway];
+                  node(around:2000, ${p.lat}, ${p.lon})[place~"village|town|hamlet"];
+                  way(around:1500, ${p.lat}, ${p.lon})[highway~"primary|secondary|tertiary"];`)
       .join('');
     const overpassQuery = `[out:json][timeout:30]; (${queries}); out center;`;
 
@@ -44,34 +46,62 @@ export async function POST(request: NextRequest) {
     const elevations = elevationData.elevation || [];
 
     const getDistSq = (p1: Point, p2: { lat: number; lon: number }) =>
-      Math.pow(p1.lat - p2.lat, 2) + Math.pow(p1.lon - p2.lon, 2);
+      Math.sqrt(Math.pow(p1.lat - p2.lat, 2) + Math.pow(p1.lon - p2.lon, 2)) * 111.32; // Approx km
 
     // Map everything back
     const pathData = points.map((p, idx) => {
       let closestWay = null;
-      let minContextDist = Infinity;
+      let minWayDist = Infinity;
+      let closestEscape: any = null;
+      let minEscapeDist = Infinity;
+      let nearbyInfraCount = 0;
 
-      // Only search OSM for sampled points to save CPU
-      if (idx % 2 === 0) {
-        for (const element of elements) {
-          if (!element.center) continue;
-          const dist = getDistSq(p, element.center);
-          if (dist < minContextDist) {
-            minContextDist = dist;
-            closestWay = element;
+      for (const element of elements) {
+        if (!element.center && element.type !== 'node') continue;
+        const center = element.center || { lat: element.lat, lon: element.lon };
+        const dist = getDistSq(p, center);
+
+        // Track highway for surface/type
+        if (element.tags?.highway && dist < 0.1 && dist < minWayDist) {
+          minWayDist = dist;
+          closestWay = element;
+        }
+
+        // Track potential escape points
+        if ((element.tags?.place || (element.tags?.highway && ["primary", "secondary"].includes(element.tags.highway))) && dist < 2.5) {
+          if (dist < minEscapeDist) {
+            minEscapeDist = dist;
+            closestEscape = element;
           }
         }
+        
+        // Count infrastructure for coverage proxy
+        if (dist < 3) nearbyInfraCount++;
       }
 
       const tags = closestWay?.tags || {};
+      const escapeTags = closestEscape?.tags || {};
+      
+      // Heuristic for mobile coverage
+      let coverage: 'none' | 'low' | 'full' = 'full';
+      if (nearbyInfraCount === 0) coverage = 'none';
+      else if (nearbyInfraCount < 3) coverage = 'low';
+
       return {
         lat: p.lat,
         lon: p.lon,
         pathType: tags.highway,
         surface: tags.surface || (tags.highway === 'cycleway' ? 'asphalt' : undefined),
-        elevation: elevations[idx] !== undefined ? Math.round(elevations[idx]) : undefined, // Use fetched elevation rounded
-        // @ts-ignore - p might have distanceFromStart if passed
-        distanceFromStart: p.distanceFromStart,
+        elevation: elevations[idx] !== undefined ? Math.round(elevations[idx]) : undefined,
+        distanceFromStart: (p as any).distanceFromStart,
+        mobileCoverage: coverage,
+        escapePoint: closestEscape ? {
+          lat: closestEscape.center?.lat || closestEscape.lat,
+          lon: closestEscape.center?.lon || closestEscape.lon,
+          name: escapeTags.name || (escapeTags.highway ? 'Carretera principal' : 'Núcleo urbano'),
+          type: escapeTags.place ? 'town' : 'road',
+          distanceFromRoute: Math.round(minEscapeDist * 10) / 10
+        } : undefined
       };
     });
 
