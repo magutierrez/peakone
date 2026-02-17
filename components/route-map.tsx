@@ -28,6 +28,7 @@ interface RouteMapProps {
   selectedRange?: { start: number; end: number } | null;
   activityType?: 'cycling' | 'walking';
   onClearSelection?: () => void;
+  showWaterSources?: boolean;
 }
 
 export default function RouteMap({
@@ -39,6 +40,7 @@ export default function RouteMap({
   selectedRange = null,
   activityType = 'cycling',
   onClearSelection,
+  showWaterSources = false,
 }: RouteMapProps) {
   const { resolvedTheme } = useTheme();
   const mapRef = useRef<MapRef>(null);
@@ -110,6 +112,7 @@ export default function RouteMap({
           onPointSelect={onPointSelect}
           onHoverPoint={setHoveredPointIdx}
           activityType={activityType}
+          showWaterSources={showWaterSources}
         />
 
         {popupInfo && <MapPopup popupInfo={popupInfo} onClose={() => setHoveredPointIdx(null)} />}

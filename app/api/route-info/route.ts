@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { calculateWaterReliability } from '@/lib/utils';
 
 interface Point {
   lat: number;
@@ -20,7 +21,10 @@ export async function POST(request: NextRequest) {
     const queries = sampledPoints
       .map((p) => `way(around:100, ${p.lat}, ${p.lon})[highway];
                   node(around:2000, ${p.lat}, ${p.lon})[place~"village|town|hamlet"];
-                  way(around:1500, ${p.lat}, ${p.lon})[highway~"primary|secondary|tertiary"];`)
+                  way(around:1500, ${p.lat}, ${p.lon})[highway~"primary|secondary|tertiary"];
+                  node(around:1000, ${p.lat}, ${p.lon})["amenity"="drinking_water"];
+                  node(around:1000, ${p.lat}, ${p.lon})["natural"="spring"];
+                  node(around:1000, ${p.lat}, ${p.lon})["man_made"="water_tap"];`)
       .join('');
     const overpassQuery = `[out:json][timeout:30]; (${queries}); out center;`;
 
@@ -82,6 +86,26 @@ export async function POST(request: NextRequest) {
       const tags = closestWay?.tags || {};
       const escapeTags = closestEscape?.tags || {};
       
+      // Extract water sources
+      const waterSources: any[] = elements
+        .filter((el: any) => el.tags?.amenity === 'drinking_water' || el.tags?.natural === 'spring' || el.tags?.man_made === 'water_tap')
+        .map((el: any) => {
+          const center = el.center || { lat: el.lat, lon: el.lon };
+          const dist = getDistSq(p, center);
+          if (dist > 1.5) return null; // Too far from this point
+
+          const isNatural = el.tags?.natural === 'spring';
+          return {
+            lat: center.lat,
+            lon: center.lon,
+            name: el.tags?.name || (isNatural ? 'Manantial' : 'Fuente'),
+            type: isNatural ? 'natural' : 'urban',
+            distanceFromRoute: Math.round(dist * 10) / 10,
+            reliability: calculateWaterReliability(isNatural ? 'natural' : 'urban', new Date())
+          };
+        })
+        .filter(Boolean);
+
       // Heuristic for mobile coverage
       let coverage: 'none' | 'low' | 'full' = 'full';
       if (nearbyInfraCount === 0) coverage = 'none';
@@ -95,6 +119,7 @@ export async function POST(request: NextRequest) {
         elevation: elevations[idx] !== undefined ? Math.round(elevations[idx]) : undefined,
         distanceFromStart: (p as any).distanceFromStart,
         mobileCoverage: coverage,
+        waterSources,
         escapePoint: closestEscape ? {
           lat: closestEscape.center?.lat || closestEscape.lat,
           lon: closestEscape.center?.lon || closestEscape.lon,

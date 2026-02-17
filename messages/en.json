@@ -56,13 +56,22 @@
     "total": "Total needs",
     "perHour": "per hour"
   },
-  "Advice": {
-    "title": "Route Advice",
-    "weather": "Weather",
-    "gear": "Gear",
-    "safety": "Safety",
-    "nutrition": "Nutrition & Health",
-    "cycling": {
+      "Advice": {
+        "title": "Route Advice",
+        "weather": "Weather",
+        "gear": "Gear",
+        "safety": "Safety",
+        "nutrition": "Nutrition & Health",
+        "water": "Water Strategy",
+        "waterWarning": "Natural springs with low reliability detected. Carry extra water.",
+        "waterOk": "Reliable water sources available on route.",
+        "reliability": {
+          "high": "High",
+          "medium": "Medium",
+          "low": "Low (Possibly dry)"
+        },
+        "cycling": {
+  
       "rain": "Be careful with curves and wet asphalt. Check your brakes.",
       "wind": "Strong wind detected. Hold the handlebars firmly in exposed areas.",
       "heat": "Intense heat. Hydrate every 15-20 minutes.",

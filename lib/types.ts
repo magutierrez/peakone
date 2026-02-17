@@ -44,6 +44,15 @@ export interface EscapePoint {
   distanceFromRoute: number;
 }
 
+export interface WaterSource {
+  lat: number;
+  lon: number;
+  name: string;
+  type: 'natural' | 'urban';
+  distanceFromRoute: number;
+  reliability: 'high' | 'medium' | 'low';
+}
+
 export interface RouteWeatherPoint {
   point: RoutePoint;
   weather: WeatherData;
@@ -56,6 +65,7 @@ export interface RouteWeatherPoint {
   solarIntensity?: 'shade' | 'weak' | 'moderate' | 'intense' | 'night';
   escapePoint?: EscapePoint;
   mobileCoverage?: 'none' | 'low' | 'full';
+  waterSources?: WaterSource[];
 }
 
 export interface RouteSegmentMetadata {

@@ -24,6 +24,8 @@ interface AnalysisResultsProps {
   onRangeSelect?: (range: { start: number; end: number } | null) => void;
   selectedRange?: { start: number; end: number } | null;
   activityType: 'cycling' | 'walking';
+  showWaterSources?: boolean;
+  onToggleWaterSources?: () => void;
 }
 
 export function AnalysisResults({
@@ -37,6 +39,8 @@ export function AnalysisResults({
   onRangeSelect,
   selectedRange,
   activityType,
+  showWaterSources,
+  onToggleWaterSources,
 }: AnalysisResultsProps) {
   const th = useTranslations('HomePage');
   const tr = useTranslations('RouteMap');
@@ -115,7 +119,12 @@ export function AnalysisResults({
                   : th('sections.adviceHiking')}
               </p>
             </div>
-            <RouteAdvice weatherPoints={weatherPoints} activityType={activityType} />
+            <RouteAdvice 
+              weatherPoints={weatherPoints} 
+              activityType={activityType} 
+              showWaterSources={showWaterSources}
+              onToggleWaterSources={onToggleWaterSources}
+            />
           </TabsContent>
 
           <TabsContent value="hazards" className="animate-in slide-in-from-right-2 fade-in-50 duration-500 outline-none">
