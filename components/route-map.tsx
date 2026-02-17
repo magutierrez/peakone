@@ -31,7 +31,7 @@ interface RouteMapProps {
   selectedRange?: { start: number; end: number } | null;
 }
 
-type MapLayerType = 'standard' | 'satellite' | 'hybrid';
+type MapLayerType = 'standard' | 'satellite' | 'hybrid' | 'topography';
 
 export default function RouteMap({
   points,
@@ -64,6 +64,27 @@ export default function RouteMap({
       return resolvedTheme === 'light'
         ? 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json'
         : 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json';
+    }
+
+    if (mapType === 'topography') {
+      return {
+        version: 8,
+        sources: {
+          'opentopo': {
+            type: 'raster',
+            tiles: ['https://a.tile.opentopomap.org/{z}/{x}/{y}.png'],
+            tileSize: 256,
+            attribution: 'Map data: &copy; OpenStreetMap contributors, SRTM | Map style: &copy; OpenTopoMap (CC-BY-SA)',
+          },
+        },
+        layers: [
+          {
+            id: 'topography-layer',
+            type: 'raster',
+            source: 'opentopo',
+          },
+        ],
+      };
     }
 
     return {
@@ -254,6 +275,7 @@ export default function RouteMap({
           <DropdownMenuContent align="end">
             <DropdownMenuRadioGroup value={mapType} onValueChange={(v) => setMapType(v as MapLayerType)}>
               <DropdownMenuRadioItem value="standard">{t('layers.standard')}</DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="topography">{t('layers.topography')}</DropdownMenuRadioItem>
               <DropdownMenuRadioItem value="satellite">{t('layers.satellite')}</DropdownMenuRadioItem>
               <DropdownMenuRadioItem value="hybrid">{t('layers.hybrid')}</DropdownMenuRadioItem>
             </DropdownMenuRadioGroup>

@@ -212,7 +212,8 @@
     "layers": {
       "standard": "Estándar",
       "satellite": "Satélite",
-      "hybrid": "Híbrido"
+      "hybrid": "Híbrido",
+      "topography": "Topográfico"
     }
   },
   "IBP": {
