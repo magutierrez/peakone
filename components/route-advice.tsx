@@ -78,9 +78,7 @@ export function RouteAdvice({
             )}
           >
             {showWaterSources ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
-            {showWaterSources 
-              ? (t('weather') === 'Weather' ? 'Hide from map' : 'Quitar del mapa') 
-              : (t('weather') === 'Weather' ? 'Show on map' : 'Ver en el mapa')}
+            {showWaterSources ? t('hideFromMap') : t('showOnMap')}
           </Button>
         </div>
       ),
@@ -178,9 +176,9 @@ export function RouteAdvice({
                 <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                   {advice.category}
                 </span>
-                <p className="text-sm text-foreground leading-relaxed">
+                <div className="text-sm text-foreground leading-relaxed">
                   {advice.text}
-                </p>
+                </div>
               </div>
             </CardContent>
           </Card>

@@ -63,16 +63,17 @@
         "safety": "Seguridad",
         "nutrition": "Nutrición y Salud",
         "water": "Estrategia de Agua",
-        "waterWarning": "Fuentes naturales con baja fiabilidad detectadas. Lleva agua extra.",
-        "waterOk": "Fuentes fiables disponibles durante la ruta.",
-        "reliability": {
-          "high": "Alta",
-          "medium": "Media",
-          "low": "Baja (Posible seca)"
-        },
-        "cycling": {
-  
-      "rain": "Cuidado con las curvas y el asfalto mojado. Revisa tus frenos.",
+              "waterWarning": "Fuentes naturales con baja fiabilidad detectadas. Lleva agua extra.",
+              "waterOk": "Fuentes fiables disponibles durante la ruta.",
+              "showOnMap": "Ver en el mapa",
+              "hideFromMap": "Quitar del mapa",
+              "reliability": {
+                "high": "Alta",
+                "medium": "Media",
+                "low": "Baja (Posible seca)"
+              },
+              "cycling": {
+              "rain": "Cuidado con las curvas y el asfalto mojado. Revisa tus frenos.",
       "wind": "Viento fuerte detectado. Sujeta con firmeza el manillar en zonas expuestas.",
       "heat": "Calor intenso. Hidrátate cada 15-20 minutos.",
       "cold": "Usa capas cortavientos. El descenso puede ser gélido.",
@@ -171,6 +172,11 @@
       "weak": "Sol suave",
       "moderate": "Soleado",
       "intense": "Sol abrasador"
+    },
+    "reliability": {
+      "high": "Alta",
+      "medium": "Media",
+      "low": "Baja (Posible seca)"
     },
     "detail": {
       "temperature": "Temperatura",
