@@ -2,7 +2,7 @@
 
 import { Marker } from 'react-map-gl/maplibre';
 import { WindArrow } from '@/components/wind-arrow';
-import { MapPin, Signal, SignalLow, SignalZero } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 import type { RoutePoint, RouteWeatherPoint } from '@/lib/types';
 import { useTranslations } from 'next-intl';
 
@@ -13,14 +13,6 @@ interface MapMarkersProps {
   activeFilter?: { key: 'pathType' | 'surface'; value: string } | null;
   onPointSelect?: (index: number) => void;
   onHoverPoint: (index: number | null) => void;
-}
-
-function getCoverageIcon(coverage: string | undefined) {
-  switch (coverage) {
-    case 'none': return <SignalZero className="h-4 w-4 text-destructive" />;
-    case 'low': return <SignalLow className="h-4 w-4 text-orange-500" />;
-    default: return null;
-  }
 }
 
 export function MapMarkers({
@@ -102,11 +94,6 @@ export function MapMarkers({
                 effect={wp.windEffect}
                 size={isSelected ? 36 : 28}
               />
-              {wp.mobileCoverage && wp.mobileCoverage !== 'full' && (
-                <div className="absolute -top-2 -right-2 rounded-full bg-card p-0.5 shadow-sm">
-                  {getCoverageIcon(wp.mobileCoverage)}
-                </div>
-              )}
               {isSelected && (
                 <div className="absolute inset-0 animate-pulse rounded-full border-2 border-white/50" />
               )}
