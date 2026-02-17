@@ -268,7 +268,8 @@
       "satellite": "Satélite",
       "hybrid": "Híbrido",
       "topography": "Topográfico"
-    }
+    },
+    "resetView": "Ver ruta completa"
   },
   "IBP": {
     "title": "Índice IBP",

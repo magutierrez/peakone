@@ -268,7 +268,8 @@
       "topography": "Topography",
       "satellite": "Satellite",
       "hybrid": "Hybrid"
-    }
+    },
+    "resetView": "Reset View"
   },
   "IBP": {
     "title": "IBP Index",

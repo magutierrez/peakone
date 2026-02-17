@@ -125,7 +125,7 @@ export default function RouteMap({
           >
             <RefreshCcw className="h-3.5 w-3.5" />
             <span className="text-[10px] font-bold uppercase tracking-wider">
-              {t('layers.standard') === 'Estándar' ? 'Ver ruta completa' : 'Reset View'}
+              {t('resetView')}
             </span>
           </Button>
         </div>

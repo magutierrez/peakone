@@ -162,8 +162,8 @@ export default function HomePageClient({ session }: HomePageClientProps) {
                   selectedPointIndex={selectedPointIndex}
                   setSelectedPointIndex={setSelectedPointIndex}
                   onRangeSelect={setSelectedRange}
+                  selectedRange={selectedRange}
                   activityType={config.activityType}
-                  onClearSelection={() => setSelectedRange(null)}
                 />
 
                 <ActivityConfigSection
