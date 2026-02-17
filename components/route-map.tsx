@@ -23,6 +23,7 @@ interface RouteMapProps {
   onPointSelect?: (index: number) => void;
   activeFilter?: { key: 'pathType' | 'surface'; value: string } | null;
   selectedRange?: { start: number; end: number } | null;
+  activityType?: 'cycling' | 'walking';
 }
 
 export default function RouteMap({
@@ -32,6 +33,7 @@ export default function RouteMap({
   onPointSelect,
   activeFilter = null,
   selectedRange = null,
+  activityType = 'cycling',
 }: RouteMapProps) {
   const { resolvedTheme } = useTheme();
   const mapRef = useRef<MapRef>(null);
@@ -101,6 +103,7 @@ export default function RouteMap({
           activeFilter={activeFilter}
           onPointSelect={onPointSelect}
           onHoverPoint={setHoveredPointIdx}
+          activityType={activityType}
         />
 
         {popupInfo && <MapPopup popupInfo={popupInfo} onClose={() => setHoveredPointIdx(null)} />}

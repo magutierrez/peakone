@@ -195,7 +195,8 @@
       "sand": "Arena",
       "grass": "Hierba",
       "unknown": "Desconocido",
-      "sett": "Pavimento"
+      "sett": "Empedrado",
+      "paving_stones": "Adoquines"
     }
   },
   "Auth": {

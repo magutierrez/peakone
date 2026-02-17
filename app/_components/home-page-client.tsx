@@ -84,7 +84,10 @@ export default function HomePageClient({ session }: HomePageClientProps) {
   };
 
   useEffect(() => {
-    if (gpxData && rawGPXContent && gpxFileName && session?.user) {
+    // Only save if it's a real GPX (XML content) and not a Strava JSON representation
+    const isRealGPX = rawGPXContent?.trim().startsWith('<?xml') || rawGPXContent?.trim().startsWith('<gpx');
+
+    if (gpxData && rawGPXContent && gpxFileName && session?.user && isRealGPX) {
       const routeExists = routes.some(
         (r) =>
           r.name === gpxFileName &&
@@ -155,6 +158,7 @@ export default function HomePageClient({ session }: HomePageClientProps) {
               onPointSelect={setSelectedPointIndex}
               activeFilter={activeFilter}
               selectedRange={selectedRange}
+              activityType={config.activityType}
             />
           </div>
         </main>

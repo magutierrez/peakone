@@ -13,6 +13,7 @@ interface MapMarkersProps {
   activeFilter?: { key: 'pathType' | 'surface'; value: string } | null;
   onPointSelect?: (index: number) => void;
   onHoverPoint: (index: number | null) => void;
+  activityType?: 'cycling' | 'walking';
 }
 
 export function MapMarkers({
@@ -22,14 +23,17 @@ export function MapMarkers({
   activeFilter,
   onPointSelect,
   onHoverPoint,
+  activityType,
 }: MapMarkersProps) {
   const t = useTranslations('WeatherTimeline');
   const startPoint = points[0];
   const endPoint = points[points.length - 1];
 
   // Unique escape points to avoid clutter
-  const escapePoints = Array.from(new Set(weatherPoints?.map(wp => wp.escapePoint?.name).filter(Boolean)))
-    .map(name => weatherPoints?.find(wp => wp.escapePoint?.name === name)?.escapePoint);
+  const escapePoints = activityType === 'walking' 
+    ? Array.from(new Set(weatherPoints?.map(wp => wp.escapePoint?.name).filter(Boolean)))
+        .map(name => weatherPoints?.find(wp => wp.escapePoint?.name === name)?.escapePoint)
+    : [];
 
   return (
     <>

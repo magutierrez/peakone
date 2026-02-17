@@ -177,7 +177,8 @@
       "motorway": "Motorway",
       "unknown": "Other",
       "construction": "Construction",
-      "motorway_link": "Motorway link"
+      "motorway_link": "Motorway link",
+      "trunk_link": "Trunk road link"
     },
     "surfaces": {
       "title": "Surfaces",
@@ -193,7 +194,8 @@
       "dirt": "Dirt",
       "sand": "Sand",
       "grass": "Grass",
-      "unknown": "Unknown"
+      "unknown": "Unknown",
+      "sett": "Sett/Cobblestone"
     }
   },
   "Auth": {
