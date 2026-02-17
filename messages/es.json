@@ -14,7 +14,7 @@
       "unknownError": "Error desconocido"
     },
     "header": {
-      "title": "RouteWeather",
+      "title": "peakOne",
       "subtitle": "Forecast para rutas outdoor",
       "apiVersion": "Open-Meteo API"
     },
@@ -203,7 +203,6 @@
       "title": "Superficies",
       "asphalt": "Asfalto",
       "paved": "Pavimentado",
-      "paving_stones": "Adoquines",
       "concrete": "Hormigón",
       "gravel": "Grava",
       "fine_gravel": "Grava fina",
@@ -219,7 +218,7 @@
     }
   },
   "Auth": {
-    "welcome": "Bienvenido a RouteWeather",
+    "welcome": "Bienvenido a peakOne",
     "loginDescription": "Inicia sesión para analizar tus rutas y ver el pronóstico meteorológico detallado.",
     "continueGoogle": "Continuar con Google",
     "continueFacebook": "Continuar con Facebook",

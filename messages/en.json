@@ -14,7 +14,7 @@
       "unknownError": "Unknown error"
     },
     "header": {
-      "title": "RouteWeather",
+      "title": "peakOne",
       "subtitle": "Forecast for outdoor routes",
       "apiVersion": "Open-Meteo API"
     },
@@ -218,7 +218,7 @@
     }
   },
   "Auth": {
-    "welcome": "Welcome to RouteWeather",
+    "welcome": "Welcome to peakOne",
     "loginDescription": "Log in to analyze your routes and see detailed weather forecasts.",
     "continueGoogle": "Continue with Google",
     "continueFacebook": "Continue with Facebook",

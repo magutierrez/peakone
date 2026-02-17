@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
         body: `data=${encodeURIComponent(overpassQuery)}`,
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
-          'User-Agent': 'RouteWeather/1.0',
+          'User-Agent': 'peakOne/1.0',
         },
       }),
       // 2. Fetch Elevation Data for ALL points (to ensure Strava routes have a profile)
