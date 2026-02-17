@@ -98,7 +98,9 @@
       "solarTitle": "Solar Intensity",
       "daylight": "Remaining daylight",
       "nightArrival": "Night arrival!",
-      "daylightFormat": "{hours}h {minutes}m"
+      "daylightFormat": "{hours}h {minutes}m",
+      "maxSolarLabel": "{percent}% Max Sun",
+      "shadeLabel": "{percent}% Shade"
     },
     "safety": {
       "escapeTitle": "Escape Points",

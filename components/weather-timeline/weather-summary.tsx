@@ -100,8 +100,8 @@ export function WeatherSummary({ weatherPoints }: WeatherSummaryProps) {
           </TooltipProvider>
         </div>
         <div className="mt-1.5 flex flex-wrap gap-x-2 gap-y-0.5">
-          {intensePoints > 0 && <span className="text-[9px] font-bold text-red-600">{getPercent(intensePoints)}% Sol Máx</span>}
-          {shadePoints > 0 && <span className="text-[9px] font-bold text-slate-500">{getPercent(shadePoints)}% Sombra</span>}
+          {intensePoints > 0 && <span className="text-[9px] font-bold text-red-600">{t('summary.maxSolarLabel', { percent: getPercent(intensePoints) })}</span>}
+          {shadePoints > 0 && <span className="text-[9px] font-bold text-slate-500">{t('summary.shadeLabel', { percent: getPercent(shadePoints) })}</span>}
         </div>
       </div>
 
