@@ -36,6 +36,14 @@ export interface WeatherData {
   diffuseRadiation?: number;
 }
 
+export interface EscapePoint {
+  lat: number;
+  lon: number;
+  name: string;
+  type: 'town' | 'road';
+  distanceFromRoute: number;
+}
+
 export interface RouteWeatherPoint {
   point: RoutePoint;
   weather: WeatherData;
@@ -46,6 +54,8 @@ export interface RouteWeatherPoint {
   surface?: string; // e.g., asphalt, gravel, unpaved
   solarExposure?: 'sun' | 'shade' | 'night';
   solarIntensity?: 'shade' | 'weak' | 'moderate' | 'intense' | 'night';
+  escapePoint?: EscapePoint;
+  mobileCoverage?: 'none' | 'low' | 'full';
 }
 
 export interface RouteSegmentMetadata {

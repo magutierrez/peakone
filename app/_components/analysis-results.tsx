@@ -6,7 +6,10 @@ import { ElevationProfile } from '@/components/weather-timeline/elevation-profil
 import { WeatherSummary } from '@/components/weather-timeline/weather-summary';
 import { WeatherList } from '@/components/weather-timeline/weather-list';
 import { WeatherPointDetail } from '@/components/weather-timeline/weather-point-detail';
+import { RouteAdvice } from '@/components/route-advice';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { RouteWeatherPoint } from '@/lib/types';
+import { CloudSun, ShieldAlert } from 'lucide-react';
 
 interface AnalysisResultsProps {
   weatherPoints: RouteWeatherPoint[];
@@ -17,6 +20,7 @@ interface AnalysisResultsProps {
   selectedPointIndex: number | null;
   setSelectedPointIndex: (index: number | null) => void;
   onRangeSelect?: (range: { start: number; end: number } | null) => void;
+  activityType: 'cycling' | 'walking';
 }
 
 export function AnalysisResults({
@@ -28,6 +32,7 @@ export function AnalysisResults({
   selectedPointIndex,
   setSelectedPointIndex,
   onRangeSelect,
+  activityType,
 }: AnalysisResultsProps) {
   const th = useTranslations('HomePage');
 
@@ -68,23 +73,42 @@ export function AnalysisResults({
       </section>
 
       {weatherPoints.length > 0 && (
-        <section className="flex flex-col gap-8">
-          <div className="flex items-center gap-2 border-b border-border pb-2">
-            <div className="h-4 w-1 rounded-full bg-primary" />
-            <h3 className="text-sm font-bold uppercase tracking-wider text-foreground/80">
+        <Tabs defaultValue="weather" className="w-full mt-8">
+          <TabsList className="grid w-full grid-cols-2 mb-8 bg-secondary/50 p-1">
+            <TabsTrigger value="weather" className="gap-2">
+              <CloudSun className="h-4 w-4" />
               {th('sections.weatherAnalysis')}
-            </h3>
-          </div>
-          <WeatherSummary weatherPoints={weatherPoints} />
-          <WeatherList
-            weatherPoints={weatherPoints}
-            selectedIndex={selectedPointIndex}
-            onSelect={setSelectedPointIndex}
-          />
-          {selectedPointIndex !== null && weatherPoints[selectedPointIndex] && (
-            <WeatherPointDetail point={weatherPoints[selectedPointIndex]} />
-          )}
-        </section>
+            </TabsTrigger>
+            <TabsTrigger value="advice" className="gap-2">
+              <ShieldAlert className="h-4 w-4" />
+              {th('sections.advice')}
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="weather" className="space-y-8 animate-in fade-in-50 duration-500 outline-none">
+            <WeatherSummary weatherPoints={weatherPoints} />
+            <WeatherList
+              weatherPoints={weatherPoints}
+              selectedIndex={selectedPointIndex}
+              onSelect={setSelectedPointIndex}
+            />
+            {selectedPointIndex !== null && weatherPoints[selectedPointIndex] && (
+              <WeatherPointDetail point={weatherPoints[selectedPointIndex]} />
+            )}
+          </TabsContent>
+
+          <TabsContent value="advice" className="animate-in slide-in-from-right-2 fade-in-50 duration-500 outline-none">
+            <div className="mb-6">
+              <h3 className="text-lg font-bold text-foreground mb-1">{th('sections.advice')}</h3>
+              <p className="text-sm text-muted-foreground">
+                {activityType === 'cycling' 
+                  ? th('sections.adviceCycling') 
+                  : th('sections.adviceHiking')}
+              </p>
+            </div>
+            <RouteAdvice weatherPoints={weatherPoints} activityType={activityType} />
+          </TabsContent>
+        </Tabs>
       )}
     </>
   );

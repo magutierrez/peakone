@@ -10,7 +10,7 @@ import {
   reverseGPXData,
 } from '@/lib/gpx-parser';
 import type { GPXData, RouteConfig, RouteWeatherPoint, WeatherData } from '@/lib/types';
-import { getSunPosition, getSolarExposure, getSolarIntensity } from '@/lib/utils';
+import { getSunPosition, getSolarExposure, getSolarIntensity, calculateSmartSpeed } from '@/lib/utils';
 
 export function useRouteAnalysis(config: RouteConfig) {
   const t = useTranslations('HomePage');
@@ -163,12 +163,37 @@ export function useRouteAnalysis(config: RouteConfig) {
     try {
       const sampled = sampleRoutePoints(gpxData.points, 24);
       const startTime = new Date(`${config.date}T${config.time}:00`);
-      const pointsWithTime = sampled.map((point) => {
-        const hoursElapsed = point.distanceFromStart / config.speed;
-        return {
-          ...point,
-          estimatedTime: new Date(startTime.getTime() + hoursElapsed * 3600000),
-        };
+      
+      // Calculate times point-to-point with smart speed
+      const pointsWithTime: any[] = [];
+      let currentElapsedTime = 0;
+
+      sampled.forEach((point, idx) => {
+        if (idx === 0) {
+          pointsWithTime.push({
+            ...point,
+            estimatedTime: new Date(startTime.getTime()),
+          });
+        } else {
+          const prevPoint = sampled[idx - 1];
+          const segmentDist = point.distanceFromStart - prevPoint.distanceFromStart;
+          const segmentEleGain = Math.max(0, (point.ele || 0) - (prevPoint.ele || 0));
+          
+          const speedAtSegment = calculateSmartSpeed(
+            config.speed,
+            segmentDist,
+            segmentEleGain,
+            config.activityType
+          );
+          
+          const segmentTimeHours = segmentDist / speedAtSegment;
+          currentElapsedTime += segmentTimeHours;
+          
+          pointsWithTime.push({
+            ...point,
+            estimatedTime: new Date(startTime.getTime() + currentElapsedTime * 3600000),
+          });
+        }
       });
 
       const response = await fetchWithRetry('/api/weather', {
@@ -234,6 +259,8 @@ export function useRouteAnalysis(config: RouteConfig) {
           surface: info.surface,
           solarExposure,
           solarIntensity,
+          escapePoint: info.escapePoint,
+          mobileCoverage: info.mobileCoverage,
         };
       });
 

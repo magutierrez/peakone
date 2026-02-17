@@ -26,7 +26,40 @@
       "terrain": "Terreno y Vía",
       "altitude": "Altitud",
       "activityConfig": "Configuración de la Actividad",
-      "weatherAnalysis": "Análisis Meteorológico"
+      "weatherAnalysis": "Análisis Meteorológico",
+      "advice": "Consejos de Seguridad",
+      "adviceCycling": "Recomendaciones específicas de seguridad para tu ruta en bicicleta.",
+      "adviceHiking": "Recomendaciones específicas de seguridad para tu ruta de senderismo.",
+      "physiology": "Suministros Recomendados"
+    }
+  },
+  "physiology": {
+    "calories": "Calorías",
+    "hydration": "Agua",
+    "total": "Necesidades totales",
+    "perHour": "por hora"
+  },
+  "Advice": {
+    "title": "Consejos para tu ruta",
+    "weather": "Meteorología",
+    "gear": "Equipamiento",
+    "safety": "Seguridad",
+    "nutrition": "Nutrición y Salud",
+    "cycling": {
+      "rain": "Cuidado con las curvas y el asfalto mojado. Revisa tus frenos.",
+      "wind": "Viento fuerte detectado. Sujeta con firmeza el manillar en zonas expuestas.",
+      "heat": "Calor intenso. Hidrátate cada 15-20 minutos.",
+      "cold": "Usa capas cortavientos. El descenso puede ser gélido.",
+      "night": "Luz delantera y trasera obligatorias. Chaleco reflectante recomendado.",
+      "general": "Revisa la presión de los neumáticos y lleva un kit de reparación."
+    },
+    "hiking": {
+      "rain": "Terreno resbaladizo. Usa calzado con buen agarre y chubasquero.",
+      "wind": "Evita crestas expuestas si las rachas son fuertes.",
+      "heat": "Busca sombras y lleva al menos 2L de agua.",
+      "cold": "Riesgo de hipotermia si te detienes. Lleva manta térmica.",
+      "night": "Frontal con pilas de repuesto. No abandones el sendero marcado.",
+      "general": "Avisa a alguien de tu ruta y hora estimada de llegada."
     }
   },
   "RouteConfigPanel": {
@@ -37,7 +70,7 @@
     "elevationLoss": "m D-",
     "activity": "Actividad",
     "cycling": "Bicicleta",
-    "walking": "Andando",
+    "walking": "Hiking",
     "date": "Fecha",
     "startTime": "Hora salida",
     "averageSpeed": "Velocidad media (km/h)",
@@ -62,7 +95,19 @@
       "kmh": "km/h",
       "favor": "{percent}% favor",
       "contra": "{percent}% contra",
-      "solarTitle": "Intensidad Solar"
+      "solarTitle": "Intensidad Solar",
+      "daylight": "Luz restante",
+      "nightArrival": "¡Llegarás de noche!",
+      "daylightFormat": "{hours}h {minutes}m",
+      "maxSolarLabel": "{percent}% Sol Máx",
+      "shadeLabel": "{percent}% Sombra"
+    },
+    "safety": {
+      "escapeTitle": "Puntos de Escape",
+      "escapeDesc": "Pueblo o carretera principal a {dist}km",
+      "noCoverage": "Zona sin cobertura",
+      "lowCoverage": "Cobertura débil",
+      "evacuation": "Punto de evacuación"
     },
     "timelineTitle": "Timeline por punto",
     "elevationTitle": "Perfil de elevacion",
@@ -134,7 +179,8 @@
       "motorway": "Autovía",
       "unknown": "Otros",
       "construction": "Construcción",
-      "motorway_link": "Enlace autovía"
+      "motorway_link": "Enlace autovía",
+      "trunk_link": "Enlace carretera nacional"
     },
     "surfaces": {
       "title": "Superficies",
@@ -150,7 +196,9 @@
       "dirt": "Tierra suelta",
       "sand": "Arena",
       "grass": "Hierba",
-      "unknown": "Desconocido"
+      "unknown": "Desconocido",
+      "sett": "Empedrado",
+      "paving_stones": "Adoquines"
     }
   },
   "Auth": {
@@ -175,12 +223,12 @@
     "noData": "No se encontraron datos",
     "ride": "Bicicleta",
     "run": "Carrera",
-    "walk": "Andando",
+    "walk": "Hiking",
     "hike": "Senderismo",
     "types": {
       "Ride": "Bicicleta",
       "Run": "Carrera",
-      "Walk": "Andando",
+      "Walk": "Hiking",
       "Hike": "Senderismo",
       "VirtualRide": "Bici Virtual",
       "MountainBikeRide": "MTB",
@@ -202,7 +250,8 @@
     "layers": {
       "standard": "Estándar",
       "satellite": "Satélite",
-      "hybrid": "Híbrido"
+      "hybrid": "Híbrido",
+      "topography": "Topográfico"
     }
   },
   "IBP": {

@@ -2,7 +2,9 @@
 
 import { Marker } from 'react-map-gl/maplibre';
 import { WindArrow } from '@/components/wind-arrow';
+import { MapPin } from 'lucide-react';
 import type { RoutePoint, RouteWeatherPoint } from '@/lib/types';
+import { useTranslations } from 'next-intl';
 
 interface MapMarkersProps {
   points: RoutePoint[];
@@ -11,6 +13,7 @@ interface MapMarkersProps {
   activeFilter?: { key: 'pathType' | 'surface'; value: string } | null;
   onPointSelect?: (index: number) => void;
   onHoverPoint: (index: number | null) => void;
+  activityType?: 'cycling' | 'walking';
 }
 
 export function MapMarkers({
@@ -20,12 +23,32 @@ export function MapMarkers({
   activeFilter,
   onPointSelect,
   onHoverPoint,
+  activityType,
 }: MapMarkersProps) {
+  const t = useTranslations('WeatherTimeline');
   const startPoint = points[0];
   const endPoint = points[points.length - 1];
 
+  // Unique escape points to avoid clutter
+  const escapePoints = activityType === 'walking' 
+    ? Array.from(new Set(weatherPoints?.map(wp => wp.escapePoint?.name).filter(Boolean)))
+        .map(name => weatherPoints?.find(wp => wp.escapePoint?.name === name)?.escapePoint)
+    : [];
+
   return (
     <>
+      {/* Escape Points */}
+      {escapePoints.map((ep, i) => ep && (
+        <Marker key={`escape-${i}`} longitude={ep.lon} latitude={ep.lat} anchor="bottom">
+          <div className="flex flex-col items-center">
+            <div className="rounded-lg border border-border bg-card px-2 py-1 text-[9px] font-bold shadow-sm whitespace-nowrap">
+              {ep.name}
+            </div>
+            <MapPin className="h-5 w-5 text-indigo-500 fill-indigo-500/20" />
+          </div>
+        </Marker>
+      ))}
+
       {startPoint && (
         <Marker
           longitude={startPoint.lon}
