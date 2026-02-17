@@ -14,19 +14,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No points provided' }, { status: 400 });
     }
 
-    // Sample points for OSM (every 2nd to stay within limits)
-    const sampledPoints = points.filter((_, i) => i % 2 === 0);
+    // 1. Calculate Bounding Box with buffer
+    const lats = points.map(p => p.lat);
+    const lons = points.map(p => p.lon);
+    const minLat = Math.min(...lats) - 0.02; // ~2km buffer
+    const maxLat = Math.max(...lats) + 0.02;
+    const minLon = Math.min(...lons) - 0.02;
+    const maxLon = Math.max(...lons) + 0.02;
+    const bbox = `${minLat},${minLon},${maxLat},${maxLon}`;
 
-    // 1. Fetch OSM Data (Highway/Surface + Escape points)
-    const queries = sampledPoints
-      .map((p) => `way(around:100, ${p.lat}, ${p.lon})[highway];
-                  node(around:2000, ${p.lat}, ${p.lon})[place~"village|town|hamlet"];
-                  way(around:1500, ${p.lat}, ${p.lon})[highway~"primary|secondary|tertiary"];
-                  node(around:1000, ${p.lat}, ${p.lon})["amenity"="drinking_water"];
-                  node(around:1000, ${p.lat}, ${p.lon})["natural"="spring"];
-                  node(around:1000, ${p.lat}, ${p.lon})["man_made"="water_tap"];`)
-      .join('');
-    const overpassQuery = `[out:json][timeout:30]; (${queries}); out center;`;
+    // 2. Optimized Overpass Query: One bbox call instead of many arounds
+    const overpassQuery = `[out:json][timeout:30];
+      (
+        way["highway"](${bbox});
+        node["place"~"village|town|hamlet"](${bbox});
+        way["highway"~"primary|secondary|tertiary"](${bbox});
+        node["amenity"="drinking_water"](${bbox});
+        node["natural"="spring"](${bbox});
+        node["man_made"="water_tap"](${bbox});
+      );
+      out center;`;
 
     const [osmResponse, elevationResponse] = await Promise.all([
       fetch('https://overpass-api.de/api/interpreter', {
@@ -37,7 +44,7 @@ export async function POST(request: NextRequest) {
           'User-Agent': 'peakOne/1.0',
         },
       }),
-      // 2. Fetch Elevation Data for ALL points (to ensure Strava routes have a profile)
+      // 3. Fetch Elevation Data
       fetch(
         `https://api.open-meteo.com/v1/elevation?latitude=${points.map((p) => p.lat).join(',')}&longitude=${points.map((p) => p.lon).join(',')}`,
       ),
@@ -52,6 +59,15 @@ export async function POST(request: NextRequest) {
     const getDistSq = (p1: Point, p2: { lat: number; lon: number }) =>
       Math.sqrt(Math.pow(p1.lat - p2.lat, 2) + Math.pow(p1.lon - p2.lon, 2)) * 111.32; // Approx km
 
+    // Pre-filter elements by category to speed up the loop
+    const highwayElements = elements.filter((el: any) => el.tags?.highway);
+    const escapeElements = elements.filter((el: any) => 
+      el.tags?.place || (el.tags?.highway && ["primary", "secondary"].includes(el.tags.highway))
+    );
+    const waterElements = elements.filter((el: any) => 
+      el.tags?.amenity === 'drinking_water' || el.tags?.natural === 'spring' || el.tags?.man_made === 'water_tap'
+    );
+
     // Map everything back
     const pathData = points.map((p, idx) => {
       let closestWay = null;
@@ -60,39 +76,36 @@ export async function POST(request: NextRequest) {
       let minEscapeDist = Infinity;
       let nearbyInfraCount = 0;
 
-      for (const element of elements) {
-        if (!element.center && element.type !== 'node') continue;
-        const center = element.center || { lat: element.lat, lon: element.lon };
-        const dist = getDistSq(p, center);
-
-        // Track highway for surface/type
-        if (element.tags?.highway && dist < 0.1 && dist < minWayDist) {
+      // 1. Match Highways (within 100m)
+      for (const element of highwayElements) {
+        if (!element.center) continue;
+        const dist = getDistSq(p, element.center);
+        if (dist < 0.1 && dist < minWayDist) {
           minWayDist = dist;
           closestWay = element;
         }
+        if (dist < 3) nearbyInfraCount++; // Coverage proxy
+      }
 
-        // Track potential escape points
-        if ((element.tags?.place || (element.tags?.highway && ["primary", "secondary"].includes(element.tags.highway))) && dist < 2.5) {
-          if (dist < minEscapeDist) {
-            minEscapeDist = dist;
-            closestEscape = element;
-          }
+      // 2. Match Escape Points (within 2.5km)
+      for (const element of escapeElements) {
+        const center = element.center || { lat: element.lat, lon: element.lon };
+        const dist = getDistSq(p, center);
+        if (dist < 2.5 && dist < minEscapeDist) {
+          minEscapeDist = dist;
+          closestEscape = element;
         }
-        
-        // Count infrastructure for coverage proxy
-        if (dist < 3) nearbyInfraCount++;
       }
 
       const tags = closestWay?.tags || {};
       const escapeTags = closestEscape?.tags || {};
       
-      // Extract water sources
-      const waterSources: any[] = elements
-        .filter((el: any) => el.tags?.amenity === 'drinking_water' || el.tags?.natural === 'spring' || el.tags?.man_made === 'water_tap')
+      // 3. Extract water sources (within 1.5km)
+      const waterSources: any[] = waterElements
         .map((el: any) => {
           const center = el.center || { lat: el.lat, lon: el.lon };
           const dist = getDistSq(p, center);
-          if (dist > 1.5) return null; // Too far from this point
+          if (dist > 1.5) return null;
 
           const isNatural = el.tags?.natural === 'spring';
           return {
