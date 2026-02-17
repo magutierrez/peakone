@@ -32,7 +32,7 @@ export function LoginPageClient() {
         <CardContent className="grid gap-4">
           <Button
             variant="outline"
-            className="h-12 border-border bg-card hover:bg-accent"
+            className="h-12 border-border bg-card hover:bg-muted"
             onClick={() => signIn('google', { redirectTo: '/' })}
           >
             <svg
@@ -55,11 +55,11 @@ export function LoginPageClient() {
 
           <Button
             variant="outline"
-            className="h-12 border-border bg-[#FC6719] text-white hover:bg-[#FC6719]/90"
+            className="h-12 border-border bg-card text-foreground hover:bg-muted"
             onClick={() => signIn('strava', { redirectTo: '/' })}
           >
             <svg
-              className="mr-2 h-5 w-5 fill-current"
+              className="mr-2 h-5 w-5 fill-current text-[#FC6719]"
               viewBox="0 0 24 24"
               xmlns="http://www.w3.org/2000/svg"
             >
@@ -70,21 +70,20 @@ export function LoginPageClient() {
 
           <Button
             variant="outline"
-            className="h-12 border-border bg-[#1877F2] text-white hover:bg-[#1877F2]/90"
+            className="h-12"
             onClick={() => signIn('facebook', { redirectTo: '/' })}
           >
-            <Facebook className="mr-2 h-5 w-5 fill-current" />
+            <Facebook className="mr-2 h-5 w-5 fill-current text-[#1877F2]" />
             {t('continueFacebook')}
           </Button>
 
           <Button
             variant="outline"
-            className="h-12 border-border bg-black text-white hover:bg-black/90"
+            className="h-12 border-border bg-card text-foreground hover:bg-muted"
             onClick={() => signIn('twitter', { redirectTo: '/' })}
           >
             <svg
-              className="mr-2 h-4 w-4"
-              fill="currentColor"
+              className="mr-2 h-4 w-4 fill-current"
               viewBox="0 0 24 24"
               aria-hidden="true"
             >
