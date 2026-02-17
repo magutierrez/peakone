@@ -4,6 +4,7 @@ import { Wind, Thermometer, Droplets, Sun, Clock, AlertTriangle } from 'lucide-r
 import { useTranslations } from 'next-intl';
 import type { RouteWeatherPoint } from '@/lib/types';
 import { getSunPosition } from '@/lib/utils';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface WeatherSummaryProps {
   weatherPoints: RouteWeatherPoint[];
@@ -68,16 +69,35 @@ export function WeatherSummary({ weatherPoints }: WeatherSummaryProps) {
           <span className="text-xs">{t('summary.solarTitle')}</span>
         </div>
         <div className="mt-2 flex h-2 w-full overflow-hidden rounded-full bg-secondary">
-          {weatherPoints.map((wp, i) => {
-            const colors: Record<string, string> = {
-              intense: 'bg-red-600',
-              moderate: 'bg-orange-400',
-              weak: 'bg-yellow-200',
-              shade: 'bg-slate-500',
-              night: 'bg-slate-900'
-            };
-            return <div key={i} className={colors[wp.solarIntensity || 'shade']} style={{ width: `${100/total}%` }} />;
-          })}
+          <TooltipProvider delayDuration={100}>
+            {weatherPoints.map((wp, i) => {
+              const colors: Record<string, string> = {
+                intense: 'bg-red-600',
+                moderate: 'bg-orange-400',
+                weak: 'bg-yellow-200',
+                shade: 'bg-slate-500',
+                night: 'bg-slate-900'
+              };
+              const intensityLabel = wp.solarIntensity === 'night' 
+                ? t('solarExposure.night') 
+                : t(`solarIntensity.${wp.solarIntensity}` as any);
+                
+              return (
+                <Tooltip key={i}>
+                  <TooltipTrigger asChild>
+                    <div 
+                      className={`${colors[wp.solarIntensity || 'shade']} cursor-help transition-opacity hover:opacity-80`} 
+                      style={{ width: `${100/total}%` }} 
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="text-[10px] px-2 py-1">
+                    <p className="font-bold">{intensityLabel}</p>
+                    <p className="text-muted-foreground">km {wp.point.distanceFromStart.toFixed(1)}</p>
+                  </TooltipContent>
+                </Tooltip>
+              );
+            })}
+          </TooltipProvider>
         </div>
         <div className="mt-1.5 flex flex-wrap gap-x-2 gap-y-0.5">
           {intensePoints > 0 && <span className="text-[9px] font-bold text-red-600">{getPercent(intensePoints)}% Sol Máx</span>}
