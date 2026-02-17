@@ -1,0 +1,261 @@
+{
+  "HomePage": {
+    "loadingMap": "Loading map...",
+    "processingRoute": "Processing route...",
+    "obtainingData": "Obtaining elevation and terrain data",
+    "analyzeFirst": "Analyze the route to see weather data",
+    "clickAnalyze": "Click 'Analyze weather' to see the forecast by segments",
+    "uploadFirst": "Upload a GPX file to start",
+    "errors": {
+      "insufficientPoints": "The GPX file does not contain enough points.",
+      "readError": "Error reading GPX file. Check the format.",
+      "weatherFetchError": "Error fetching weather data",
+      "tooManyRequests": "Too many requests. Please wait a moment before trying again.",
+      "unknownError": "Unknown error"
+    },
+    "header": {
+      "title": "RouteWeather",
+      "subtitle": "Forecast for outdoor routes",
+      "apiVersion": "Open-Meteo API"
+    },
+    "placeholders": {
+      "title": "Upload a GPX file to start",
+      "description": "Set the date, time, and speed, and analyze your route to see the point-by-point weather forecast with wind analysis."
+    },
+    "sections": {
+      "terrain": "Terrain and Road",
+      "altitude": "Altitude",
+      "activityConfig": "Activity Configuration",
+      "weatherAnalysis": "Weather Analysis"
+    }
+  },
+  "RouteConfigPanel": {
+    "gpxFile": "GPX File",
+    "reverseRoute": "Reverse direction",
+    "km": "km",
+    "elevationGain": "m D+",
+    "elevationLoss": "m D-",
+    "activity": "Activity",
+    "cycling": "Cycling",
+    "walking": "Hiking",
+    "date": "Date",
+    "startTime": "Start time",
+    "averageSpeed": "Average speed (km/h)",
+    "estimatedDuration": "Estimated duration",
+    "durationFormat": "{hours}h {minutes}min",
+    "analyze": "Analyze weather",
+    "analyzing": "Analyzing..."
+  },
+  "GPXUpload": {
+    "removeFile": "Remove file",
+    "uploadAriaLabel": "Upload GPX file",
+    "dragDrop": "Drag your GPX file",
+    "clickSelect": "or click to select"
+  },
+  "WeatherTimeline": {
+    "summary": {
+      "avgTemp": "Avg. Temp.",
+      "maxWind": "Max Wind",
+      "precipProb": "Precip. Prob.",
+      "wind": "Wind",
+      "gusts": "Gusts: {speed} km/h",
+      "kmh": "km/h",
+      "favor": "{percent}% tailwind",
+      "contra": "{percent}% headwind",
+      "solarTitle": "Solar Intensity",
+      "daylight": "Remaining daylight",
+      "nightArrival": "Night arrival!",
+      "daylightFormat": "{hours}h {minutes}m"
+    },
+    "timelineTitle": "Point-by-point timeline",
+    "elevationTitle": "Elevation profile",
+    "segmentsTitle": "Road types and surfaces",
+    "unknownWeather": "Unknown",
+    "windFrom": "Wind from {direction} degrees",
+    "loading": "Loading...",
+    "slope": "Slope",
+    "chart": {
+      "elevation": "Elevation",
+      "distance": "Distance",
+      "m": "m",
+      "km": "km",
+      "slopeEasy": "Easy",
+      "slopeModerate": "Moderate",
+      "slopeHard": "Hard",
+      "resetZoom": "Reset zoom"
+    },
+    "windEffect": {
+      "tailwind": "Tailwind",
+      "headwind": "Headwind",
+      "crosswind-left": "Crosswind L",
+      "crosswind-right": "Crosswind R",
+      "summary": "{label} wind",
+      "relativeAngle": "Relative angle: {angle}° to your travel direction",
+      "bearing": "Travel bearing"
+    },
+    "solarExposure": {
+      "sun": "Sunny",
+      "shade": "Shady",
+      "night": "Night"
+    },
+    "solarIntensity": {
+      "shade": "Shade / Cool",
+      "weak": "Weak sun",
+      "moderate": "Sunny",
+      "intense": "Scorching sun"
+    },
+    "safety": {
+      "escapeTitle": "Escape Points",
+      "escapeDesc": "Town or main road at {dist}km",
+      "noCoverage": "No coverage",
+      "lowCoverage": "Low coverage",
+      "evacuation": "Evacuation point"
+    },
+    "detail": {
+      "temperature": "Temperature",
+      "feelsLike": "Feels {temp}°C",
+      "wind": "Wind",
+      "gusts": "Gusts: {speed} km/h",
+      "rain": "Rain",
+      "prob": "Prob: {percent}%",
+      "visibility": "Visibility",
+      "clouds": "Clouds: {percent}%",
+      "altitude": "Alt: {ele}m"
+    },
+    "pathTypes": {
+      "title": "Road types",
+      "cycleway": "Cycleway",
+      "path": "Path",
+      "footway": "Footway",
+      "pedestrian": "Pedestrian area",
+      "track": "Forest track",
+      "residential": "Residential street",
+      "living_street": "Living street",
+      "service": "Service road",
+      "primary": "Primary road",
+      "primary_link": "Primary link",
+      "trunk": "Trunk road",
+      "secondary": "Secondary road",
+      "secondary_link": "Secondary link",
+      "tertiary": "Tertiary road",
+      "tertiary_link": "Tertiary link",
+      "unclassified": "Unclassified road",
+      "raceway": "Raceway",
+      "motorway": "Motorway",
+      "unknown": "Other",
+      "construction": "Construction",
+      "motorway_link": "Motorway link"
+    },
+    "surfaces": {
+      "title": "Surfaces",
+      "asphalt": "Asphalt",
+      "paved": "Paved",
+      "paving_stones": "Paving stones",
+      "concrete": "Concrete",
+      "gravel": "Gravel",
+      "fine_gravel": "Fine gravel",
+      "unpaved": "Unpaved",
+      "ground": "Ground",
+      "compacted": "Compacted",
+      "dirt": "Dirt",
+      "sand": "Sand",
+      "grass": "Grass",
+      "unknown": "Unknown"
+    }
+  },
+  "Auth": {
+    "welcome": "Welcome to RouteWeather",
+    "loginDescription": "Log in to analyze your routes and see detailed weather forecasts.",
+    "continueGoogle": "Continue with Google",
+    "continueFacebook": "Continue with Facebook",
+    "continueX": "Continue with X (Twitter)",
+    "continueStrava": "Continue with Strava",
+    "connectStrava": "Connect with Strava",
+    "stravaDescription": "Sync your routes and activities directly.",
+    "terms": "By continuing, you agree to our terms of service and privacy policy.",
+    "logout": "Log out"
+  },
+  "SavedRoutes": {
+    "title": "My Saved Routes",
+    "loading": "Loading routes...",
+    "stravaTitle": "My Strava Activities",
+    "stravaRoutes": "My Strava Routes",
+    "activities": "Activities",
+    "routes": "Routes",
+    "noData": "No data found",
+    "ride": "Cycling",
+    "run": "Running",
+    "walk": "Hiking",
+    "hike": "Hiking",
+    "types": {
+      "Ride": "Cycling",
+      "Run": "Running",
+      "Walk": "Hiking",
+      "Hike": "Hiking",
+      "VirtualRide": "Virtual Ride",
+      "MountainBikeRide": "MTB",
+      "GravelRide": "Gravel"
+    }
+  },
+  "RouteMap": {
+    "start": "Start",
+    "end": "End",
+    "tooltip": {
+      "wind": "Wind"
+    },
+    "legend": {
+      "title": "Wind effect",
+      "tailwind": "Tailwind",
+      "headwind": "Headwind",
+      "crosswind": "Crosswind"
+    },
+    "layers": {
+      "standard": "Standard",
+      "topography": "Topography",
+      "satellite": "Satellite",
+      "hybrid": "Hybrid"
+    }
+  },
+  "IBP": {
+    "title": "IBP Index",
+    "description": "The IBP index is an automatic scoring system that assesses the difficulty of a route. It is calculated by analyzing distances, elevations, and slopes.",
+    "difficulty": {
+      "veryEasy": "Very Easy",
+      "easy": "Easy",
+      "moderate": "Moderate",
+      "hard": "Hard",
+      "veryHard": "Very Hard",
+      "extreme": "Extreme"
+    }
+  },
+  "WeatherCodes": {
+    "0": "Clear sky",
+    "1": "Mainly clear",
+    "2": "Partly cloudy",
+    "3": "Overcast",
+    "45": "Fog",
+    "48": "Depositing rime fog",
+    "51": "Light drizzle",
+    "53": "Moderate drizzle",
+    "55": "Dense drizzle",
+    "56": "Light freezing drizzle",
+    "57": "Dense freezing drizzle",
+    "61": "Slight rain",
+    "63": "Moderate rain",
+    "65": "Heavy rain",
+    "66": "Light freezing rain",
+    "67": "Heavy freezing rain",
+    "71": "Slight snow fall",
+    "73": "Moderate snow fall",
+    "75": "Heavy snow fall",
+    "77": "Snow grains",
+    "80": "Slight rain showers",
+    "81": "Moderate rain showers",
+    "82": "Violent rain showers",
+    "85": "Slight snow showers",
+    "86": "Heavy snow showers",
+    "95": "Thunderstorm",
+    "96": "Thunderstorm with slight hail",
+    "99": "Thunderstorm with heavy hail"
+  }
+}

@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Session } from 'next-auth';
 import { UserMenu } from './user-menu';
+import { LocaleSwitcher } from './locale-switcher';
 
 interface HeaderProps {
   session: Session | null;
@@ -37,6 +38,8 @@ export function Header({ session }: HeaderProps) {
 
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 pl-4">
+            <LocaleSwitcher />
+            
             <Button
               variant="ghost"
               size="icon"
