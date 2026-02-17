@@ -10,7 +10,7 @@ import {
   reverseGPXData,
 } from '@/lib/gpx-parser';
 import type { GPXData, RouteConfig, RouteWeatherPoint, WeatherData } from '@/lib/types';
-import { getSunPosition, getSolarExposure } from '@/lib/utils';
+import { getSunPosition, getSolarExposure, getSolarIntensity } from '@/lib/utils';
 
 export function useRouteAnalysis(config: RouteConfig) {
   const t = useTranslations('HomePage');
@@ -219,6 +219,7 @@ export function useRouteAnalysis(config: RouteConfig) {
 
         const sunPos = getSunPosition(point.estimatedTime, point.lat, point.lon);
         const solarExposure = getSolarExposure(weather, sunPos, Math.abs(slopeDeg), aspectDeg);
+        const solarIntensity = getSolarIntensity(weather.directRadiation, solarExposure);
 
         return {
           point: {
@@ -232,6 +233,7 @@ export function useRouteAnalysis(config: RouteConfig) {
           pathType: info.pathType,
           surface: info.surface,
           solarExposure,
+          solarIntensity,
         };
       });
 

@@ -61,7 +61,8 @@
       "gusts": "Rachas: {speed} km/h",
       "kmh": "km/h",
       "favor": "{percent}% favor",
-      "contra": "{percent}% contra"
+      "contra": "{percent}% contra",
+      "solarTitle": "Intensidad Solar"
     },
     "timelineTitle": "Timeline por punto",
     "elevationTitle": "Perfil de elevacion",
@@ -93,6 +94,12 @@
       "sun": "Al sol",
       "shade": "En sombra",
       "night": "Noche"
+    },
+    "solarIntensity": {
+      "shade": "Sombra / Fresco",
+      "weak": "Sol suave",
+      "moderate": "Soleado",
+      "intense": "Sol abrasador"
     },
     "detail": {
       "temperature": "Temperatura",

@@ -36,6 +36,23 @@ function getSolarIcon(exposure: string) {
   }
 }
 
+function getSolarIntensityColor(intensity: string) {
+  switch (intensity) {
+    case 'night':
+      return 'text-slate-900 dark:text-slate-400';
+    case 'shade':
+      return 'text-slate-500';
+    case 'weak':
+      return 'text-yellow-600';
+    case 'moderate':
+      return 'text-orange-500';
+    case 'intense':
+      return 'text-red-600';
+    default:
+      return 'text-foreground';
+  }
+}
+
 function getWindEffectIcon(effect: string) {
   switch (effect) {
     case 'tailwind':
@@ -113,9 +130,11 @@ export function WeatherPointDetail({ point }: WeatherPointDetailProps) {
         <div className="flex items-center gap-2 rounded-lg bg-secondary p-2.5">
           {point.solarExposure && getSolarIcon(point.solarExposure)}
           <div>
-            <p className="text-xs text-muted-foreground">Exposición Solar</p>
-            <p className="font-mono text-sm font-bold text-foreground capitalize">
-              {point.solarExposure ? t(`solarExposure.${point.solarExposure}` as any) : '-'}
+            <p className="text-xs text-muted-foreground">Intensidad Solar</p>
+            <p className={`font-mono text-sm font-bold capitalize ${point.solarIntensity ? getSolarIntensityColor(point.solarIntensity) : ''}`}>
+              {point.solarIntensity 
+                ? (point.solarIntensity === 'night' ? t('solarExposure.night') : t(`solarIntensity.${point.solarIntensity}` as any))
+                : '-'}
             </p>
             <p className="text-[10px] text-muted-foreground">
               {point.weather.directRadiation !== undefined 

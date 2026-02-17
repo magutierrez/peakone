@@ -45,6 +45,7 @@ export interface RouteWeatherPoint {
   pathType?: string; // e.g., cycleway, path, primary, etc.
   surface?: string; // e.g., asphalt, gravel, unpaved
   solarExposure?: 'sun' | 'shade' | 'night';
+  solarIntensity?: 'shade' | 'weak' | 'moderate' | 'intense' | 'night';
 }
 
 export interface RouteSegmentMetadata {

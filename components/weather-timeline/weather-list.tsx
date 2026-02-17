@@ -26,6 +26,23 @@ function getSolarIcon(exposure: string) {
   }
 }
 
+function getSolarIntensityColor(intensity: string) {
+  switch (intensity) {
+    case 'night':
+      return 'bg-slate-900 text-slate-200';
+    case 'shade':
+      return 'bg-slate-500 text-white';
+    case 'weak':
+      return 'bg-yellow-200 text-yellow-800';
+    case 'moderate':
+      return 'bg-orange-400 text-white';
+    case 'intense':
+      return 'bg-red-600 text-white';
+    default:
+      return 'bg-secondary/30 text-muted-foreground';
+  }
+}
+
 function getWindEffectIcon(effect: string) {
   switch (effect) {
     case 'tailwind':
@@ -79,11 +96,13 @@ export function WeatherList({ weatherPoints, selectedIndex, onSelect }: WeatherL
                   km {wp.point.distanceFromStart.toFixed(1)}
                 </span>
                 
-                {wp.solarExposure && (
-                  <div className="flex items-center gap-1.5 rounded-full bg-secondary/30 px-2 py-0.5">
-                    {getSolarIcon(wp.solarExposure)}
-                    <span className="text-[9px] font-medium uppercase text-muted-foreground">
-                      {t(`solarExposure.${wp.solarExposure}` as any)}
+                {wp.solarIntensity && (
+                  <div className={`flex items-center gap-1.5 rounded-full px-2 py-0.5 ${getSolarIntensityColor(wp.solarIntensity)}`}>
+                    {getSolarIcon(wp.solarExposure || 'sun')}
+                    <span className="text-[9px] font-bold uppercase tracking-tight">
+                      {wp.solarIntensity === 'night' 
+                        ? t('solarExposure.night') 
+                        : t(`solarIntensity.${wp.solarIntensity}` as any)}
                     </span>
                   </div>
                 )}

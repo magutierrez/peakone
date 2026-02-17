@@ -118,3 +118,16 @@ export function getSolarExposure(
 
   return 'sun';
 }
+
+export function getSolarIntensity(
+  radiation: number | undefined,
+  exposure: 'sun' | 'shade' | 'night',
+): 'shade' | 'weak' | 'moderate' | 'intense' | 'night' {
+  if (exposure === 'night') return 'night';
+  if (exposure === 'shade' || (radiation !== undefined && radiation < 100)) return 'shade';
+  
+  const rad = radiation || 0;
+  if (rad < 400) return 'weak';
+  if (rad < 800) return 'moderate';
+  return 'intense';
+}
