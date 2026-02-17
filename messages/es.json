@@ -35,17 +35,22 @@
       "hazardsDesc": "Análisis de los tramos más exigentes y peligrosos de tu track."
     }
   },
-  "Hazards": {
-    "title": "Tramos Críticos",
-    "steepClimb": "Subida Exigente",
-    "steepDescent": "Descenso Peligroso",
-    "heatStress": "Estrés Térmico",
-    "effortLevel": "Nivel de Esfuerzo",
-    "danger": "Riesgo",
-    "distance": "Distancia",
-    "slope": "Pendiente Media"
-  },
-  "physiology": {
+      "Hazards": {
+        "title": "Tramos Críticos",
+        "steepClimb": "Subida Exigente",
+        "steepDescent": "Descenso Peligroso",
+        "heatStress": "Estrés Térmico",
+        "effortLevel": "Nivel de Esfuerzo",
+              "danger": "Riesgo",
+              "distance": "Distancia",
+              "slope": "Pendiente Media",
+              "max": "Máx",
+              "noSegments": "No se han detectado tramos de riesgo en esta ruta.",        "levels": {
+          "low": "BAJO",
+          "medium": "MEDIO",
+          "high": "ALTO"
+        }
+      },  "physiology": {
     "calories": "Calorías",
     "hydration": "Agua",
     "total": "Necesidades totales",

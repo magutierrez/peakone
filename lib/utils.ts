@@ -192,7 +192,7 @@ export function calculatePhysiologicalNeeds(
 
 export interface RouteSegment {
   type: 'steepClimb' | 'steepDescent' | 'heatStress' | 'effort';
-  dangerLevel: 'BAJO' | 'MEDIO' | 'ALTO';
+  dangerLevel: 'low' | 'medium' | 'high';
   dangerColor: string;
   startDist: number;
   endDist: number;
@@ -215,20 +215,20 @@ export function analyzeRouteSegments(weatherPoints: any[]): RouteSegment[] {
     const slope = dist > 0 ? (eleDiff / (dist * 1000)) * 100 : 0;
 
     let type: RouteSegment['type'] | null = null;
-    let dangerLevel: RouteSegment['dangerLevel'] = 'BAJO';
+    let dangerLevel: RouteSegment['dangerLevel'] = 'low';
     let dangerColor = 'text-blue-500';
 
     // 1. Subidas
     if (slope > 4) {
       type = 'steepClimb';
       if (slope > 10) {
-        dangerLevel = 'ALTO';
+        dangerLevel = 'high';
         dangerColor = 'text-red-600';
       } else if (slope > 7) {
-        dangerLevel = 'MEDIO';
+        dangerLevel = 'medium';
         dangerColor = 'text-orange-500';
       } else {
-        dangerLevel = 'BAJO';
+        dangerLevel = 'low';
         dangerColor = 'text-amber-500';
       }
     } 
@@ -236,13 +236,13 @@ export function analyzeRouteSegments(weatherPoints: any[]): RouteSegment[] {
     else if (slope < -6) {
       type = 'steepDescent';
       if (slope < -15) {
-        dangerLevel = 'ALTO';
+        dangerLevel = 'high';
         dangerColor = 'text-red-600';
       } else if (slope < -10) {
-        dangerLevel = 'MEDIO';
+        dangerLevel = 'medium';
         dangerColor = 'text-orange-500';
       } else {
-        dangerLevel = 'BAJO';
+        dangerLevel = 'low';
         dangerColor = 'text-blue-400';
       }
     }
@@ -250,10 +250,10 @@ export function analyzeRouteSegments(weatherPoints: any[]): RouteSegment[] {
     else if (wp.weather.temperature > 26 && wp.solarIntensity === 'intense') {
       type = 'heatStress';
       if (wp.weather.temperature > 32) {
-        dangerLevel = 'ALTO';
+        dangerLevel = 'high';
         dangerColor = 'text-red-600';
       } else {
-        dangerLevel = 'MEDIO';
+        dangerLevel = 'medium';
         dangerColor = 'text-orange-500';
       }
     }
@@ -277,7 +277,7 @@ export function analyzeRouteSegments(weatherPoints: any[]): RouteSegment[] {
         currentSegment.endDist = wp.point.distanceFromStart;
         
         // Upgrade danger level if a steeper part is found
-        const levels = ['BAJO', 'MEDIO', 'ALTO'];
+        const levels = ['low', 'medium', 'high'];
         if (levels.indexOf(dangerLevel) > levels.indexOf(currentSegment.dangerLevel)) {
           currentSegment.dangerLevel = dangerLevel;
           currentSegment.dangerColor = dangerColor;

@@ -46,7 +46,7 @@ export function RouteHazards({ weatherPoints, onSelectSegment }: RouteHazardsPro
   // Take the most relevant segments (highest danger first, up to 8)
   const sortedSegments = [...segments]
     .sort((a, b) => {
-      const levels = ['BAJO', 'MEDIO', 'ALTO'];
+      const levels = ['low', 'medium', 'high'];
       return levels.indexOf(b.dangerLevel) - levels.indexOf(a.dangerLevel) || b.maxSlope - a.maxSlope;
     })
     .slice(0, 8);
@@ -94,14 +94,14 @@ export function RouteHazards({ weatherPoints, onSelectSegment }: RouteHazardsPro
                     <AreaChart data={chartData}>
                       <defs>
                         <linearGradient id={`grad-${idx}`} x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor={seg.dangerLevel === 'ALTO' ? '#ef4444' : '#f59e0b'} stopOpacity={0.3}/>
-                          <stop offset="95%" stopColor={seg.dangerLevel === 'ALTO' ? '#ef4444' : '#f59e0b'} stopOpacity={0}/>
+                          <stop offset="5%" stopColor={seg.dangerLevel === 'high' ? '#ef4444' : '#f59e0b'} stopOpacity={0.3}/>
+                          <stop offset="95%" stopColor={seg.dangerLevel === 'high' ? '#ef4444' : '#f59e0b'} stopOpacity={0}/>
                         </linearGradient>
                       </defs>
                       <Area 
                         type="linear" 
                         dataKey="ele" 
-                        stroke={seg.dangerLevel === 'ALTO' ? '#ef4444' : '#f59e0b'} 
+                        stroke={seg.dangerLevel === 'high' ? '#ef4444' : '#f59e0b'} 
                         strokeWidth={2}
                         fill={`url(#grad-${idx})`}
                         isAnimationActive={false}
@@ -114,11 +114,13 @@ export function RouteHazards({ weatherPoints, onSelectSegment }: RouteHazardsPro
                 <div className="px-4 py-2 flex items-center justify-between bg-muted/10">
                   <div className="flex flex-col">
                     <span className="text-[9px] uppercase text-muted-foreground font-bold">{t('slope')}</span>
-                    <span className="text-xs font-bold">{Math.round(seg.maxSlope)}% Max</span>
+                    <span className="text-xs font-bold">{Math.round(seg.maxSlope)}% {t('max')}</span>
                   </div>
                   <div className="flex flex-col items-end">
                     <span className="text-[9px] uppercase text-muted-foreground font-bold">{t('danger')}</span>
-                    <span className={`text-xs font-bold uppercase ${seg.dangerColor}`}>{seg.dangerLevel}</span>
+                    <span className={`text-xs font-bold uppercase ${seg.dangerColor}`}>
+                      {t(`levels.${seg.dangerLevel}`)}
+                    </span>
                   </div>
                 </div>
               </CardContent>
@@ -130,7 +132,7 @@ export function RouteHazards({ weatherPoints, onSelectSegment }: RouteHazardsPro
       {sortedSegments.length === 0 && (
         <div className="p-12 text-center border-2 border-dashed border-border rounded-xl">
           <Zap className="h-8 w-8 text-muted-foreground mx-auto mb-3 opacity-20" />
-          <p className="text-sm text-muted-foreground italic">No se han detectado tramos de riesgo en esta ruta.</p>
+          <p className="text-sm text-muted-foreground italic">{t('noSegments')}</p>
         </div>
       )}
     </div>

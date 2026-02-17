@@ -35,17 +35,22 @@
       "hazardsDesc": "Analysis of the most demanding and dangerous sections of your track."
     }
   },
-  "Hazards": {
-    "title": "Critical Segments",
-    "steepClimb": "Demanding Climb",
-    "steepDescent": "Dangerous Descent",
-    "heatStress": "Heat Stress",
-    "effortLevel": "Effort Level",
-    "danger": "Risk",
-    "distance": "Distance",
-    "slope": "Avg. Slope"
-  },
-  "physiology": {
+      "Hazards": {
+        "title": "Critical Segments",
+        "steepClimb": "Demanding Climb",
+        "steepDescent": "Dangerous Descent",
+        "heatStress": "Heat Stress",
+        "effortLevel": "Effort Level",
+              "danger": "Risk",
+              "distance": "Distance",
+              "slope": "Avg. Slope",
+              "max": "Max",
+              "noSegments": "No risk segments have been detected on this route.",        "levels": {
+          "low": "LOW",
+          "medium": "MEDIUM",
+          "high": "HIGH"
+        }
+      },  "physiology": {
     "calories": "Calories",
     "hydration": "Water",
     "total": "Total needs",
