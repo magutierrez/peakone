@@ -131,3 +131,61 @@ export function getSolarIntensity(
   if (rad < 800) return 'moderate';
   return 'intense';
 }
+
+/**
+ * Smart Time Estimation (Naismith's Rule adjusted)
+ * Base time + 10 mins for every 100m of ascent (hiking)
+ * For cycling, we use a power-loss model based on gradient
+ */
+export function calculateSmartSpeed(
+  baseSpeed: number,
+  distanceKm: number,
+  elevationGainM: number,
+  activityType: 'cycling' | 'walking',
+): number {
+  if (distanceKm === 0) return baseSpeed;
+
+  if (activityType === 'walking') {
+    // Naismith's Rule: 5km/h base + 1h per 600m ascent
+    // This is approx 1 min extra per 10m of ascent
+    const flatTimeHours = distanceKm / baseSpeed;
+    const verticalPenaltyHours = elevationGainM / 600;
+    const totalTime = flatTimeHours + verticalPenaltyHours;
+    return distanceKm / totalTime;
+  } else {
+    // Cycling: Simplified speed reduction. 
+    // Every 100m of gain in 10km (1% grade) reduces speed by ~10%
+    const grade = (elevationGainM / (distanceKm * 1000)) * 100;
+    const speedFactor = Math.max(0.4, 1 - (grade * 0.05)); 
+    return baseSpeed * speedFactor;
+  }
+}
+
+/**
+ * Hydration and Calorie Estimation
+ */
+export function calculatePhysiologicalNeeds(
+  durationHours: number,
+  distanceKm: number,
+  elevationGainM: number,
+  avgTemp: number,
+  activityType: 'cycling' | 'walking',
+) {
+  const isHiking = activityType === 'walking';
+  
+  // 1. Calories (Metabolic Equivalent Task approximation)
+  // Cycling ~ 8-12 METs, Hiking ~ 6-9 METs
+  const baseMet = isHiking ? 7 : 10;
+  const effortCorrection = 1 + (elevationGainM / 1000); // More gain = more effort
+  const calories = Math.round(baseMet * 75 * durationHours * effortCorrection); // 75kg avg human
+
+  // 2. Hydration (ml)
+  // Base 500ml/h + 200ml for every 5°C above 20°C
+  const heatFactor = avgTemp > 20 ? (avgTemp - 20) * 40 : 0;
+  const hydrationMl = Math.round((500 + heatFactor) * durationHours * (isHiking ? 1.1 : 1.2));
+
+  return {
+    calories,
+    waterLiters: Math.round((hydrationMl / 1000) * 10) / 10,
+  };
+}

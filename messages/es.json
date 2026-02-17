@@ -29,8 +29,15 @@
       "weatherAnalysis": "Análisis Meteorológico",
       "advice": "Consejos de Seguridad",
       "adviceCycling": "Recomendaciones específicas de seguridad para tu ruta en bicicleta.",
-      "adviceHiking": "Recomendaciones específicas de seguridad para tu ruta de senderismo."
+      "adviceHiking": "Recomendaciones específicas de seguridad para tu ruta de senderismo.",
+      "physiology": "Suministros Recomendados"
     }
+  },
+  "physiology": {
+    "calories": "Calorías",
+    "hydration": "Agua",
+    "total": "Necesidades totales",
+    "perHour": "por hora"
   },
   "Advice": {
     "title": "Consejos para tu ruta",

@@ -29,8 +29,15 @@
       "weatherAnalysis": "Weather Analysis",
       "advice": "Safety Advice",
       "adviceCycling": "Specific safety recommendations for your bike route.",
-      "adviceHiking": "Specific safety recommendations for your hiking route."
+      "adviceHiking": "Specific safety recommendations for your hiking route.",
+      "physiology": "Recommended Supplies"
     }
+  },
+  "physiology": {
+    "calories": "Calories",
+    "hydration": "Water",
+    "total": "Total needs",
+    "perHour": "per hour"
   },
   "Advice": {
     "title": "Route Advice",
@@ -93,6 +100,13 @@
       "nightArrival": "Night arrival!",
       "daylightFormat": "{hours}h {minutes}m"
     },
+    "safety": {
+      "escapeTitle": "Escape Points",
+      "escapeDesc": "Town or main road at {dist}km",
+      "noCoverage": "No coverage",
+      "lowCoverage": "Low coverage",
+      "evacuation": "Evacuation point"
+    },
     "timelineTitle": "Point-by-point timeline",
     "elevationTitle": "Elevation profile",
     "segmentsTitle": "Road types and surfaces",
@@ -129,13 +143,6 @@
       "weak": "Weak sun",
       "moderate": "Sunny",
       "intense": "Scorching sun"
-    },
-    "safety": {
-      "escapeTitle": "Escape Points",
-      "escapeDesc": "Town or main road at {dist}km",
-      "noCoverage": "No coverage",
-      "lowCoverage": "Low coverage",
-      "evacuation": "Evacuation point"
     },
     "detail": {
       "temperature": "Temperature",
