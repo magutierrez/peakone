@@ -161,7 +161,7 @@ export function useRouteAnalysis(config: RouteConfig) {
     };
 
     try {
-      const sampled = sampleRoutePoints(gpxData.points, 24);
+      const sampled = sampleRoutePoints(gpxData.points, 48);
       const startTime = new Date(`${config.date}T${config.time}:00`);
       
       // Calculate times point-to-point with smart speed

@@ -189,3 +189,106 @@ export function calculatePhysiologicalNeeds(
     waterLiters: Math.round((hydrationMl / 1000) * 10) / 10,
   };
 }
+
+export interface RouteSegment {
+  type: 'steepClimb' | 'steepDescent' | 'heatStress' | 'effort';
+  dangerLevel: 'BAJO' | 'MEDIO' | 'ALTO';
+  dangerColor: string;
+  startDist: number;
+  endDist: number;
+  points: any[];
+  maxSlope: number;
+  avgTemp: number;
+}
+
+export function analyzeRouteSegments(weatherPoints: any[]): RouteSegment[] {
+  if (weatherPoints.length === 0) return [];
+
+  const segments: RouteSegment[] = [];
+  let currentSegment: any = null;
+
+  weatherPoints.forEach((wp, i) => {
+    if (i === 0) return;
+    const prev = weatherPoints[i - 1];
+    const dist = wp.point.distanceFromStart - prev.point.distanceFromStart;
+    const eleDiff = (wp.point.ele || 0) - (prev.point.ele || 0);
+    const slope = dist > 0 ? (eleDiff / (dist * 1000)) * 100 : 0;
+
+    let type: RouteSegment['type'] | null = null;
+    let dangerLevel: RouteSegment['dangerLevel'] = 'BAJO';
+    let dangerColor = 'text-blue-500';
+
+    // 1. Subidas
+    if (slope > 4) {
+      type = 'steepClimb';
+      if (slope > 10) {
+        dangerLevel = 'ALTO';
+        dangerColor = 'text-red-600';
+      } else if (slope > 7) {
+        dangerLevel = 'MEDIO';
+        dangerColor = 'text-orange-500';
+      } else {
+        dangerLevel = 'BAJO';
+        dangerColor = 'text-amber-500';
+      }
+    } 
+    // 2. Bajadas
+    else if (slope < -6) {
+      type = 'steepDescent';
+      if (slope < -15) {
+        dangerLevel = 'ALTO';
+        dangerColor = 'text-red-600';
+      } else if (slope < -10) {
+        dangerLevel = 'MEDIO';
+        dangerColor = 'text-orange-500';
+      } else {
+        dangerLevel = 'BAJO';
+        dangerColor = 'text-blue-400';
+      }
+    }
+    // 3. Calor
+    else if (wp.weather.temperature > 26 && wp.solarIntensity === 'intense') {
+      type = 'heatStress';
+      if (wp.weather.temperature > 32) {
+        dangerLevel = 'ALTO';
+        dangerColor = 'text-red-600';
+      } else {
+        dangerLevel = 'MEDIO';
+        dangerColor = 'text-orange-500';
+      }
+    }
+
+    if (type) {
+      if (!currentSegment || currentSegment.type !== type) {
+        if (currentSegment) segments.push(currentSegment);
+        currentSegment = {
+          type,
+          dangerLevel,
+          dangerColor,
+          startDist: prev.point.distanceFromStart,
+          points: [prev, wp],
+          maxSlope: Math.abs(slope),
+          avgTemp: wp.weather.temperature,
+          endDist: wp.point.distanceFromStart
+        };
+      } else {
+        currentSegment.points.push(wp);
+        currentSegment.maxSlope = Math.max(currentSegment.maxSlope, Math.abs(slope));
+        currentSegment.endDist = wp.point.distanceFromStart;
+        
+        // Upgrade danger level if a steeper part is found
+        const levels = ['BAJO', 'MEDIO', 'ALTO'];
+        if (levels.indexOf(dangerLevel) > levels.indexOf(currentSegment.dangerLevel)) {
+          currentSegment.dangerLevel = dangerLevel;
+          currentSegment.dangerColor = dangerColor;
+        }
+      }
+    } else if (currentSegment) {
+      segments.push(currentSegment);
+      currentSegment = null;
+    }
+  });
+
+  if (currentSegment) segments.push(currentSegment);
+  return segments;
+}

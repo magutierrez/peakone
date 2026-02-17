@@ -28,10 +28,22 @@
       "activityConfig": "Activity Configuration",
       "weatherAnalysis": "Weather Analysis",
       "advice": "Safety Advice",
+      "hazards": "Effort & Hazards",
       "adviceCycling": "Specific safety recommendations for your bike route.",
       "adviceHiking": "Specific safety recommendations for your hiking route.",
-      "physiology": "Recommended Supplies"
+      "physiology": "Recommended Supplies",
+      "hazardsDesc": "Analysis of the most demanding and dangerous sections of your track."
     }
+  },
+  "Hazards": {
+    "title": "Critical Segments",
+    "steepClimb": "Demanding Climb",
+    "steepDescent": "Dangerous Descent",
+    "heatStress": "Heat Stress",
+    "effortLevel": "Effort Level",
+    "danger": "Risk",
+    "distance": "Distance",
+    "slope": "Avg. Slope"
   },
   "physiology": {
     "calories": "Calories",

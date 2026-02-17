@@ -159,6 +159,7 @@ export default function HomePageClient({ session }: HomePageClientProps) {
               activeFilter={activeFilter}
               selectedRange={selectedRange}
               activityType={config.activityType}
+              onClearSelection={() => setSelectedRange(null)}
             />
           </div>
         </main>

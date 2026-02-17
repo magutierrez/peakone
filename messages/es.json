@@ -28,10 +28,22 @@
       "activityConfig": "Configuración de la Actividad",
       "weatherAnalysis": "Análisis Meteorológico",
       "advice": "Consejos de Seguridad",
+      "hazards": "Riesgos y Esfuerzo",
       "adviceCycling": "Recomendaciones específicas de seguridad para tu ruta en bicicleta.",
       "adviceHiking": "Recomendaciones específicas de seguridad para tu ruta de senderismo.",
-      "physiology": "Suministros Recomendados"
+      "physiology": "Suministros Recomendados",
+      "hazardsDesc": "Análisis de los tramos más exigentes y peligrosos de tu track."
     }
+  },
+  "Hazards": {
+    "title": "Tramos Críticos",
+    "steepClimb": "Subida Exigente",
+    "steepDescent": "Descenso Peligroso",
+    "heatStress": "Estrés Térmico",
+    "effortLevel": "Nivel de Esfuerzo",
+    "danger": "Riesgo",
+    "distance": "Distancia",
+    "slope": "Pendiente Media"
   },
   "physiology": {
     "calories": "Calorías",
