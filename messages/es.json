@@ -61,7 +61,8 @@
       "gusts": "Rachas: {speed} km/h",
       "kmh": "km/h",
       "favor": "{percent}% favor",
-      "contra": "{percent}% contra"
+      "contra": "{percent}% contra",
+      "solarTitle": "Intensidad Solar"
     },
     "timelineTitle": "Timeline por punto",
     "elevationTitle": "Perfil de elevacion",
@@ -88,6 +89,17 @@
       "summary": "Viento {label}",
       "relativeAngle": "Angulo relativo: {angle}° respecto a tu direccion de viaje",
       "bearing": "Rumbo viaje"
+    },
+    "solarExposure": {
+      "sun": "Al sol",
+      "shade": "En sombra",
+      "night": "Noche"
+    },
+    "solarIntensity": {
+      "shade": "Sombra / Fresco",
+      "weak": "Sol suave",
+      "moderate": "Soleado",
+      "intense": "Sol abrasador"
     },
     "detail": {
       "temperature": "Temperatura",
@@ -191,6 +203,18 @@
       "standard": "Estándar",
       "satellite": "Satélite",
       "hybrid": "Híbrido"
+    }
+  },
+  "IBP": {
+    "title": "Índice IBP",
+    "description": "El índice IBP index es un sistema de puntuación automático que valora el grado de dificultad de una ruta. Se calcula analizando las distancias, los desniveles y las pendientes.",
+    "difficulty": {
+      "veryEasy": "Muy fácil",
+      "easy": "Fácil",
+      "moderate": "Moderada",
+      "hard": "Difícil",
+      "veryHard": "Muy difícil",
+      "extreme": "Extrema"
     }
   },
   "WeatherCodes": {

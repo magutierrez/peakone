@@ -112,6 +112,7 @@ export default function HomePageClient({ session }: HomePageClientProps) {
           onReverseRoute={onReverseWithRange}
           error={error}
           provider={session?.provider}
+          activityType={config.activityType}
         />
 
         <main className="relative flex min-w-0 flex-1 flex-col lg:flex-row">

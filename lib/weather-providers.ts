@@ -42,7 +42,7 @@ export const openMeteoProvider: WeatherProvider = {
     url.searchParams.set('longitude', locations.map((l) => l.lon).join(','));
     url.searchParams.set(
       'hourly',
-      'temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,precipitation_probability,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,cloud_cover,visibility',
+      'temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,precipitation_probability,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,cloud_cover,visibility,is_day,direct_radiation,diffuse_radiation',
     );
     url.searchParams.set('start_date', startDate);
     url.searchParams.set('end_date', endDate);
@@ -73,6 +73,9 @@ export const openMeteoProvider: WeatherProvider = {
           windGusts: locationData.hourly.wind_gusts_10m,
           cloudCover: locationData.hourly.cloud_cover,
           visibility: locationData.hourly.visibility,
+          isDay: locationData.hourly.is_day,
+          directRadiation: locationData.hourly.direct_radiation,
+          diffuseRadiation: locationData.hourly.diffuse_radiation,
         });
 
         weatherResults.push({ index: pointIndex, weather: closest });

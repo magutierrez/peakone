@@ -1,6 +1,6 @@
 'use client';
 
-import { Wind, ArrowUp, ArrowDown, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Wind, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Sun, Moon, Cloud } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { WeatherIcon } from '@/components/weather-icon';
@@ -11,6 +11,36 @@ interface WeatherListProps {
   weatherPoints: RouteWeatherPoint[];
   selectedIndex: number | null;
   onSelect: (index: number) => void;
+}
+
+function getSolarIcon(exposure: string) {
+  switch (exposure) {
+    case 'sun':
+      return <Sun className="h-3 w-3 text-amber-500 fill-amber-500/20" />;
+    case 'shade':
+      return <Cloud className="h-3 w-3 text-slate-400 fill-slate-400/20" />;
+    case 'night':
+      return <Moon className="h-3 w-3 text-indigo-400 fill-indigo-400/20" />;
+    default:
+      return null;
+  }
+}
+
+function getSolarIntensityColor(intensity: string) {
+  switch (intensity) {
+    case 'night':
+      return 'bg-slate-900 text-slate-200';
+    case 'shade':
+      return 'bg-slate-500 text-white';
+    case 'weak':
+      return 'bg-yellow-200 text-yellow-800';
+    case 'moderate':
+      return 'bg-orange-400 text-white';
+    case 'intense':
+      return 'bg-red-600 text-white';
+    default:
+      return 'bg-secondary/30 text-muted-foreground';
+  }
 }
 
 function getWindEffectIcon(effect: string) {
@@ -65,6 +95,18 @@ export function WeatherList({ weatherPoints, selectedIndex, onSelect }: WeatherL
                 <span className="text-[10px] text-muted-foreground">
                   km {wp.point.distanceFromStart.toFixed(1)}
                 </span>
+                
+                {wp.solarIntensity && (
+                  <div className={`flex items-center gap-1.5 rounded-full px-2 py-0.5 ${getSolarIntensityColor(wp.solarIntensity)}`}>
+                    {getSolarIcon(wp.solarExposure || 'sun')}
+                    <span className="text-[9px] font-bold uppercase tracking-tight">
+                      {wp.solarIntensity === 'night' 
+                        ? t('solarExposure.night') 
+                        : t(`solarIntensity.${wp.solarIntensity}` as any)}
+                    </span>
+                  </div>
+                )}
+
                 <WeatherIcon code={wp.weather.weatherCode} className="h-6 w-6" />
                 <span className="text-[10px] text-muted-foreground">{weatherDescription}</span>
                 <span className="font-mono text-sm font-bold text-foreground">
