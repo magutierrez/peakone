@@ -14,7 +14,7 @@
       "unknownError": "Error desconocido"
     },
     "header": {
-      "title": "RouteWeather",
+      "title": "peakOne",
       "subtitle": "Forecast para rutas outdoor",
       "apiVersion": "Open-Meteo API"
     },
@@ -56,14 +56,24 @@
     "total": "Necesidades totales",
     "perHour": "por hora"
   },
-  "Advice": {
-    "title": "Consejos para tu ruta",
-    "weather": "Meteorología",
-    "gear": "Equipamiento",
-    "safety": "Seguridad",
-    "nutrition": "Nutrición y Salud",
-    "cycling": {
-      "rain": "Cuidado con las curvas y el asfalto mojado. Revisa tus frenos.",
+      "Advice": {
+        "title": "Consejos para tu ruta",
+        "weather": "Meteorología",
+        "gear": "Equipamiento",
+        "safety": "Seguridad",
+        "nutrition": "Nutrición y Salud",
+        "water": "Estrategia de Agua",
+              "waterWarning": "Fuentes naturales con baja fiabilidad detectadas. Lleva agua extra.",
+              "waterOk": "Fuentes fiables disponibles durante la ruta.",
+              "showOnMap": "Ver en el mapa",
+              "hideFromMap": "Quitar del mapa",
+              "reliability": {
+                "high": "Alta",
+                "medium": "Media",
+                "low": "Baja (Posible seca)"
+              },
+              "cycling": {
+              "rain": "Cuidado con las curvas y el asfalto mojado. Revisa tus frenos.",
       "wind": "Viento fuerte detectado. Sujeta con firmeza el manillar en zonas expuestas.",
       "heat": "Calor intenso. Hidrátate cada 15-20 minutos.",
       "cold": "Usa capas cortavientos. El descenso puede ser gélido.",
@@ -163,6 +173,11 @@
       "moderate": "Soleado",
       "intense": "Sol abrasador"
     },
+    "reliability": {
+      "high": "Alta",
+      "medium": "Media",
+      "low": "Baja (Posible seca)"
+    },
     "detail": {
       "temperature": "Temperatura",
       "feelsLike": "Sens. {temp}°C",
@@ -203,7 +218,6 @@
       "title": "Superficies",
       "asphalt": "Asfalto",
       "paved": "Pavimentado",
-      "paving_stones": "Adoquines",
       "concrete": "Hormigón",
       "gravel": "Grava",
       "fine_gravel": "Grava fina",
@@ -219,7 +233,7 @@
     }
   },
   "Auth": {
-    "welcome": "Bienvenido a RouteWeather",
+    "welcome": "Bienvenido a peakOne",
     "loginDescription": "Inicia sesión para analizar tus rutas y ver el pronóstico meteorológico detallado.",
     "continueGoogle": "Continuar con Google",
     "continueFacebook": "Continuar con Facebook",
@@ -269,7 +283,8 @@
       "satellite": "Satélite",
       "hybrid": "Híbrido",
       "topography": "Topográfico"
-    }
+    },
+    "resetView": "Ver ruta completa"
   },
   "IBP": {
     "title": "Índice IBP",

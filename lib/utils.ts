@@ -190,6 +190,21 @@ export function calculatePhysiologicalNeeds(
   };
 }
 
+export function calculateWaterReliability(
+  sourceType: 'natural' | 'urban',
+  date: Date,
+): 'high' | 'medium' | 'low' {
+  if (sourceType === 'urban') return 'high';
+
+  const month = date.getMonth(); // 0-11
+  const isSummer = month >= 5 && month <= 8; // June to Sept
+  const isDrySeason = month >= 6 && month <= 7; // July and August
+
+  if (isDrySeason) return 'low';
+  if (isSummer) return 'medium';
+  return 'high';
+}
+
 export interface RouteSegment {
   type: 'steepClimb' | 'steepDescent' | 'heatStress' | 'effort';
   dangerLevel: 'low' | 'medium' | 'high';

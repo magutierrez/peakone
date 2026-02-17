@@ -10,7 +10,8 @@ import { RouteAdvice } from '@/components/route-advice';
 import { RouteHazards } from '@/components/route-hazards';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { RouteWeatherPoint } from '@/lib/types';
-import { CloudSun, ShieldAlert, AlertTriangle } from 'lucide-react';
+import { CloudSun, ShieldAlert, AlertTriangle, RefreshCcw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface AnalysisResultsProps {
   weatherPoints: RouteWeatherPoint[];
@@ -21,7 +22,10 @@ interface AnalysisResultsProps {
   selectedPointIndex: number | null;
   setSelectedPointIndex: (index: number | null) => void;
   onRangeSelect?: (range: { start: number; end: number } | null) => void;
+  selectedRange?: { start: number; end: number } | null;
   activityType: 'cycling' | 'walking';
+  showWaterSources?: boolean;
+  onToggleWaterSources?: () => void;
 }
 
 export function AnalysisResults({
@@ -33,9 +37,13 @@ export function AnalysisResults({
   selectedPointIndex,
   setSelectedPointIndex,
   onRangeSelect,
+  selectedRange,
   activityType,
+  showWaterSources,
+  onToggleWaterSources,
 }: AnalysisResultsProps) {
   const th = useTranslations('HomePage');
+  const tr = useTranslations('RouteMap');
 
   return (
     <>
@@ -111,13 +119,31 @@ export function AnalysisResults({
                   : th('sections.adviceHiking')}
               </p>
             </div>
-            <RouteAdvice weatherPoints={weatherPoints} activityType={activityType} />
+            <RouteAdvice 
+              weatherPoints={weatherPoints} 
+              activityType={activityType} 
+              showWaterSources={showWaterSources}
+              onToggleWaterSources={onToggleWaterSources}
+            />
           </TabsContent>
 
           <TabsContent value="hazards" className="animate-in slide-in-from-right-2 fade-in-50 duration-500 outline-none">
-            <div className="mb-6">
-              <h3 className="text-lg font-bold text-foreground mb-1">{th('sections.hazards')}</h3>
-              <p className="text-sm text-muted-foreground">{th('sections.hazardsDesc')}</p>
+            <div className="mb-6 flex items-start justify-between">
+              <div>
+                <h3 className="text-lg font-bold text-foreground mb-1">{th('sections.hazards')}</h3>
+                <p className="text-sm text-muted-foreground">{th('sections.hazardsDesc')}</p>
+              </div>
+              {selectedRange && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => onRangeSelect?.(null)}
+                  className="h-8 gap-2 bg-secondary/50 border-primary/20 hover:bg-secondary"
+                >
+                  <RefreshCcw className="h-3 w-3" />
+                  <span className="text-[10px] font-bold uppercase tracking-tight">{tr('resetView')}</span>
+                </Button>
+              )}
             </div>
             <RouteHazards 
               weatherPoints={weatherPoints} 

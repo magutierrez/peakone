@@ -2,7 +2,7 @@
 
 import { Marker } from 'react-map-gl/maplibre';
 import { WindArrow } from '@/components/wind-arrow';
-import { MapPin } from 'lucide-react';
+import { MapPin, Droplets } from 'lucide-react';
 import type { RoutePoint, RouteWeatherPoint } from '@/lib/types';
 import { useTranslations } from 'next-intl';
 
@@ -14,6 +14,7 @@ interface MapMarkersProps {
   onPointSelect?: (index: number) => void;
   onHoverPoint: (index: number | null) => void;
   activityType?: 'cycling' | 'walking';
+  showWaterSources?: boolean;
 }
 
 export function MapMarkers({
@@ -24,6 +25,7 @@ export function MapMarkers({
   onPointSelect,
   onHoverPoint,
   activityType,
+  showWaterSources,
 }: MapMarkersProps) {
   const t = useTranslations('WeatherTimeline');
   const startPoint = points[0];
@@ -35,8 +37,31 @@ export function MapMarkers({
         .map(name => weatherPoints?.find(wp => wp.escapePoint?.name === name)?.escapePoint)
     : [];
 
+  // Unique water sources
+  const waterSources = (showWaterSources && weatherPoints)
+    ? Array.from(new Map(
+        weatherPoints.flatMap(wp => wp.waterSources || []).map(ws => [`${ws.lat},${ws.lon}`, ws])
+      ).values())
+    : [];
+
   return (
     <>
+      {/* Water Sources */}
+      {waterSources.map((ws, i) => (
+        <Marker key={`water-${i}`} longitude={ws.lon} latitude={ws.lat} anchor="bottom">
+          <div className="group flex flex-col items-center">
+            <div className="invisible group-hover:visible absolute -top-8 rounded-lg border border-border bg-card px-2 py-1 text-[9px] font-bold shadow-sm whitespace-nowrap z-50">
+              {ws.name} ({t(`reliability.${ws.reliability}` as any)})
+            </div>
+            <div className={`p-1 rounded-full border-2 border-white shadow-md ${
+              ws.reliability === 'high' ? 'bg-emerald-500' : (ws.reliability === 'medium' ? 'bg-amber-500' : 'bg-red-500')
+            }`}>
+              <Droplets className="h-3 w-3 text-white fill-white/20" />
+            </div>
+          </div>
+        </Marker>
+      ))}
+
       {/* Escape Points */}
       {escapePoints.map((ep, i) => ep && (
         <Marker key={`escape-${i}`} longitude={ep.lon} latitude={ep.lat} anchor="bottom">

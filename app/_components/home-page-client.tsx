@@ -53,6 +53,7 @@ export default function HomePageClient({ session }: HomePageClientProps) {
     value: string;
   } | null>(null);
   const [selectedRange, setSelectedRange] = useState<{ start: number; end: number } | null>(null);
+  const [showWaterSources, setShowWaterSources] = useState(false);
   const { saveRoute, routes } = useSavedRoutes();
   const lastSavedRef = useRef<string | null>(null);
 
@@ -162,8 +163,10 @@ export default function HomePageClient({ session }: HomePageClientProps) {
                   selectedPointIndex={selectedPointIndex}
                   setSelectedPointIndex={setSelectedPointIndex}
                   onRangeSelect={setSelectedRange}
+                  selectedRange={selectedRange}
                   activityType={config.activityType}
-                  onClearSelection={() => setSelectedRange(null)}
+                  showWaterSources={showWaterSources}
+                  onToggleWaterSources={() => setShowWaterSources(!showWaterSources)}
                 />
 
                 <ActivityConfigSection
@@ -192,6 +195,7 @@ export default function HomePageClient({ session }: HomePageClientProps) {
               selectedRange={selectedRange}
               activityType={config.activityType}
               onClearSelection={() => setSelectedRange(null)}
+              showWaterSources={showWaterSources}
             />
           </div>
         </main>

@@ -34,7 +34,7 @@ export function MapPopup({ popupInfo, onClose }: MapPopupProps) {
       <div className="p-1 text-xs leading-relaxed text-foreground">
         <div className="mb-1 flex items-center justify-between border-b border-border pb-1">
           <strong className="font-mono">
-            {new Date(popupInfo.weather.time).toLocaleTimeString('es-ES', {
+            {new Date(popupInfo.point.estimatedTime || popupInfo.weather.time).toLocaleTimeString('es-ES', {
               hour: '2-digit',
               minute: '2-digit',
             })}

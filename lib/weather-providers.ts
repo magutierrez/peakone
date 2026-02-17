@@ -49,7 +49,7 @@ export const openMeteoProvider: WeatherProvider = {
     url.searchParams.set('timezone', 'auto');
 
     const res = await fetch(url.toString(), {
-      headers: { Accept: 'application/json', 'User-Agent': 'RouteWeather/1.0' },
+      headers: { Accept: 'application/json', 'User-Agent': 'peakOne/1.0' },
     });
 
     if (!res.ok) throw new Error(`Open-Meteo error: ${res.status}`);

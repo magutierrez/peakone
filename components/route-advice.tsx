@@ -2,27 +2,35 @@
 
 import { useTranslations } from 'next-intl';
 import { 
-  Lightbulb, 
-  Wind, 
+  Wind,
   CloudRain, 
   ThermometerSun, 
   ThermometerSnowflake, 
   Moon, 
-  AlertCircle,
   ShieldCheck,
   Zap,
-  Droplets
+  Droplets,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import type { RouteWeatherPoint } from '@/lib/types';
 import { Card, CardContent } from '@/components/ui/card';
-import { calculatePhysiologicalNeeds } from '@/lib/utils';
+import { calculatePhysiologicalNeeds, cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 interface RouteAdviceProps {
   weatherPoints: RouteWeatherPoint[];
   activityType: 'cycling' | 'walking';
+  showWaterSources?: boolean;
+  onToggleWaterSources?: () => void;
 }
 
-export function RouteAdvice({ weatherPoints, activityType }: RouteAdviceProps) {
+export function RouteAdvice({ 
+  weatherPoints, 
+  activityType,
+  showWaterSources,
+  onToggleWaterSources
+}: RouteAdviceProps) {
   const t = useTranslations('Advice');
   const tp = useTranslations('physiology');
   const typeKey = activityType === 'cycling' ? 'cycling' : 'hiking';
@@ -49,7 +57,33 @@ export function RouteAdvice({ weatherPoints, activityType }: RouteAdviceProps) {
   const hasCold = weatherPoints.some(wp => wp.weather.temperature < 8);
   const hasNight = weatherPoints.some(wp => wp.solarIntensity === 'night');
 
+  const allWaterSources = weatherPoints.flatMap(wp => wp.waterSources || []);
+  const hasLowReliabilityWater = allWaterSources.some(ws => ws.reliability === 'low');
+  const hasWater = allWaterSources.length > 0;
+
   const advices = [
+    {
+      condition: hasWater,
+      icon: <Droplets className="h-5 w-5 text-cyan-500" />,
+      text: (
+        <div className="flex flex-col gap-3">
+          <p>{hasLowReliabilityWater ? t('waterWarning') : t('waterOk')}</p>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={onToggleWaterSources}
+            className={cn(
+              "w-fit h-7 gap-2 text-[10px] uppercase font-bold transition-all",
+              showWaterSources ? "bg-cyan-500 text-white border-cyan-600 hover:bg-cyan-600" : "bg-card border-border hover:bg-muted"
+            )}
+          >
+            {showWaterSources ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+            {showWaterSources ? t('hideFromMap') : t('showOnMap')}
+          </Button>
+        </div>
+      ),
+      category: t('water')
+    },
     {
       condition: hasRain,
       icon: <CloudRain className="h-5 w-5 text-blue-500" />,
@@ -142,9 +176,9 @@ export function RouteAdvice({ weatherPoints, activityType }: RouteAdviceProps) {
                 <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                   {advice.category}
                 </span>
-                <p className="text-sm text-foreground leading-relaxed">
+                <div className="text-sm text-foreground leading-relaxed">
                   {advice.text}
-                </p>
+                </div>
               </div>
             </CardContent>
           </Card>

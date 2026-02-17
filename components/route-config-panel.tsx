@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { GPXUpload } from '@/components/gpx-upload';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { HelpCircle } from 'lucide-react';
+import { HelpCircle, RotateCcw } from 'lucide-react';
 import type { GPXData } from '@/lib/types';
 import { calculateIBP, getIBPDifficulty, cn } from '@/lib/utils';
 
@@ -58,7 +58,7 @@ export function RouteConfigPanel({
             className="h-7 gap-1.5 px-2 text-[10px] text-muted-foreground hover:text-primary"
             onClick={onReverseRoute}
           >
-            <span className="rotate-90">⇄</span> Invertir sentido
+            <span className="rotate-90"><RotateCcw /></span> {t('reverseRoute')}
           </Button>
         )}
       </div>
