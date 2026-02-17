@@ -15,6 +15,7 @@ interface SidebarProps {
   onClearGPX: () => void;
   onReverseRoute: () => void;
   provider?: string;
+  activityType?: 'cycling' | 'walking';
 }
 
 export function Sidebar({
@@ -26,6 +27,7 @@ export function Sidebar({
   onClearGPX,
   onReverseRoute,
   provider,
+  activityType,
 }: SidebarProps) {
   return (
     <aside className="sticky top-[57px] h-[calc(100vh-57px)] w-full shrink-0 border-b border-border bg-card lg:w-80 lg:border-b-0 lg:border-r">
@@ -37,6 +39,7 @@ export function Sidebar({
             gpxFileName={gpxFileName}
             onClearGPX={onClearGPX}
             onReverseRoute={onReverseRoute}
+            activityType={activityType}
           />
 
           <div className="custom-scrollbar flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto pr-1">

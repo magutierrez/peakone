@@ -193,6 +193,17 @@
       "hybrid": "Híbrido"
     }
   },
+  "IBP": {
+    "title": "Índice IBP",
+    "difficulty": {
+      "veryEasy": "Muy fácil",
+      "easy": "Fácil",
+      "moderate": "Moderada",
+      "hard": "Difícil",
+      "veryHard": "Muy difícil",
+      "extreme": "Extrema"
+    }
+  },
   "WeatherCodes": {
     "0": "Despejado",
     "1": "Mayormente despejado",
