@@ -3,6 +3,7 @@ import { Inter, JetBrains_Mono } from 'next/font/google';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
 import { ThemeProvider } from '@/components/theme-provider';
+import { SettingsProvider } from '@/components/settings-provider';
 import { SessionProvider } from 'next-auth/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Analytics } from '@vercel/analytics/next';
@@ -37,7 +38,9 @@ export default async function RootLayout({
       <body className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
         <SessionProvider>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-            <NextIntlClientProvider messages={messages}>{children}</NextIntlClientProvider>
+            <SettingsProvider>
+              <NextIntlClientProvider messages={messages}>{children}</NextIntlClientProvider>
+            </SettingsProvider>
           </ThemeProvider>
         </SessionProvider>
         <SpeedInsights />

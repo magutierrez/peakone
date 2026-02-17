@@ -3,8 +3,9 @@
 import { Wind, Thermometer, Droplets, Sun, Clock, AlertTriangle } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import type { RouteWeatherPoint } from '@/lib/types';
-import { getSunPosition } from '@/lib/utils';
+import { getSunPosition, formatTemperature, formatWindSpeed } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useSettings } from '@/hooks/use-settings';
 
 interface WeatherSummaryProps {
   weatherPoints: RouteWeatherPoint[];
@@ -12,6 +13,7 @@ interface WeatherSummaryProps {
 
 export function WeatherSummary({ weatherPoints }: WeatherSummaryProps) {
   const t = useTranslations('WeatherTimeline');
+  const { unitSystem, windUnit } = useSettings();
 
   if (weatherPoints.length === 0) return null;
 
@@ -60,7 +62,7 @@ export function WeatherSummary({ weatherPoints }: WeatherSummaryProps) {
           <Thermometer className="h-4 w-4" />
           <span className="text-xs">{t('summary.avgTemp')}</span>
         </div>
-        <p className="mt-1 font-mono text-xl font-bold text-foreground">{avgTemp.toFixed(1)}°C</p>
+        <p className="mt-1 font-mono text-xl font-bold text-foreground">{formatTemperature(avgTemp, unitSystem)}</p>
       </div>
 
       <div className="rounded-lg border border-border bg-card p-3">
@@ -128,11 +130,11 @@ export function WeatherSummary({ weatherPoints }: WeatherSummaryProps) {
           <span className="text-xs">{t('summary.maxWind')}</span>
         </div>
         <p className="mt-1 font-mono text-xl font-bold text-foreground">
-          {maxWind.toFixed(0)}{' '}
-          <span className="text-sm font-normal text-muted-foreground">{t('summary.kmh')}</span>
+          {formatWindSpeed(maxWind, windUnit).split(' ')[0]}{' '}
+          <span className="text-sm font-normal text-muted-foreground">{formatWindSpeed(maxWind, windUnit).split(' ')[1]}</span>
         </p>
         <p className="text-xs text-muted-foreground">
-          {t('summary.gusts', { speed: maxGusts.toFixed(0) })}
+          {t('summary.gusts', { speed: formatWindSpeed(maxGusts, windUnit) })}
         </p>
       </div>
       <div className="rounded-lg border border-border bg-card p-3">

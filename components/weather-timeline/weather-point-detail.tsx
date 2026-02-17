@@ -19,6 +19,8 @@ import { WeatherIcon } from '@/components/weather-icon';
 import { WindArrow } from '@/components/wind-arrow';
 import { WEATHER_CODES } from '@/lib/types';
 import type { RouteWeatherPoint } from '@/lib/types';
+import { useSettings } from '@/hooks/use-settings';
+import { formatTemperature, formatWindSpeed, formatDistance, formatElevation } from '@/lib/utils';
 
 interface WeatherPointDetailProps {
   point: RouteWeatherPoint;
@@ -80,6 +82,7 @@ function getWindEffectIcon(effect: string) {
 export function WeatherPointDetail({ point }: WeatherPointDetailProps) {
   const t = useTranslations('WeatherTimeline');
   const tw = useTranslations('WeatherCodes');
+  const { unitSystem, windUnit } = useSettings();
   const time = point.point.estimatedTime ? new Date(point.point.estimatedTime) : new Date(point.weather.time);
   const locale = 'es-ES';
   const timeStr = time.toLocaleTimeString(locale, {
@@ -106,11 +109,11 @@ export function WeatherPointDetail({ point }: WeatherPointDetailProps) {
           <p className="text-sm text-muted-foreground">{dateStr}</p>
           <p className="font-mono text-2xl font-bold text-foreground">{timeStr}</p>
           <p className="text-xs text-muted-foreground">
-            km {point.point.distanceFromStart.toFixed(1)}
+            {formatDistance(point.point.distanceFromStart, unitSystem)}
           </p>
           {point.point.ele !== undefined && (
             <p className="text-xs text-muted-foreground">
-              {t('detail.altitude', { ele: Math.round(point.point.ele) })}
+              {t('detail.altitude', { ele: formatElevation(point.point.ele, unitSystem) })}
             </p>
           )}
         </div>
@@ -127,10 +130,10 @@ export function WeatherPointDetail({ point }: WeatherPointDetailProps) {
           <div>
             <p className="text-xs text-muted-foreground">{t('detail.temperature')}</p>
             <p className="font-mono text-sm font-bold text-foreground">
-              {point.weather.temperature}°C
+              {formatTemperature(point.weather.temperature, unitSystem)}
             </p>
             <p className="text-[10px] text-muted-foreground">
-              {t('detail.feelsLike', { temp: point.weather.apparentTemperature })}
+              {t('detail.feelsLike', { temp: formatTemperature(point.weather.apparentTemperature, unitSystem) })}
             </p>
           </div>
         </div>
@@ -164,10 +167,10 @@ export function WeatherPointDetail({ point }: WeatherPointDetailProps) {
           <div>
             <p className="text-xs text-muted-foreground">{t('detail.wind')}</p>
             <p className="font-mono text-sm font-bold text-foreground">
-              {point.weather.windSpeed} km/h
+              {formatWindSpeed(point.weather.windSpeed, windUnit)}
             </p>
             <p className="text-[10px] text-muted-foreground">
-              {t('detail.gusts', { speed: point.weather.windGusts })}
+              {t('detail.gusts', { speed: formatWindSpeed(point.weather.windGusts, windUnit) })}
             </p>
           </div>
         </div>

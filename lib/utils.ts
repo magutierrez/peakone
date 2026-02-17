@@ -307,3 +307,39 @@ export function analyzeRouteSegments(weatherPoints: any[]): RouteSegment[] {
   if (currentSegment) segments.push(currentSegment);
   return segments;
 }
+
+/**
+ * Unit Conversions
+ */
+export function formatDistance(km: number, system: 'metric' | 'us' | 'uk' | 'imperial'): string {
+  if (system === 'metric') return `${km.toFixed(1)} km`;
+  const miles = km * 0.621371;
+  return `${miles.toFixed(1)} mi`;
+}
+
+export function formatElevation(m: number, system: 'metric' | 'us' | 'uk' | 'imperial'): string {
+  if (system === 'metric' || system === 'uk') return `${Math.round(m)} m`;
+  const feet = m * 3.28084;
+  return `${Math.round(feet)} ft`;
+}
+
+export function formatTemperature(c: number, system: 'metric' | 'us' | 'uk' | 'imperial'): string {
+  if (system === 'us') {
+    const f = (c * 9) / 5 + 32;
+    return `${Math.round(f)}°F`;
+  }
+  return `${Math.round(c)}°C`;
+}
+
+export function formatWindSpeed(kmh: number, unit: 'kmh' | 'mph' | 'knots' | 'ms'): string {
+  switch (unit) {
+    case 'mph':
+      return `${Math.round(kmh * 0.621371)} mph`;
+    case 'knots':
+      return `${Math.round(kmh * 0.539957)} kn`;
+    case 'ms':
+      return `${(kmh / 3.6).toFixed(1)} m/s`;
+    default:
+      return `${Math.round(kmh)} km/h`;
+  }
+}

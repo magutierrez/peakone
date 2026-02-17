@@ -242,7 +242,16 @@
     "connectStrava": "Conectar con Strava",
     "stravaDescription": "Sincroniza tus rutas y actividades directamente.",
     "terms": "Al continuar, aceptas nuestros términos de servicio y política de privacidad.",
-    "logout": "Cerrar sesión"
+    "logout": "Cerrar sesión",
+    "settings": "Ajustes",
+    "settingsTitle": "Preferencias de Unidades",
+    "system": "Sistema de medidas",
+    "windUnit": "Velocidad del viento",
+    "metric": "Métrico (km, m, °C)",
+    "us": "Estados Unidos (mi, ft, °F)",
+    "uk": "Reino Unido (mi, m, °C)",
+    "imperial": "Imperial (mi, ft, °C)",
+    "save": "Guardar cambios"
   },
   "SavedRoutes": {
     "title": "Mis Rutas Guardadas",

@@ -8,7 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { HelpCircle, RotateCcw } from 'lucide-react';
 import type { GPXData } from '@/lib/types';
-import { calculateIBP, getIBPDifficulty, cn } from '@/lib/utils';
+import { calculateIBP, getIBPDifficulty, cn, formatDistance, formatElevation } from '@/lib/utils';
+import { useSettings } from '@/hooks/use-settings';
 
 interface RouteConfigPanelProps {
   gpxData: GPXData | null;
@@ -38,6 +39,7 @@ export function RouteConfigPanel({
 }: RouteConfigPanelProps) {
   const t = useTranslations('RouteConfigPanel');
   const tibp = useTranslations('IBP');
+  const { unitSystem } = useSettings();
 
   const ibpIndex = gpxData
     ? calculateIBP(gpxData.totalDistance, gpxData.totalElevationGain, activityType)
@@ -72,21 +74,21 @@ export function RouteConfigPanel({
           <div className="grid grid-cols-3 gap-2">
             <div className="rounded-lg bg-secondary p-3 text-center">
               <p className="font-mono text-lg font-bold text-foreground">
-                {gpxData.totalDistance.toFixed(1)}
+                {formatDistance(gpxData.totalDistance, unitSystem).split(' ')[0]}
               </p>
-              <p className="text-xs text-muted-foreground">{t('km')}</p>
+              <p className="text-xs text-muted-foreground">{formatDistance(gpxData.totalDistance, unitSystem).split(' ')[1]}</p>
             </div>
             <div className="rounded-lg bg-secondary p-3 text-center">
               <p className="font-mono text-lg font-bold text-primary">
-                +{Math.round(gpxData.totalElevationGain)}
+                +{formatElevation(gpxData.totalElevationGain, unitSystem).split(' ')[0]}
               </p>
-              <p className="text-xs text-muted-foreground">{t('elevationGain')}</p>
+              <p className="text-xs text-muted-foreground">{formatElevation(gpxData.totalElevationGain, unitSystem).split(' ')[1]}</p>
             </div>
             <div className="rounded-lg bg-secondary p-3 text-center">
               <p className="font-mono text-lg font-bold text-destructive">
-                -{Math.round(gpxData.totalElevationLoss)}
+                -{formatElevation(gpxData.totalElevationLoss, unitSystem).split(' ')[0]}
               </p>
-              <p className="text-xs text-muted-foreground">{t('elevationLoss')}</p>
+              <p className="text-xs text-muted-foreground">{formatElevation(gpxData.totalElevationLoss, unitSystem).split(' ')[1]}</p>
             </div>
           </div>
 

@@ -6,6 +6,8 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { WeatherIcon } from '@/components/weather-icon';
 import { WEATHER_CODES } from '@/lib/types';
 import type { RouteWeatherPoint } from '@/lib/types';
+import { useSettings } from '@/hooks/use-settings';
+import { formatTemperature, formatWindSpeed, formatDistance } from '@/lib/utils';
 
 interface WeatherListProps {
   weatherPoints: RouteWeatherPoint[];
@@ -61,6 +63,7 @@ function getWindEffectIcon(effect: string) {
 export function WeatherList({ weatherPoints, selectedIndex, onSelect }: WeatherListProps) {
   const t = useTranslations('WeatherTimeline');
   const tw = useTranslations('WeatherCodes');
+  const { unitSystem, windUnit } = useSettings();
 
   return (
     <div className="w-full overflow-hidden">
@@ -93,7 +96,7 @@ export function WeatherList({ weatherPoints, selectedIndex, onSelect }: WeatherL
               >
                 <span className="font-mono text-xs font-bold text-foreground">{timeStr}</span>
                 <span className="text-[10px] text-muted-foreground">
-                  km {wp.point.distanceFromStart.toFixed(1)}
+                  {formatDistance(wp.point.distanceFromStart, unitSystem)}
                 </span>
                 
                 {wp.solarIntensity && (
@@ -110,12 +113,12 @@ export function WeatherList({ weatherPoints, selectedIndex, onSelect }: WeatherL
                 <WeatherIcon code={wp.weather.weatherCode} className="h-6 w-6" />
                 <span className="text-[10px] text-muted-foreground">{weatherDescription}</span>
                 <span className="font-mono text-sm font-bold text-foreground">
-                  {wp.weather.temperature}°
+                  {formatTemperature(wp.weather.temperature, unitSystem)}
                 </span>
                 <div className="flex items-center gap-1">
                   <Wind className="h-3 w-3 text-muted-foreground" />
                   <span className="font-mono text-[10px] text-muted-foreground">
-                    {wp.weather.windSpeed}
+                    {formatWindSpeed(wp.weather.windSpeed, windUnit)}
                   </span>
                 </div>
                 <div className="flex items-center gap-1">
