@@ -144,7 +144,8 @@
       "motorway": "Autovía",
       "unknown": "Otros",
       "construction": "Construcción",
-      "motorway_link": "Enlace autovía"
+      "motorway_link": "Enlace autovía",
+      "trunk_link": "Enlace carretera nacional"
     },
     "surfaces": {
       "title": "Superficies",
