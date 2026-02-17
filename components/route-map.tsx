@@ -84,7 +84,7 @@ export default function RouteMap({
   if (!mounted) return null;
 
   return (
-    <div className="relative h-full w-full overflow-hidden rounded-lg border border-border">
+    <div className="relative h-full w-full overflow-hidden border border-border">
       <Map
         ref={mapRef}
         mapLib={maplibregl}
