@@ -10,6 +10,7 @@ import {
   reverseGPXData,
 } from '@/lib/gpx-parser';
 import type { GPXData, RouteConfig, RouteWeatherPoint, WeatherData } from '@/lib/types';
+import { getSunPosition, getSolarExposure } from '@/lib/utils';
 
 export function useRouteAnalysis(config: RouteConfig) {
   const t = useTranslations('HomePage');
@@ -192,18 +193,37 @@ export function useRouteAnalysis(config: RouteConfig) {
       const weatherData: WeatherData[] = weatherDataObj.weather;
 
       const routeWeatherPoints: RouteWeatherPoint[] = pointsWithTime.map((point, idx) => {
-        const nextPoint = pointsWithTime[Math.min(idx + 1, pointsWithTime.length - 1)];
+        const nextIdx = Math.min(idx + 1, pointsWithTime.length - 1);
+        const prevIdx = Math.max(0, idx - 1);
+        const nextPoint = pointsWithTime[nextIdx];
+        const prevPoint = pointsWithTime[prevIdx];
+        
         const bearing = calculateBearing(point.lat, point.lon, nextPoint.lat, nextPoint.lon);
         const weather = weatherData[idx];
         const windResult = getWindEffect(bearing, weather.windDirection);
 
         // Match with route info (nearest point)
         const info = routeInfoData[idx] || {};
+        const ele = point.ele || info.elevation || 0;
+
+        // Calculate slope and aspect for hillshading
+        // Use a window of points for a smoother slope
+        const distDiff = (nextPoint.distanceFromStart - prevPoint.distanceFromStart) * 1000; // meters
+        const eleDiff = (nextPoint.ele || info.elevation || 0) - (prevPoint.ele || info.elevation || 0);
+        const slopeRad = distDiff > 0 ? Math.atan(eleDiff / distDiff) : 0;
+        const slopeDeg = (slopeRad * 180) / Math.PI;
+        
+        // Aspect is the direction of the steepest descent
+        // If going uphill, aspect is bearing + 180, if downhill, aspect is bearing
+        const aspectDeg = eleDiff > 0 ? (bearing + 180) % 360 : bearing;
+
+        const sunPos = getSunPosition(point.estimatedTime, point.lat, point.lon);
+        const solarExposure = getSolarExposure(weather, sunPos, Math.abs(slopeDeg), aspectDeg);
 
         return {
           point: {
             ...point,
-            ele: point.ele || info.elevation, // Fallback to OSM/Meteo elevation
+            ele,
           },
           weather,
           windEffect: windResult.effect,
@@ -211,6 +231,7 @@ export function useRouteAnalysis(config: RouteConfig) {
           bearing,
           pathType: info.pathType,
           surface: info.surface,
+          solarExposure,
         };
       });
 

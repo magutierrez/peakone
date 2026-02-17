@@ -1,6 +1,6 @@
 'use client';
 
-import { Wind, ArrowUp, ArrowDown, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Wind, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Sun, Moon, Cloud } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { WeatherIcon } from '@/components/weather-icon';
@@ -11,6 +11,19 @@ interface WeatherListProps {
   weatherPoints: RouteWeatherPoint[];
   selectedIndex: number | null;
   onSelect: (index: number) => void;
+}
+
+function getSolarIcon(exposure: string) {
+  switch (exposure) {
+    case 'sun':
+      return <Sun className="h-3 w-3 text-amber-500 fill-amber-500/20" />;
+    case 'shade':
+      return <Cloud className="h-3 w-3 text-slate-400 fill-slate-400/20" />;
+    case 'night':
+      return <Moon className="h-3 w-3 text-indigo-400 fill-indigo-400/20" />;
+    default:
+      return null;
+  }
 }
 
 function getWindEffectIcon(effect: string) {
@@ -65,6 +78,16 @@ export function WeatherList({ weatherPoints, selectedIndex, onSelect }: WeatherL
                 <span className="text-[10px] text-muted-foreground">
                   km {wp.point.distanceFromStart.toFixed(1)}
                 </span>
+                
+                {wp.solarExposure && (
+                  <div className="flex items-center gap-1.5 rounded-full bg-secondary/30 px-2 py-0.5">
+                    {getSolarIcon(wp.solarExposure)}
+                    <span className="text-[9px] font-medium uppercase text-muted-foreground">
+                      {t(`solarExposure.${wp.solarExposure}` as any)}
+                    </span>
+                  </div>
+                )}
+
                 <WeatherIcon code={wp.weather.weatherCode} className="h-6 w-6" />
                 <span className="text-[10px] text-muted-foreground">{weatherDescription}</span>
                 <span className="font-mono text-sm font-bold text-foreground">

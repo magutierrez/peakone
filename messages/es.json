@@ -89,6 +89,11 @@
       "relativeAngle": "Angulo relativo: {angle}° respecto a tu direccion de viaje",
       "bearing": "Rumbo viaje"
     },
+    "solarExposure": {
+      "sun": "Al sol",
+      "shade": "En sombra",
+      "night": "Noche"
+    },
     "detail": {
       "temperature": "Temperatura",
       "feelsLike": "Sens. {temp}°C",

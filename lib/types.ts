@@ -31,6 +31,9 @@ export interface WeatherData {
   windGusts: number;
   cloudCover: number;
   visibility: number;
+  isDay?: number;
+  directRadiation?: number;
+  diffuseRadiation?: number;
 }
 
 export interface RouteWeatherPoint {
@@ -41,6 +44,7 @@ export interface RouteWeatherPoint {
   bearing: number; // direction of travel at this point
   pathType?: string; // e.g., cycleway, path, primary, etc.
   surface?: string; // e.g., asphalt, gravel, unpaved
+  solarExposure?: 'sun' | 'shade' | 'night';
 }
 
 export interface RouteSegmentMetadata {

@@ -9,6 +9,9 @@ import {
   ArrowDown,
   ArrowLeft,
   ArrowRight,
+  Sun,
+  Moon,
+  Cloud,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { WeatherIcon } from '@/components/weather-icon';
@@ -18,6 +21,19 @@ import type { RouteWeatherPoint } from '@/lib/types';
 
 interface WeatherPointDetailProps {
   point: RouteWeatherPoint;
+}
+
+function getSolarIcon(exposure: string) {
+  switch (exposure) {
+    case 'sun':
+      return <Sun className="h-4 w-4 text-amber-500" />;
+    case 'shade':
+      return <Cloud className="h-4 w-4 text-slate-400" />;
+    case 'night':
+      return <Moon className="h-4 w-4 text-indigo-400" />;
+    default:
+      return null;
+  }
 }
 
 function getWindEffectIcon(effect: string) {
@@ -78,7 +94,7 @@ export function WeatherPointDetail({ point }: WeatherPointDetailProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
         {/* Temperature */}
         <div className="flex items-center gap-2 rounded-lg bg-secondary p-2.5">
           <Thermometer className="h-4 w-4 shrink-0 text-destructive" />
@@ -89,6 +105,22 @@ export function WeatherPointDetail({ point }: WeatherPointDetailProps) {
             </p>
             <p className="text-[10px] text-muted-foreground">
               {t('detail.feelsLike', { temp: point.weather.apparentTemperature })}
+            </p>
+          </div>
+        </div>
+
+        {/* Solar Exposure */}
+        <div className="flex items-center gap-2 rounded-lg bg-secondary p-2.5">
+          {point.solarExposure && getSolarIcon(point.solarExposure)}
+          <div>
+            <p className="text-xs text-muted-foreground">Exposición Solar</p>
+            <p className="font-mono text-sm font-bold text-foreground capitalize">
+              {point.solarExposure ? t(`solarExposure.${point.solarExposure}` as any) : '-'}
+            </p>
+            <p className="text-[10px] text-muted-foreground">
+              {point.weather.directRadiation !== undefined 
+                ? `${Math.round(point.weather.directRadiation)} W/m²` 
+                : '-'}
             </p>
           </div>
         </div>
