@@ -26,7 +26,33 @@
       "terrain": "Terreno y Vía",
       "altitude": "Altitud",
       "activityConfig": "Configuración de la Actividad",
-      "weatherAnalysis": "Análisis Meteorológico"
+      "weatherAnalysis": "Análisis Meteorológico",
+      "advice": "Consejos de Seguridad",
+      "adviceCycling": "Recomendaciones específicas de seguridad para tu ruta en bicicleta.",
+      "adviceHiking": "Recomendaciones específicas de seguridad para tu ruta de senderismo."
+    }
+  },
+  "Advice": {
+    "title": "Consejos para tu ruta",
+    "weather": "Meteorología",
+    "gear": "Equipamiento",
+    "safety": "Seguridad",
+    "nutrition": "Nutrición y Salud",
+    "cycling": {
+      "rain": "Cuidado con las curvas y el asfalto mojado. Revisa tus frenos.",
+      "wind": "Viento fuerte detectado. Sujeta con firmeza el manillar en zonas expuestas.",
+      "heat": "Calor intenso. Hidrátate cada 15-20 minutos.",
+      "cold": "Usa capas cortavientos. El descenso puede ser gélido.",
+      "night": "Luz delantera y trasera obligatorias. Chaleco reflectante recomendado.",
+      "general": "Revisa la presión de los neumáticos y lleva un kit de reparación."
+    },
+    "hiking": {
+      "rain": "Terreno resbaladizo. Usa calzado con buen agarre y chubasquero.",
+      "wind": "Evita crestas expuestas si las rachas son fuertes.",
+      "heat": "Busca sombras y lleva al menos 2L de agua.",
+      "cold": "Riesgo de hipotermia si te detienes. Lleva manta térmica.",
+      "night": "Frontal con pilas de repuesto. No abandones el sendero marcado.",
+      "general": "Avisa a alguien de tu ruta y hora estimada de llegada."
     }
   },
   "RouteConfigPanel": {
