@@ -15,6 +15,7 @@ import { useSavedRoutes } from '@/hooks/use-saved-routes';
 import { RouteLoadingOverlay } from './route-loading-overlay';
 import { ActivityConfigSection } from './activity-config-section';
 import { AnalysisResults } from './analysis-results';
+import { AnalysisSkeleton } from './analysis-skeleton';
 
 const RouteMap = dynamic(() => import('@/components/route-map'), {
   ssr: false,
@@ -119,11 +120,11 @@ export default function HomePageClient({ session }: HomePageClientProps) {
         />
 
         <main className="relative flex min-w-0 flex-1 flex-col lg:flex-row">
-          <RouteLoadingOverlay isVisible={isRouteInfoLoading} />
-
           <div className="flex w-full flex-col gap-10 p-6 md:p-8 lg:w-[60%]">
             {!gpxData ? (
               <EmptyState />
+            ) : isRouteInfoLoading ? (
+              <AnalysisSkeleton />
             ) : (
               <>
                 <AnalysisResults
@@ -150,7 +151,8 @@ export default function HomePageClient({ session }: HomePageClientProps) {
             )}
           </div>
 
-          <div className="sticky top-[57px] h-[50vh] w-full border-l border-border lg:h-[calc(100vh-57px)] lg:w-[40%]">
+          <div className="sticky top-[57px] h-[50vh] w-full border-l border-border lg:h-[calc(100vh-57px)] lg:w-[40%] relative">
+            <RouteLoadingOverlay isVisible={isRouteInfoLoading} />
             <RouteMap
               points={gpxData?.points || []}
               weatherPoints={weatherPoints.length > 0 ? weatherPoints : undefined}
