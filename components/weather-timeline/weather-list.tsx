@@ -68,7 +68,7 @@ export function WeatherList({ weatherPoints, selectedIndex, onSelect }: WeatherL
       <ScrollArea className="w-full whitespace-nowrap">
         <div className="flex w-max gap-2 pb-4">
           {weatherPoints.map((wp, idx) => {
-            const time = new Date(wp.weather.time);
+            const time = wp.point.estimatedTime ? new Date(wp.point.estimatedTime) : new Date(wp.weather.time);
             const locale = 'es-ES';
             const timeStr = time.toLocaleTimeString(locale, {
               hour: '2-digit',

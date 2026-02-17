@@ -80,7 +80,7 @@ function getWindEffectIcon(effect: string) {
 export function WeatherPointDetail({ point }: WeatherPointDetailProps) {
   const t = useTranslations('WeatherTimeline');
   const tw = useTranslations('WeatherCodes');
-  const time = new Date(point.weather.time);
+  const time = point.point.estimatedTime ? new Date(point.point.estimatedTime) : new Date(point.weather.time);
   const locale = 'es-ES';
   const timeStr = time.toLocaleTimeString(locale, {
     hour: '2-digit',
