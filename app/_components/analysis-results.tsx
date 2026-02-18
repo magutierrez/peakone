@@ -6,6 +6,7 @@ import { ThermometerSnowflake, Waves } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { WeatherSummary } from '@/components/weather-timeline/weather-summary';
 import { WeatherList } from '@/components/weather-timeline/weather-list';
+import { WeatherPointDetail } from '@/components/weather-timeline/weather-point-detail';
 import { RouteAdvice } from '@/components/route-advice';
 import { RouteHazards } from '@/components/route-hazards';
 import { Label } from '@/components/ui/label';
@@ -104,19 +105,24 @@ export function AnalysisResults({
 
         <TabsContent value="weather" className="mt-6 flex flex-col gap-6">
           <WeatherSummary weatherPoints={weatherPoints} activityType={activityType} />
+
           <WeatherList
             weatherPoints={weatherPoints}
-            routeInfoData={routeInfoData}
-            selectedPointIndex={selectedPointIndex}
-            setSelectedPointIndex={setSelectedPointIndex}
+            selectedIndex={selectedPointIndex}
+            onSelect={setSelectedPointIndex}
           />
+
+          {selectedPointIndex !== null && weatherPoints[selectedPointIndex] && (
+            <WeatherPointDetail
+              point={weatherPoints[selectedPointIndex]}
+            />
+          )}
         </TabsContent>
 
         <TabsContent value="advice" className="mt-6 flex flex-col gap-6">
           <RouteAdvice
             weatherPoints={weatherPoints}
             activityType={activityType}
-            physiology={{ calories, waterLiters }}
             showWaterSources={showWaterSources}
             onToggleWaterSources={onToggleWaterSources}
           />

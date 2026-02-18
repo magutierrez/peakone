@@ -30,7 +30,7 @@ interface SettingsModalProps {
 
 export function SettingsModal({ isOpen, onOpenChange }: SettingsModalProps) {
   const t = useTranslations('Auth');
-  const { unitSystem, windSpeedUnit, setUnitSystem, setWindSpeedUnit } = useSettings();
+  const { unitSystem, windUnit, setUnitSystem, setWindUnit } = useSettings();
 
   const handleSave = () => {
     onOpenChange(false);
@@ -64,14 +64,14 @@ export function SettingsModal({ isOpen, onOpenChange }: SettingsModalProps) {
             </Select>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="windSpeedUnit" className="text-right">
+            <Label htmlFor="windUnit" className="text-right">
               {t('windUnit')}
             </Label>
             <Select
-              value={windSpeedUnit}
-              onValueChange={(value) => setWindSpeedUnit(value as any)}
+              value={windUnit}
+              onValueChange={(value) => setWindUnit(value as any)}
             >
-              <SelectTrigger id="windSpeedUnit" className="col-span-3">
+              <SelectTrigger id="windUnit" className="col-span-3">
                 <SelectValue placeholder="Select wind speed unit" />
               </SelectTrigger>
               <SelectContent>

@@ -2,8 +2,9 @@
 
 import { Session } from 'next-auth';
 import { signOut } from 'next-auth/react';
-import { Mountain, Settings, LogOut, Menu } from 'lucide-react';
+import { Mountain, Settings, LogOut, Menu, Sun, Moon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { useTheme } from 'next-themes';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -31,6 +32,7 @@ export function Header({ session, mobileMenuContent }: HeaderProps) {
   const isMobile = useIsMobile();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const { theme, setTheme } = useTheme();
 
   const userInitial = session?.user?.name
     ? session.user.name.charAt(0).toUpperCase()
@@ -45,6 +47,20 @@ export function Header({ session, mobileMenuContent }: HeaderProps) {
 
       <div className="flex items-center gap-2">
         <LocaleSwitcher />
+
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-9 w-9"
+          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+        >
+          {theme === 'dark' ? (
+            <Sun className="h-5 w-5" />
+          ) : (
+            <Moon className="h-5 w-5" />
+          )}
+          <span className="sr-only">Toggle theme</span>
+        </Button>
 
         {isMobile && mobileMenuContent && (
           <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>

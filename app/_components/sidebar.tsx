@@ -1,6 +1,6 @@
 'use client';
 
-import { RotateCcw } from 'lucide-react';
+import { Info, RotateCcw } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import type { GPXData, RouteConfig } from '@/lib/types';
 import { cn, calculateIBP, getIBPDifficulty, formatDistance, formatElevation } from '@/lib/utils';
@@ -9,6 +9,13 @@ import { useSettings } from '@/hooks/use-settings';
 import { ActivityConfigSection } from './activity-config-section';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface SidebarProps {
   gpxData: GPXData | null;
@@ -17,12 +24,11 @@ interface SidebarProps {
   onClearGPX: () => void;
   onReverseRoute: () => void;
   provider?: string;
-  activityType: 'cycling' | 'walking'; // activityType is no longer optional here
+  activityType: 'cycling' | 'walking';
   className?: string;
   recalculatedElevationGain: number;
   recalculatedElevationLoss: number;
   recalculatedTotalDistance: number;
-  // Props for ActivityConfigSection
   config: RouteConfig;
   setConfig: React.Dispatch<React.SetStateAction<RouteConfig>>;
   onAnalyze: () => void;
@@ -42,7 +48,6 @@ export function Sidebar({
   recalculatedElevationGain,
   recalculatedElevationLoss,
   recalculatedTotalDistance,
-  // ActivityConfigSection props
   config,
   setConfig,
   onAnalyze,
@@ -58,15 +63,43 @@ export function Sidebar({
     : 0;
   const difficulty = getIBPDifficulty(ibpIndex, activityType);
 
+  const getDifficultyBadgeVariant = (
+    difficultyLevel: 'veryEasy' | 'easy' | 'moderate' | 'hard' | 'veryHard' | 'extreme',
+  ) => {
+    switch (difficultyLevel) {
+      case 'veryEasy':
+      case 'easy':
+        return 'outline';
+      case 'moderate':
+        return 'secondary';
+      case 'hard':
+        return 'destructive';
+      case 'veryHard':
+      case 'extreme':
+        return 'default';
+      default:
+        return 'outline';
+    }
+  };
+
   return (
     <aside className={cn(
-      "sticky top-[57px] h-[calc(100vh-57px)] w-full shrink-0 border-b border-border bg-card lg:w-80 lg:border-b-0 lg:border-r",
+      "sticky top-[57px] h-[calc(100vh-57px)] shrink-0 border-b border-border bg-card lg:border-b-0 lg:border-r",
       className
     )}>
       <div className="flex h-full flex-col overflow-hidden p-4">
         <div className="flex h-full min-h-0 flex-col gap-6">
+          <ActivityConfigSection
+            config={config}
+            setConfig={setConfig}
+            onAnalyze={onAnalyze}
+            isLoading={isLoading}
+            hasGpxData={hasGpxData}
+            totalDistance={recalculatedTotalDistance}
+            recalculatedElevationGain={recalculatedElevationGain}
+            recalculatedElevationLoss={recalculatedElevationLoss}
+          />
 
-          {/* Route Stats */}
           {gpxData && (
             <div className="flex flex-col gap-3">
               <div className="mb-2 flex items-center justify-between">
@@ -103,33 +136,37 @@ export function Sidebar({
                 </div>
               </div>
               
-              {/* IBP Index */}
               <div className="mt-2 flex flex-col gap-1.5">
-                <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  {tibp('title')}
-                </Label>
+                <div className="flex items-center gap-2">
+                  <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    {tibp('title')}
+                  </Label>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-4 w-4">
+                          <Info className="h-3 w-3 text-muted-foreground" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs text-xs">
+                        {tibp('description')}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
                 <div className="flex items-baseline gap-2">
                   <p className="text-2xl font-bold text-primary">{ibpIndex}</p>
-                  <p className="text-sm font-medium text-muted-foreground">({tibp(`difficulty.${difficulty}`)})</p>
+                  <Badge variant={getDifficultyBadgeVariant(difficulty)} className="text-sm font-medium">
+                    {tibp(`difficulty.${difficulty}`)}
+                  </Badge>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Activity Configuration */}
-          <ActivityConfigSection
-            config={config}
-            setConfig={setConfig}
-            onAnalyze={onAnalyze}
-            isLoading={isLoading}
-            hasGpxData={hasGpxData}
-            totalDistance={recalculatedTotalDistance} // Use recalculated distance
-            recalculatedElevationGain={recalculatedElevationGain}
-            recalculatedElevationLoss={recalculatedElevationLoss}
-          />
+
           
           <div className="custom-scrollbar flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto pr-1">
-            {/* Removed Strava, Saved Routes, GPX upload */}
           </div>
 
           {error && (

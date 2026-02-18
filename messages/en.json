@@ -192,9 +192,9 @@
     },
     "detail": {
       "temperature": "Temperature",
-      "feelsLike": "Feels {temp}°C",
+      "feelsLike": "Feels {temp}",
       "wind": "Wind",
-      "gusts": "Gusts: {speed} km/h",
+      "gusts": "Gusts: {speed}",
       "rain": "Rain",
       "prob": "Prob: {percent}%",
       "visibility": "Visibility",

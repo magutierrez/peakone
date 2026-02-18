@@ -138,9 +138,9 @@ export default function RouteMap({
 
       <style jsx global>{`
         .weather-popup .maplibregl-popup-content {
-          background: hsl(var(--card)) !important;
-          border: 1px solid hsl(var(--border)) !important;
-          color: hsl(var(--foreground)) !important;
+          background: var(--card) !important;
+          border: 1px solid var(--border) !important;
+          color: var(--foreground) !important;
           border-radius: 8px !important;
           padding: 8px 12px !important;
         }

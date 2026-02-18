@@ -36,7 +36,7 @@ export function ActivityConfigSection({
   const minutes = Math.round(estimatedDuration % 60);
 
   return (
-    <section className="flex flex-col gap-6 rounded-xl border border-border bg-card/50 p-6">
+    <section className="flex flex-col gap-6 ">
       <div className="flex items-center gap-2 border-b border-border pb-2">
         <div className="h-4 w-1 rounded-full bg-primary" />
         <h3 className="text-sm font-bold uppercase tracking-wider text-foreground/80">
@@ -44,7 +44,7 @@ export function ActivityConfigSection({
         </h3>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="flex flex-col gap-3">
         <div className="flex flex-col gap-3">
           <Label
             htmlFor="speed"
@@ -63,7 +63,7 @@ export function ActivityConfigSection({
               onChange={(e) => setConfig({ ...config, speed: parseFloat(e.target.value) || 1 })}
               className="border-border bg-secondary font-mono"
             />
-            <div className="shrink-0 rounded-lg border border-border bg-muted/50 px-4 py-2">
+            <div className="shrink-0 ">
               <p className="text-[10px] uppercase text-muted-foreground">
                 {t('estimatedDuration')}
               </p>
@@ -112,7 +112,7 @@ export function ActivityConfigSection({
         </div>
       </div>
 
-      <div className="mt-2 border-t border-border pt-4">
+      <div>
         <Button
           onClick={onAnalyze}
           disabled={!hasGpxData || isLoading}

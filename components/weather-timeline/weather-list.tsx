@@ -86,7 +86,11 @@ export function WeatherList({ weatherPoints, selectedIndex, onSelect }: WeatherL
             return (
               <button
                 key={idx}
-                onClick={() => onSelect(idx)}
+                onClick={() => {
+                  if (onSelect) {
+                    onSelect(idx);
+                  }
+                }}
                 className={`flex shrink-0 flex-col items-center gap-1.5 rounded-lg border p-3 transition-all ${
                   isSelected
                     ? 'border-primary bg-primary/10'
