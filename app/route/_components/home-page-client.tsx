@@ -16,8 +16,10 @@ import { Session } from 'next-auth';
 import { RouteLoadingOverlay } from '../../_components/route-loading-overlay';
 import { AnalysisResults } from '../../_components/analysis-results';
 import { AnalysisSkeleton } from '../../_components/analysis-skeleton';
-import { AnalysisChart } from '@/components/weather-timeline/elevation-profile';
 import { cn } from '@/lib/utils';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { AnalysisChart } from '@/components/weather-timeline/elevation-profile';
+import { RouteSegments } from '@/components/weather-timeline/route-segments';
 
 const RouteMap = dynamic(() => import('@/components/route-map'), {
   ssr: false,
@@ -92,6 +94,7 @@ export default function HomePageClient({ session }: HomePageClientProps) {
   const [selectedRange, setSelectedRange] = useState<{ start: number; end: number } | null>(null);
   const [showWaterSources, setShowWaterSources] = useState(false);
   const tHomePage = useTranslations('HomePage');
+  const twt = useTranslations('WeatherTimeline');
 
   const mapResetViewRef = useRef<(() => void) | null>(null);
   const handleResetMapView = useCallback(() => {
@@ -195,16 +198,32 @@ export default function HomePageClient({ session }: HomePageClientProps) {
             ) : isRouteInfoLoading ? (
               <AnalysisSkeleton />
             ) : (
-              <>
-                <AnalysisChart
-                  elevationData={elevationData}
-                  weatherPoints={weatherPoints}
-                  selectedIndex={selectedPointIndex}
-                  onSelect={setSelectedPointIndex}
-                  onRangeSelect={setSelectedRange}
-                  selectedRange={selectedRange}
-                  activeFilter={activeFilter}
-                />
+              <div className="flex flex-col gap-10">
+                <Tabs defaultValue="elevation" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2 bg-secondary/50 mb-4">
+                    <TabsTrigger value="elevation">{twt('elevationTitle')}</TabsTrigger>
+                    <TabsTrigger value="terrain">{twt('segmentsTitle')}</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="elevation" className="mt-0">
+                    <AnalysisChart
+                      elevationData={elevationData}
+                      weatherPoints={weatherPoints}
+                      selectedIndex={selectedPointIndex}
+                      onSelect={setSelectedPointIndex}
+                      onRangeSelect={setSelectedRange}
+                      selectedRange={selectedRange}
+                      activeFilter={activeFilter}
+                    />
+                  </TabsContent>
+                  <TabsContent value="terrain" className="mt-0">
+                    <RouteSegments
+                      weatherPoints={routeInfoData}
+                      activeFilter={activeFilter}
+                      setActiveFilter={setActiveFilter}
+                    />
+                  </TabsContent>
+                </Tabs>
+
                 {isWeatherAnalyzed ? (
                   <AnalysisResults
                     weatherPoints={weatherPoints}
@@ -226,7 +245,7 @@ export default function HomePageClient({ session }: HomePageClientProps) {
                     <p className="max-w-md text-sm">{tHomePage('clickAnalyze')}</p>
                   </div>
                 )}
-              </>
+              </div>
             )}
           </div>
 

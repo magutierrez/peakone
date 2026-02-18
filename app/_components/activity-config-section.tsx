@@ -54,7 +54,6 @@ export function ActivityConfigSection({
               max={60}
               value={config.speed}
               onChange={(e) => setConfig({ ...config, speed: parseFloat(e.target.value) || 1 })}
-              className="border-border bg-secondary font-mono"
             />
             <div className="shrink-0">
               <p className="text-muted-foreground text-[10px] uppercase">
@@ -83,7 +82,6 @@ export function ActivityConfigSection({
             type="date"
             value={config.date}
             onChange={(e) => setConfig({ ...config, date: e.target.value })}
-            className="border-border bg-secondary"
           />
         </div>
 
@@ -100,7 +98,6 @@ export function ActivityConfigSection({
             type="time"
             value={config.time}
             onChange={(e) => setConfig({ ...config, time: e.target.value })}
-            className="border-border bg-secondary"
           />
         </div>
       </div>
@@ -109,7 +106,7 @@ export function ActivityConfigSection({
         <Button
           onClick={onAnalyze}
           disabled={!hasGpxData || isLoading}
-          className="bg-primary text-primary-foreground shadow-primary/20 hover:bg-primary/90 w-full font-semibold shadow-lg"
+          className="bg-primary text-primary-foreground  hover:bg-primary/90 w-full font-semibold shadow-lg"
           size="lg"
         >
           {isLoading ? (

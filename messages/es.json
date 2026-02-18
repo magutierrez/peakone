@@ -54,7 +54,8 @@
         "effortLevel": "Nivel de Esfuerzo",
               "danger": "Riesgo",
               "distance": "Distancia",
-              "slope": "Pendiente Media",
+              "slope": "Pendiente",
+              "avg": "Media",
               "max": "Máx",
               "noSegments": "No se han detectado tramos de riesgo en esta ruta.",        "levels": {
           "low": "BAJO",

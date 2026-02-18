@@ -93,18 +93,27 @@ export function RouteHazards({
                       {segmentIcons[seg.type]}
                     </div>
                     <div>
-                      <h4 className="text-foreground text-sm leading-tight font-bold">
-                        {t(seg.type)}
-                      </h4>
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-foreground text-sm leading-tight font-bold">
+                          {t(seg.type)}
+                        </h4>
+                        {seg.climbCategory && seg.climbCategory !== 'none' && (
+                          <Badge variant="outline" className="bg-primary/5 border-primary/20 text-primary h-4 px-1 text-[8px] font-bold">
+                            CAT {seg.climbCategory}
+                          </Badge>
+                        )}
+                      </div>
                       <p className="text-muted-foreground text-[10px] font-semibold uppercase">
                         km {seg.startDist.toFixed(1)} - {distance.toFixed(1)} km {t('distance')}
                       </p>
                     </div>
                   </div>
-                  <Badge variant="outline" className="gap-1 font-mono text-[10px]">
-                    <Activity className="h-3 w-3" />
-                    {Math.round(seg.maxSlope)}%
-                  </Badge>
+                  <div className="flex flex-col items-end gap-1">
+                    <Badge variant="outline" className="gap-1 font-mono text-[10px]">
+                      <Activity className="h-3 w-3" />
+                      {Math.round(seg.avgSlope)}% {t('avg')}
+                    </Badge>
+                  </div>
                 </div>
 
                 <div className="bg-secondary/5 h-24 w-full pt-2">

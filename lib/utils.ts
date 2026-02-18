@@ -208,12 +208,16 @@ export function calculateWaterReliability(
 export interface RouteSegment {
   type: 'steepClimb' | 'steepDescent' | 'heatStress' | 'effort';
   dangerLevel: 'low' | 'medium' | 'high';
+  climbCategory?: 'HC' | '1' | '2' | '3' | '4' | 'none';
   dangerColor: string;
   startDist: number;
   endDist: number;
   points: any[];
   maxSlope: number;
+  avgSlope: number;
   avgTemp: number;
+  lengthM: number;
+  score: number;
 }
 
 export function analyzeRouteSegments(weatherPoints: any[]): RouteSegment[] {
@@ -222,64 +226,43 @@ export function analyzeRouteSegments(weatherPoints: any[]): RouteSegment[] {
   const segments: RouteSegment[] = [];
   let currentSegment: any = null;
 
+  const getClimbCategory = (score: number): RouteSegment['climbCategory'] => {
+    if (score >= 80000) return 'HC';
+    if (score >= 64000) return '1';
+    if (score >= 32000) return '2';
+    if (score >= 16000) return '3';
+    if (score >= 8000) return '4';
+    return 'none';
+  };
+
   weatherPoints.forEach((wp, i) => {
     if (i === 0) return;
     const prev = weatherPoints[i - 1];
-    const dist = wp.point.distanceFromStart - prev.point.distanceFromStart;
+    const distKm = wp.point.distanceFromStart - prev.point.distanceFromStart;
     const eleDiff = (wp.point.ele || 0) - (prev.point.ele || 0);
-    const slope = dist > 0 ? (eleDiff / (dist * 1000)) * 100 : 0;
+    const slope = distKm > 0 ? (eleDiff / (distKm * 1000)) * 100 : 0;
 
     let type: RouteSegment['type'] | null = null;
-    let dangerLevel: RouteSegment['dangerLevel'] = 'low';
-    let dangerColor = 'text-blue-500';
-
-    // 1. Subidas
-    if (slope > 4) {
+    
+    // Garmin-style thresholds:
+    // Climb: Slope > 3%
+    // Descent: Slope < -5%
+    if (slope >= 3) {
       type = 'steepClimb';
-      if (slope > 10) {
-        dangerLevel = 'high';
-        dangerColor = 'text-red-600';
-      } else if (slope > 7) {
-        dangerLevel = 'medium';
-        dangerColor = 'text-orange-500';
-      } else {
-        dangerLevel = 'low';
-        dangerColor = 'text-amber-500';
-      }
-    }
-    // 2. Bajadas
-    else if (slope < -6) {
+    } else if (slope <= -5) {
       type = 'steepDescent';
-      if (slope < -15) {
-        dangerLevel = 'high';
-        dangerColor = 'text-red-600';
-      } else if (slope < -10) {
-        dangerLevel = 'medium';
-        dangerColor = 'text-orange-500';
-      } else {
-        dangerLevel = 'low';
-        dangerColor = 'text-blue-400';
-      }
-    }
-    // 3. Calor
-    else if (wp.weather.temperature > 26 && wp.solarIntensity === 'intense') {
+    } else if (wp.weather.temperature > 26 && wp.solarIntensity === 'intense') {
       type = 'heatStress';
-      if (wp.weather.temperature > 32) {
-        dangerLevel = 'high';
-        dangerColor = 'text-red-600';
-      } else {
-        dangerLevel = 'medium';
-        dangerColor = 'text-orange-500';
-      }
     }
 
     if (type) {
       if (!currentSegment || currentSegment.type !== type) {
-        if (currentSegment) segments.push(currentSegment);
+        if (currentSegment) {
+          // Finalize previous segment with Garmin logic
+          finalizeSegment(currentSegment, segments);
+        }
         currentSegment = {
           type,
-          dangerLevel,
-          dangerColor,
           startDist: prev.point.distanceFromStart,
           points: [prev, wp],
           maxSlope: Math.abs(slope),
@@ -290,21 +273,80 @@ export function analyzeRouteSegments(weatherPoints: any[]): RouteSegment[] {
         currentSegment.points.push(wp);
         currentSegment.maxSlope = Math.max(currentSegment.maxSlope, Math.abs(slope));
         currentSegment.endDist = wp.point.distanceFromStart;
-
-        // Upgrade danger level if a steeper part is found
-        const levels = ['low', 'medium', 'high'];
-        if (levels.indexOf(dangerLevel) > levels.indexOf(currentSegment.dangerLevel)) {
-          currentSegment.dangerLevel = dangerLevel;
-          currentSegment.dangerColor = dangerColor;
-        }
+        currentSegment.avgTemp = (currentSegment.avgTemp + wp.weather.temperature) / 2;
       }
     } else if (currentSegment) {
-      segments.push(currentSegment);
+      finalizeSegment(currentSegment, segments);
       currentSegment = null;
     }
   });
 
-  if (currentSegment) segments.push(currentSegment);
+  if (currentSegment) finalizeSegment(currentSegment, segments);
+
+  function finalizeSegment(seg: any, list: RouteSegment[]) {
+    const lengthM = (seg.endDist - seg.startDist) * 1000;
+    const firstPoint = seg.points[0].point;
+    const lastPoint = seg.points[seg.points.length - 1].point;
+    const totalEleDiff = (lastPoint.ele || 0) - (firstPoint.ele || 0);
+    const avgSlope = lengthM > 0 ? (totalEleDiff / lengthM) * 100 : 0;
+    const absAvgSlope = Math.abs(avgSlope);
+    const score = lengthM * absAvgSlope;
+
+    if (seg.type === 'steepClimb') {
+      // Garmin ClimbPro thresholds: length > 500m, avg slope > 3%, score > 3500
+      if (lengthM < 500 || absAvgSlope < 3 || score < 3500) return;
+      
+      const cat = getClimbCategory(score);
+      seg.climbCategory = cat;
+      seg.avgSlope = absAvgSlope;
+      seg.lengthM = lengthM;
+      seg.score = score;
+
+      if (cat === 'HC' || cat === '1' || absAvgSlope > 12) {
+        seg.dangerLevel = 'high';
+        seg.dangerColor = 'text-red-600';
+      } else if (cat === '2' || cat === '3' || absAvgSlope > 8) {
+        seg.dangerLevel = 'medium';
+        seg.dangerColor = 'text-orange-500';
+      } else {
+        seg.dangerLevel = 'low';
+        seg.dangerColor = 'text-amber-500';
+      }
+    } else if (seg.type === 'steepDescent') {
+      // Technical/Steep descent: length > 300m and avg slope < -5%
+      if (lengthM < 300 || absAvgSlope < 5) return;
+      
+      seg.avgSlope = absAvgSlope;
+      seg.lengthM = lengthM;
+      seg.score = score;
+
+      if (absAvgSlope > 15 || (absAvgSlope > 10 && lengthM > 2000)) {
+        seg.dangerLevel = 'high';
+        seg.dangerColor = 'text-red-600';
+      } else if (absAvgSlope > 10 || (absAvgSlope > 7 && lengthM > 1000)) {
+        seg.dangerLevel = 'medium';
+        seg.dangerColor = 'text-orange-500';
+      } else {
+        seg.dangerLevel = 'low';
+        seg.dangerColor = 'text-blue-400';
+      }
+    } else {
+      // Heat Stress
+      seg.avgSlope = absAvgSlope;
+      seg.lengthM = lengthM;
+      seg.score = score;
+      if (seg.avgTemp > 32) {
+        seg.dangerLevel = 'high';
+        seg.dangerColor = 'text-red-600';
+      } else {
+        seg.dangerLevel = 'medium';
+        seg.dangerColor = 'text-orange-500';
+      }
+    }
+
+    list.push(seg);
+  }
+
   return segments;
 }
 

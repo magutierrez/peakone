@@ -6,12 +6,11 @@ import { ThermometerSnowflake, Waves } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { WeatherSummary } from '@/components/weather-timeline/weather-summary';
 import { WeatherList } from '@/components/weather-timeline/weather-list';
-import { WeatherPointDetail } from '@/components/weather-timeline/weather-point-detail';
 import { RouteAdvice } from '@/components/route-advice';
+import { WeatherPointDetail } from '@/components/weather-timeline/weather-point-detail';
 import { RouteHazards } from '@/components/route-hazards';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
-import { AnalysisChart } from '@/components/weather-timeline/elevation-profile'; // Added AnalysisChart import
 
 import { analyzeRouteSegments, calculatePhysiologicalNeeds } from '@/lib/utils';
 import { useSettings } from '@/hooks/use-settings';
@@ -135,26 +134,7 @@ export function AnalysisResults({
             onToggleWaterSources={onToggleWaterSources}
           />
 
-          <div className="border-border bg-card/50 flex flex-col gap-4 rounded-xl border p-6">
-            <div className="border-border flex items-center gap-2 border-b pb-2">
-              <div className="bg-primary h-4 w-1 rounded-full" />
-              <h3 className="text-foreground/80 text-sm font-bold tracking-wider uppercase">
-                {t('sections.physiology')}
-              </h3>
-            </div>
-            <div className="flex items-center justify-between">
-              <Label className="text-muted-foreground flex items-center gap-2">
-                <ThermometerSnowflake className="h-4 w-4" /> {tp('calories')}
-              </Label>
-              <p className="text-foreground font-mono text-sm font-bold">{calories} kcal</p>
-            </div>
-            <div className="flex items-center justify-between">
-              <Label className="text-muted-foreground flex items-center gap-2">
-                <Waves className="h-4 w-4" /> {tp('hydration')}
-              </Label>
-              <p className="text-foreground font-mono text-sm font-bold">{waterLiters} L</p>
-            </div>
-          </div>
+          
         </TabsContent>
 
         <TabsContent value="hazards" className="mt-6 flex flex-col gap-6">

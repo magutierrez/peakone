@@ -54,7 +54,8 @@
         "effortLevel": "Effort Level",
               "danger": "Risk",
               "distance": "Distance",
-              "slope": "Avg. Slope",
+              "slope": "Slope",
+              "avg": "Avg",
               "max": "Max",
               "noSegments": "No risk segments have been detected on this route.",        "levels": {
           "low": "LOW",
