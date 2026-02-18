@@ -34,6 +34,7 @@ interface AnalysisResultsProps {
   isFindingWindow?: boolean;
   onFindBestWindow?: () => void;
   onSelectBestWindow?: (time: string) => void;
+  onAnalyzeBestWindow?: (time: string) => void;
 }
 
 export function AnalysisResults({
@@ -53,6 +54,7 @@ export function AnalysisResults({
   isFindingWindow = false,
   onFindBestWindow = () => {},
   onSelectBestWindow = () => {},
+  onAnalyzeBestWindow = () => {},
 }: AnalysisResultsProps) {
   const t = useTranslations('HomePage');
   const tp = useTranslations('physiology');
@@ -134,13 +136,13 @@ export function AnalysisResults({
               return null;
             })()}
 
-          <BestDepartureFinder
-            windows={bestWindows}
-            isLoading={isFindingWindow}
-            onFind={onFindBestWindow}
-            onSelect={onSelectBestWindow}
-          />
-        </TabsContent>
+                    <BestDepartureFinder 
+                      windows={bestWindows} 
+                      isLoading={isFindingWindow} 
+                      onFind={onFindBestWindow}
+                      onSelect={onSelectBestWindow}
+                      onAnalyze={onAnalyzeBestWindow}
+                    />        </TabsContent>
 
         <TabsContent value="advice" className="mt-6 flex flex-col gap-6">
           <RouteAdvice

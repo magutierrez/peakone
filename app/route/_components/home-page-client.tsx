@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import { useTranslations } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useRouteAnalysis } from '@/hooks/use-route-analysis';
+import { useRouteAnalysis, type UseRouteAnalysisConfig } from '@/hooks/use-route-analysis';
 import type { RouteConfig } from '@/lib/types';
 import { getRouteFromDb } from '@/lib/db';
 
@@ -157,6 +157,25 @@ export default function HomePageClient({ session }: HomePageClientProps) {
     });
   }, [config]);
 
+  const handleSelectAndAnalyze = useCallback((isoTime: string) => {
+    const date = new Date(isoTime);
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+
+    const newConfig: UseRouteAnalysisConfig = {
+      ...config,
+      date: `${year}-${month}-${day}`,
+      time: `${hours}:${minutes}`,
+      activityType
+    };
+    
+    setConfig(newConfig);
+    handleAnalyze(newConfig); 
+  }, [config, handleAnalyze, activityType]);
+
   const sidebarContent = (
     <Sidebar
       gpxData={gpxData}
@@ -260,6 +279,7 @@ export default function HomePageClient({ session }: HomePageClientProps) {
                     isFindingWindow={isFindingWindow}
                     onFindBestWindow={handleFindBestWindow}
                     onSelectBestWindow={handleSelectBestWindow}
+                    onAnalyzeBestWindow={handleSelectAndAnalyze}
                   />
                 ) : (
                   <div className="border-border bg-card/50 text-muted-foreground flex h-60 flex-col items-center justify-center rounded-lg border border-dashed p-6 text-center">

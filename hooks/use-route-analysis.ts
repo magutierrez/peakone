@@ -19,7 +19,7 @@ import {
   calculateElevationGainLoss,
 } from '@/lib/utils';
 
-interface UseRouteAnalysisConfig {
+export interface UseRouteAnalysisConfig {
   date: string;
   time: string;
   speed: number;
@@ -206,8 +206,13 @@ export function useRouteAnalysis(
     setIsWeatherAnalyzed(false); // Reset weather analysis status
   }, []);
 
-  const handleAnalyze = useCallback(async () => {
+  const handleAnalyze = useCallback(async (params?: UseRouteAnalysisConfig | React.MouseEvent | any) => {
     if (!gpxData) return;
+    
+    // Safety check: React events might be passed if called directly from onClick
+    const hasOverride = params && typeof params === 'object' && 'date' in params && 'time' in params;
+    const analysisConfig = hasOverride ? params : config;
+
     setIsLoading(true);
     setError(null);
     setWeatherPoints([]); // Clear previous weather points
@@ -239,7 +244,12 @@ export function useRouteAnalysis(
 
     try {
       const sampled = sampleRoutePoints(gpxData.points, 48);
-      const startTime = new Date(`${config.date}T${config.time}:00`);
+      console.log(analysisConfig);
+      const startTime = new Date(`${analysisConfig.date}T${analysisConfig.time}:00`);
+
+      if (isNaN(startTime.getTime())) {
+        throw new Error('Invalid start time configuration');
+      }
 
       // Calculate times point-to-point with smart speed
       const pointsWithTime: any[] = [];
@@ -257,10 +267,10 @@ export function useRouteAnalysis(
           const segmentEleGain = Math.max(0, (point.ele || 0) - (prevPoint.ele || 0));
 
           const speedAtSegment = calculateSmartSpeed(
-            config.speed,
+            analysisConfig.speed,
             segmentDist,
             segmentEleGain,
-            config.activityType,
+            analysisConfig.activityType,
           );
 
           const segmentTimeHours = segmentDist / speedAtSegment;
