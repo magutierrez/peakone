@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, RefObject } from 'react';
+import { useEffect, RefObject, useCallback } from 'react';
 import type { MapRef } from 'react-map-gl/maplibre';
 import type { RoutePoint } from '@/lib/types';
 
@@ -9,8 +9,7 @@ export function useMapView(
   points: RoutePoint[],
   selectedRange: { start: number; end: number } | null,
 ) {
-  // Initial fit bounds
-  useEffect(() => {
+  const fitFullRoute = useCallback(() => {
     const validPoints = points.filter(
       (p) => typeof p.lon === 'number' && typeof p.lat === 'number' && !isNaN(p.lon) && !isNaN(p.lat),
     );
@@ -26,6 +25,11 @@ export function useMapView(
       );
     }
   }, [points, mapRef]);
+
+  // Initial fit bounds
+  useEffect(() => {
+    fitFullRoute();
+  }, [fitFullRoute]);
 
   // Fit bounds on range selection
   useEffect(() => {
@@ -52,4 +56,6 @@ export function useMapView(
       }
     }
   }, [selectedRange, points, mapRef]);
+
+  return { resetToFullRouteView: fitFullRoute };
 }

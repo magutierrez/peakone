@@ -1,7 +1,7 @@
 'use client';
 
 import { useSavedRoutes, SavedRoute } from '@/hooks/use-saved-routes';
-import { MapPin, Trash2, Calendar, Route, Pencil, Check, X } from 'lucide-react';
+import { MapPin, Trash2, Calendar, Route, Pencil, Check, X, ArrowUp, ArrowDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useState } from 'react';
@@ -110,6 +110,14 @@ export function SavedRoutesList({ onLoadRoute }: SavedRoutesListProps) {
                       <span className="flex shrink-0 items-center gap-1">
                         <MapPin className="h-3 w-3" />
                         {Number(route.distance).toFixed(1)} km
+                      </span>
+                      <span className="flex shrink-0 items-center gap-1">
+                        <ArrowUp className="h-3 w-3 text-emerald-500" />
+                        {Math.round(route.elevation_gain)}m
+                      </span>
+                      <span className="flex shrink-0 items-center gap-1">
+                        <ArrowDown className="h-3 w-3 text-rose-500" />
+                        {Math.round(route.elevation_loss || 0)}m
                       </span>
                       <span className="flex shrink-0 items-center gap-1">
                         <Calendar className="h-3 w-3" />

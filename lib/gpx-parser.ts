@@ -180,7 +180,7 @@ export function stravaToGPXData(activity: any): GPXData {
   return {
     points,
     name: activity.name,
-    totalDistance: activity.distance / 1000, // Strava is in meters
+    totalDistance: (activity.distance / 1000) || totalDistance,
     totalElevationGain: activity.total_elevation_gain,
     totalElevationLoss: 0, // Strava doesn't provide it in summary
   };
@@ -211,7 +211,7 @@ export function stravaRouteToGPXData(route: any): GPXData {
   return {
     points,
     name: route.name,
-    totalDistance: route.distance / 1000,
+    totalDistance: (route.distance / 1000) || totalDistance,
     totalElevationGain: route.elevation_gain,
     totalElevationLoss: 0,
   };

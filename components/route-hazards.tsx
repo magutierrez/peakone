@@ -4,11 +4,13 @@ import {
   TrendingDown, 
   Flame, 
   Zap,
-  Activity
+  Activity,
+  RefreshCcw // New import
 } from 'lucide-react';
 import type { RouteWeatherPoint } from '@/lib/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button'; // New import
 import { analyzeRouteSegments } from '@/lib/utils';
 import {
   AreaChart,
@@ -20,6 +22,8 @@ import {
 interface RouteHazardsProps {
   weatherPoints: RouteWeatherPoint[];
   onSelectSegment?: (range: { start: number; end: number } | null) => void;
+  onClearSelection?: () => void;
+  onResetToFullRouteView: () => void; // New prop
 }
 
 const segmentIcons: Record<string, any> = {
@@ -36,8 +40,9 @@ const segmentColors: Record<string, string> = {
   effort: 'text-blue-600 bg-blue-500/10 border-blue-200'
 };
 
-export function RouteHazards({ weatherPoints, onSelectSegment }: RouteHazardsProps) {
+export function RouteHazards({ weatherPoints, onSelectSegment, onClearSelection, onResetToFullRouteView }: RouteHazardsProps) {
   const t = useTranslations('Hazards');
+  const tRouteMap = useTranslations('RouteMap'); // New translation import
 
   if (weatherPoints.length === 0) return null;
 
@@ -53,6 +58,19 @@ export function RouteHazards({ weatherPoints, onSelectSegment }: RouteHazardsPro
 
   return (
     <div className="flex flex-col gap-6">
+      <div className="flex justify-end mb-4">
+        <Button 
+          variant="secondary" 
+          size="sm" 
+          className="h-8 gap-2 bg-card/90 shadow-md hover:bg-card"
+          onClick={onResetToFullRouteView}
+        >
+          <RefreshCcw className="h-3.5 w-3.5" />
+          <span className="text-[10px] font-bold uppercase tracking-wider">
+            {tRouteMap('resetView')}
+          </span>
+        </Button>
+      </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {sortedSegments.map((seg, idx) => {
           const chartData = seg.points.map((p: any) => ({

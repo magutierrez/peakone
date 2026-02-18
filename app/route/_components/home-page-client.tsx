@@ -12,7 +12,6 @@ import { Header } from '../../_components/header';
 import { EmptyState } from '../../_components/empty-state';
 import { Sidebar } from '../../_components/sidebar';
 import { Session } from 'next-auth';
-import { useSavedRoutes } from '@/hooks/use-saved-routes';
 
 import { RouteLoadingOverlay } from '../../_components/route-loading-overlay';
 import { AnalysisResults } from '../../_components/analysis-results';
@@ -51,6 +50,9 @@ export default function HomePageClient({ session }: HomePageClientProps) {
   const [fetchedRawGpxContent, setFetchedRawGpxContent] = useState<string | null>(null);
   const [fetchedGpxFileName, setFetchedGpxFileName] = useState<string | null>(null);
   const [fetchedActivityType, setFetchedActivityType] = useState<'cycling' | 'walking'>(initialActivityType);
+  const [initialDistance, setInitialDistance] = useState<number>(0);
+  const [initialElevationGain, setInitialElevationGain] = useState<number>(0);
+  const [initialElevationLoss, setInitialElevationLoss] = useState<number>(0);
 
   useEffect(() => {
     if (routeId && session?.user?.email && !fetchedRawGpxContent) {
@@ -60,6 +62,9 @@ export default function HomePageClient({ session }: HomePageClientProps) {
           setFetchedRawGpxContent(route.gpx_content);
           setFetchedGpxFileName(route.name);
           setFetchedActivityType(route.activity_type);
+          setInitialDistance(route.distance);
+          setInitialElevationGain(route.elevation_gain);
+          setInitialElevationLoss(route.elevation_loss);
         } else {
           router.replace('/setup');
         }
@@ -84,9 +89,14 @@ export default function HomePageClient({ session }: HomePageClientProps) {
   } | null>(null);
   const [selectedRange, setSelectedRange] = useState<{ start: number; end: number } | null>(null);
   const [showWaterSources, setShowWaterSources] = useState(false);
-  const { saveRoute, routes } = useSavedRoutes();
-  const lastSavedRef = useRef<string | null>(null);
   const tHomePage = useTranslations('HomePage');
+
+  const mapResetViewRef = useRef<(() => void) | null>(null);
+  const handleResetMapView = useCallback(() => {
+    if (mapResetViewRef.current) {
+      mapResetViewRef.current();
+    }
+  }, []);
 
   const {
     gpxData,
@@ -111,6 +121,11 @@ export default function HomePageClient({ session }: HomePageClientProps) {
     { ...config, activityType },
     fetchedRawGpxContent,
     fetchedGpxFileName,
+    {
+      distance: initialDistance,
+      elevationGain: initialElevationGain,
+      elevationLoss: initialElevationLoss,
+    }
   );
 
   const onClearGPXWithRange = useCallback(() => {
@@ -123,23 +138,6 @@ export default function HomePageClient({ session }: HomePageClientProps) {
     setSelectedRange(null);
     handleReverseRoute();
   }, [handleReverseRoute]);
-
-  useEffect(() => {
-    const isRealGPX = rawGPXContent?.trim().startsWith('<?xml') || rawGPXContent?.trim().startsWith('<gpx');
-
-    if (gpxData && rawGPXContent && gpxFileName && session?.user && isRealGPX) {
-      const routeExists = routes.some(
-        (r) =>
-          r.name === gpxFileName &&
-          Number(r.distance).toFixed(2) === gpxData.totalDistance.toFixed(2),
-      );
-
-      if (!routeExists && lastSavedRef.current !== rawGPXContent) {
-        saveRoute(gpxFileName, rawGPXContent, recalculatedTotalDistance, recalculatedElevationGain);
-        lastSavedRef.current = rawGPXContent;
-      }
-    }
-  }, [gpxData, rawGPXContent, gpxFileName, session?.user, routes, saveRoute, recalculatedTotalDistance, recalculatedElevationGain]);
 
   const sidebarContent = (
     <Sidebar
@@ -252,6 +250,7 @@ export default function HomePageClient({ session }: HomePageClientProps) {
               activityType={activityType}
               onClearSelection={() => setSelectedRange(null)}
               showWaterSources={showWaterSources}
+              onResetToFullRouteView={(func) => (mapResetViewRef.current = func)}
             />
           </div>
         </main>

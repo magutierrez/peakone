@@ -14,15 +14,16 @@ export async function getDb() {
     // Inicializamos el esquema
     await instance.exec(`
       CREATE TABLE IF NOT EXISTS saved_routes (
-        id TEXT PRIMARY KEY,
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         user_email TEXT NOT NULL,
         name TEXT NOT NULL,
         gpx_content TEXT NOT NULL,
         activity_type TEXT NOT NULL,
         distance REAL,
         elevation_gain REAL,
+        elevation_loss REAL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
+        );
       CREATE INDEX IF NOT EXISTS idx_user_email ON saved_routes(user_email);
     `);
 
@@ -31,7 +32,10 @@ export async function getDb() {
       DO $$
       BEGIN
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='saved_routes' AND column_name='activity_type') THEN
-          ALTER TABLE saved_routes ADD COLUMN activity_type TEXT NOT NULL DEFAULT 'cycling';
+          ALTER TABLE saved_routes ADD COLUMN activity_type TEXT NOT NULL;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='saved_routes' AND column_name='elevation_loss') THEN
+          ALTER TABLE saved_routes ADD COLUMN elevation_loss REAL DEFAULT 0;
         END IF;
       END
       $$;
@@ -50,17 +54,35 @@ export async function saveRouteToDb(
   activityType: 'cycling' | 'walking',
   distance: number,
   elevationGain: number,
+  elevationLoss: number,
 ): Promise<string | null> {
   const db = await getDb();
   if (!db) return null;
 
-  const routeId = crypto.randomUUID(); // Generate a unique ID for the route
+  let routeId: string;
+  try {
+    routeId = crypto.randomUUID();
+  } catch (e) {
+    console.error('crypto.randomUUID() failed or is not available, falling back to Math.random UUID:', e);
+    // Fallback if crypto.randomUUID is not available (e.g., in some non-secure contexts)
+    routeId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+
+  if (!routeId) {
+    console.error('Failed to generate a routeId.');
+    return null;
+  }
+  
+  console.log('Generated routeId:', routeId); // Debugging: log the generated ID
 
   try {
     await db.query(
-      `INSERT INTO saved_routes (id, user_email, name, gpx_content, activity_type, distance, elevation_gain)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-      [routeId, userEmail, name, rawGpxContent, activityType, distance, elevationGain],
+      `INSERT INTO saved_routes (id, user_email, name, gpx_content, activity_type, distance, elevation_gain, elevation_loss)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      [routeId, userEmail, name, rawGpxContent, activityType, distance, elevationGain, elevationLoss],
     );
     return routeId;
   } catch (error) {
@@ -72,13 +94,20 @@ export async function saveRouteToDb(
 export async function getRouteFromDb(
   routeId: string,
   userEmail: string,
-): Promise<{ name: string; gpx_content: string; activity_type: 'cycling' | 'walking' } | null> {
+): Promise<{ 
+  name: string; 
+  gpx_content: string; 
+  activity_type: 'cycling' | 'walking';
+  distance: number;
+  elevation_gain: number;
+  elevation_loss: number;
+} | null> {
   const db = await getDb();
   if (!db) return null;
 
   try {
     const result = await db.query(
-      `SELECT name, gpx_content, activity_type FROM saved_routes WHERE id = $1 AND user_email = $2`,
+      `SELECT name, gpx_content, activity_type, distance, elevation_gain, elevation_loss FROM saved_routes WHERE id = $1 AND user_email = $2`,
       [routeId, userEmail],
     );
 
@@ -88,6 +117,9 @@ export async function getRouteFromDb(
         name: row.name,
         gpx_content: row.gpx_content,
         activity_type: row.activity_type as 'cycling' | 'walking',
+        distance: row.distance || 0,
+        elevation_gain: row.elevation_gain || 0,
+        elevation_loss: row.elevation_loss || 0,
       };
     }
     return null;

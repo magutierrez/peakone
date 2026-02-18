@@ -23,7 +23,8 @@ import { useSettings } from '@/hooks/use-settings';
 import { formatTemperature, formatWindSpeed, formatDistance, formatElevation } from '@/lib/utils';
 
 interface WeatherPointDetailProps {
-  point: RouteWeatherPoint;
+  weatherPoint: RouteWeatherPoint;
+  activityType: 'cycling' | 'walking';
 }
 
 function getCoverageIconLabel(coverage: string | undefined, t: any) {
@@ -79,11 +80,11 @@ function getWindEffectIcon(effect: string) {
   }
 }
 
-export function WeatherPointDetail({ point }: WeatherPointDetailProps) {
+export function WeatherPointDetail({ weatherPoint, activityType }: WeatherPointDetailProps) {
   const t = useTranslations('WeatherTimeline');
   const tw = useTranslations('WeatherCodes');
   const { unitSystem, windUnit } = useSettings();
-  const time = point.point.estimatedTime ? new Date(point.point.estimatedTime) : new Date(point.weather.time);
+  const time = weatherPoint.point.estimatedTime ? new Date(weatherPoint.point.estimatedTime) : new Date(weatherPoint.weather.time);
   const locale = 'es-ES';
   const timeStr = time.toLocaleTimeString(locale, {
     hour: '2-digit',
@@ -95,12 +96,12 @@ export function WeatherPointDetail({ point }: WeatherPointDetailProps) {
     month: 'short',
   });
 
-  const hasTranslation = !!tw.raw(point.weather.weatherCode.toString());
+  const hasTranslation = !!tw.raw(weatherPoint.weather.weatherCode.toString());
   const weatherDescription = hasTranslation
-    ? tw(point.weather.weatherCode.toString() as any)
-    : WEATHER_CODES[point.weather.weatherCode]?.description || t('unknownWeather');
+    ? tw(weatherPoint.weather.weatherCode.toString() as any)
+    : WEATHER_CODES[weatherPoint.weather.weatherCode]?.description || t('unknownWeather');
 
-  const windEffectLabel = t(`windEffect.${point.windEffect}` as any).toLowerCase();
+  const windEffectLabel = t(`windEffect.${weatherPoint.windEffect}` as any).toLowerCase();
 
   return (
     <div className="rounded-lg border border-primary/20 bg-card p-4">
@@ -109,16 +110,16 @@ export function WeatherPointDetail({ point }: WeatherPointDetailProps) {
           <p className="text-sm text-muted-foreground">{dateStr}</p>
           <p className="font-mono text-2xl font-bold text-foreground">{timeStr}</p>
           <p className="text-xs text-muted-foreground">
-            {formatDistance(point.point.distanceFromStart, unitSystem)}
+            {formatDistance(weatherPoint.point.distanceFromStart, unitSystem)}
           </p>
-          {point.point.ele !== undefined && (
+          {weatherPoint.point.ele !== undefined && (
             <p className="text-xs text-muted-foreground">
-              {t('detail.altitude', { ele: formatElevation(point.point.ele, unitSystem) })}
+              {t('detail.altitude', { ele: formatElevation(weatherPoint.point.ele, unitSystem) })}
             </p>
           )}
         </div>
         <div className="flex flex-col items-center gap-1">
-          <WeatherIcon code={point.weather.weatherCode} className="h-10 w-10" />
+          <WeatherIcon code={weatherPoint.weather.weatherCode} className="h-10 w-10" />
           <span className="text-center text-xs text-muted-foreground">{weatherDescription}</span>
         </div>
       </div>
@@ -130,27 +131,27 @@ export function WeatherPointDetail({ point }: WeatherPointDetailProps) {
           <div>
             <p className="text-xs text-muted-foreground">{t('detail.temperature')}</p>
             <p className="font-mono text-sm font-bold text-foreground">
-              {formatTemperature(point.weather.temperature, unitSystem)}
+              {formatTemperature(weatherPoint.weather.temperature, unitSystem)}
             </p>
             <p className="text-[10px] text-muted-foreground">
-              {t('detail.feelsLike', { temp: formatTemperature(point.weather.apparentTemperature, unitSystem) })}
+              {t('detail.feelsLike', { temp: formatTemperature(weatherPoint.weather.apparentTemperature, unitSystem) })}
             </p>
           </div>
         </div>
 
         {/* Solar Exposure */}
         <div className="flex items-center gap-2 rounded-lg bg-secondary p-2.5">
-          {point.solarExposure && getSolarIcon(point.solarExposure)}
+          {weatherPoint.solarExposure && getSolarIcon(weatherPoint.solarExposure)}
           <div>
             <p className="text-xs text-muted-foreground">{t('summary.solarTitle')}</p>
-            <p className={`font-mono text-sm font-bold capitalize ${point.solarIntensity ? getSolarIntensityColor(point.solarIntensity) : ''}`}>
-              {point.solarIntensity 
-                ? (point.solarIntensity === 'night' ? t('solarExposure.night') : t(`solarIntensity.${point.solarIntensity}` as any))
+            <p className={`font-mono text-sm font-bold capitalize ${weatherPoint.solarIntensity ? getSolarIntensityColor(weatherPoint.solarIntensity) : ''}`}>
+              {weatherPoint.solarIntensity 
+                ? (weatherPoint.solarIntensity === 'night' ? t('solarExposure.night') : t(`solarIntensity.${weatherPoint.solarIntensity}` as any))
                 : '-'}
             </p>
             <p className="text-[10px] text-muted-foreground">
-              {point.weather.directRadiation !== undefined 
-                ? `${Math.round(point.weather.directRadiation)} W/m²` 
+              {weatherPoint.weather.directRadiation !== undefined 
+                ? `${Math.round(weatherPoint.weather.directRadiation)} W/m²` 
                 : '-'}
             </p>
           </div>
@@ -159,18 +160,18 @@ export function WeatherPointDetail({ point }: WeatherPointDetailProps) {
         {/* Wind */}
         <div className="flex items-center gap-2 rounded-lg bg-secondary p-2.5">
           <WindArrow
-            direction={point.weather.windDirection}
-            travelBearing={point.bearing}
-            effect={point.windEffect}
+            direction={weatherPoint.weather.windDirection}
+            travelBearing={weatherPoint.bearing}
+            effect={weatherPoint.windEffect}
             size={36}
           />
           <div>
             <p className="text-xs text-muted-foreground">{t('detail.wind')}</p>
             <p className="font-mono text-sm font-bold text-foreground">
-              {formatWindSpeed(point.weather.windSpeed, windUnit)}
+              {formatWindSpeed(weatherPoint.weather.windSpeed, windUnit)}
             </p>
             <p className="text-[10px] text-muted-foreground">
-              {t('detail.gusts', { speed: formatWindSpeed(point.weather.windGusts, windUnit) })}
+              {t('detail.gusts', { speed: formatWindSpeed(weatherPoint.weather.windGusts, windUnit) })}
             </p>
           </div>
         </div>
@@ -181,10 +182,10 @@ export function WeatherPointDetail({ point }: WeatherPointDetailProps) {
           <div>
             <p className="text-xs text-muted-foreground">{t('detail.rain')}</p>
             <p className="font-mono text-sm font-bold text-foreground">
-              {point.weather.precipitation}mm
+              {weatherPoint.weather.precipitation}mm
             </p>
             <p className="text-[10px] text-muted-foreground">
-              {t('detail.prob', { percent: point.weather.precipitationProbability })}
+              {t('detail.prob', { percent: weatherPoint.weather.precipitationProbability })}
             </p>
           </div>
         </div>
@@ -195,33 +196,33 @@ export function WeatherPointDetail({ point }: WeatherPointDetailProps) {
           <div>
             <p className="text-xs text-muted-foreground">{t('detail.visibility')}</p>
             <p className="font-mono text-sm font-bold text-foreground">
-              {(point.weather.visibility / 1000).toFixed(1)} km
+              {(weatherPoint.weather.visibility / 1000).toFixed(1)} km
             </p>
             <p className="text-[10px] text-muted-foreground">
-              {t('detail.clouds', { percent: point.weather.cloudCover })}
+              {t('detail.clouds', { percent: weatherPoint.weather.cloudCover })}
             </p>
           </div>
         </div>
       </div>
 
       {/* Safety & Escape info */}
-      {(point.escapePoint || (point.mobileCoverage && point.mobileCoverage !== 'full')) && (
+      {(weatherPoint.escapePoint || (weatherPoint.mobileCoverage && weatherPoint.mobileCoverage !== 'full')) && (
         <div className="mt-3 flex flex-wrap gap-3 rounded-lg border border-indigo-500/20 bg-indigo-500/5 p-3">
-          {point.escapePoint && (
+          {weatherPoint.escapePoint && (
             <div className="flex flex-1 items-start gap-3">
               <Signpost className="mt-0.5 h-4 w-4 shrink-0 text-indigo-500" />
               <div>
                 <p className="text-xs font-bold text-foreground">{t('safety.evacuation')}</p>
                 <p className="text-[11px] text-muted-foreground">
-                  {t('safety.escapeDesc', { dist: point.escapePoint.distanceFromRoute })}: 
-                  <span className="ml-1 font-semibold text-indigo-600 dark:text-indigo-400">{point.escapePoint.name}</span>
+                  {t('safety.escapeDesc', { dist: weatherPoint.escapePoint.distanceFromRoute })}: 
+                  <span className="ml-1 font-semibold text-indigo-600 dark:text-indigo-400">{weatherPoint.escapePoint.name}</span>
                 </p>
               </div>
             </div>
           )}
-          {point.mobileCoverage && point.mobileCoverage !== 'full' && (
+          {weatherPoint.mobileCoverage && weatherPoint.mobileCoverage !== 'full' && (
             <div className="flex shrink-0 items-center border-l border-indigo-500/20 pl-3">
-              {getCoverageIconLabel(point.mobileCoverage, t)}
+              {getCoverageIconLabel(weatherPoint.mobileCoverage, t)}
             </div>
           )}
         </div>
@@ -229,18 +230,18 @@ export function WeatherPointDetail({ point }: WeatherPointDetailProps) {
 
       {/* Wind effect summary */}
       <div className="mt-3 flex items-center gap-3 rounded-lg border border-border p-3">
-        {getWindEffectIcon(point.windEffect)}
+        {getWindEffectIcon(weatherPoint.windEffect)}
         <div className="flex-1">
           <p className="text-sm font-medium text-foreground">
             {t('windEffect.summary', { label: windEffectLabel })}
           </p>
           <p className="text-xs text-muted-foreground">
-            {t('windEffect.relativeAngle', { angle: point.windEffectAngle.toFixed(0) })}
+            {t('windEffect.relativeAngle', { angle: weatherPoint.windEffectAngle.toFixed(0) })}
           </p>
         </div>
         <div className="text-right">
           <p className="text-xs text-muted-foreground">{t('windEffect.bearing')}</p>
-          <p className="font-mono text-sm font-bold text-foreground">{point.bearing.toFixed(0)}°</p>
+          <p className="font-mono text-sm font-bold text-foreground">{weatherPoint.bearing.toFixed(0)}°</p>
         </div>
       </div>
     </div>

@@ -11,6 +11,7 @@ import { RouteAdvice } from '@/components/route-advice';
 import { RouteHazards } from '@/components/route-hazards';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
+import { AnalysisChart } from '@/components/weather-timeline/elevation-profile'; // Added AnalysisChart import
 
 import { analyzeRouteSegments, calculatePhysiologicalNeeds } from '@/lib/utils';
 import { useSettings } from '@/hooks/use-settings';
@@ -18,7 +19,7 @@ import type { RouteWeatherPoint } from '@/lib/types';
 
 interface AnalysisResultsProps {
   weatherPoints: RouteWeatherPoint[];
-  routeInfoData: any[]; // Detailed info per point from API
+  routeInfoData: any[];
   elevationData: { distance: number; elevation: number }[];
   activeFilter: { key: 'pathType' | 'surface'; value: string } | null;
   setActiveFilter: (filter: { key: 'pathType' | 'surface'; value: string } | null) => void;
@@ -29,6 +30,7 @@ interface AnalysisResultsProps {
   activityType: 'cycling' | 'walking';
   showWaterSources: boolean;
   onToggleWaterSources: () => void;
+  onResetToFullRouteView: () => void;
 }
 
 export function AnalysisResults({
@@ -44,6 +46,7 @@ export function AnalysisResults({
   activityType,
   showWaterSources,
   onToggleWaterSources,
+  onResetToFullRouteView,
 }: AnalysisResultsProps) {
   const t = useTranslations('HomePage');
   const tp = useTranslations('physiology');
@@ -87,7 +90,6 @@ export function AnalysisResults({
   const lowDangerSegments = routeSegments.filter((s) => s.dangerLevel === 'low').length;
 
   useEffect(() => {
-    // Scroll to top of results when tab changes
     const resultsContainer = document.getElementById('analysis-results-container');
     if (resultsContainer) {
       resultsContainer.scrollTo({ top: 0, behavior: 'smooth' });
@@ -104,7 +106,7 @@ export function AnalysisResults({
         </TabsList>
 
         <TabsContent value="weather" className="mt-6 flex flex-col gap-6">
-          <WeatherSummary weatherPoints={weatherPoints} activityType={activityType} />
+          <WeatherSummary weatherPoints={weatherPoints} />
 
           <WeatherList
             weatherPoints={weatherPoints}
@@ -112,11 +114,20 @@ export function AnalysisResults({
             onSelect={setSelectedPointIndex}
           />
 
-          {selectedPointIndex !== null && weatherPoints[selectedPointIndex] && (
-            <WeatherPointDetail
-              point={weatherPoints[selectedPointIndex]}
-            />
-          )}
+          {selectedPointIndex !== null && (
+            () => {
+              const selectedWeatherPoint = weatherPoints[selectedPointIndex];
+              if (selectedWeatherPoint) {
+                return (
+                  <WeatherPointDetail
+                    weatherPoint={selectedWeatherPoint}
+                    activityType={activityType}
+                  />
+                );
+              }
+              return null;
+            })()
+          }
         </TabsContent>
 
         <TabsContent value="advice" className="mt-6 flex flex-col gap-6">
@@ -151,12 +162,12 @@ export function AnalysisResults({
 
         <TabsContent value="hazards" className="mt-6 flex flex-col gap-6">
           <RouteHazards
-            routeSegments={routeSegments}
             weatherPoints={weatherPoints}
-            onSegmentClick={(segment) =>
-              onRangeSelect({ start: segment.startDist, end: segment.endDist })
+            onSelectSegment={(segment) =>
+              segment && onRangeSelect({ start: segment?.start, end: segment?.end })
             }
             onClearSelection={() => onRangeSelect(null)}
+            onResetToFullRouteView={onResetToFullRouteView}
           />
 
           {totalSegments > 0 && (

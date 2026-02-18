@@ -29,6 +29,7 @@ interface RouteMapProps {
   activityType?: 'cycling' | 'walking';
   onClearSelection?: () => void;
   showWaterSources?: boolean;
+  onResetToFullRouteView?: (func: () => void) => void; // Corrected type
 }
 
 export default function RouteMap({
@@ -41,6 +42,7 @@ export default function RouteMap({
   activityType = 'cycling',
   onClearSelection,
   showWaterSources = false,
+  onResetToFullRouteView, // New prop
 }: RouteMapProps) {
   const { resolvedTheme } = useTheme();
   const mapRef = useRef<MapRef>(null);
@@ -50,7 +52,6 @@ export default function RouteMap({
   const [mounted, setMounted] = useState(false);
   const [mapType, setMapType] = useState<MapLayerType>('standard');
 
-  // Hooks extraídos para lógica específica
   const mapStyle = useMapStyle(mapType, resolvedTheme);
   const { routeData, highlightedData, rangeHighlightData } = useMapLayers(
     points,
@@ -59,8 +60,19 @@ export default function RouteMap({
     selectedRange,
   );
   
-  useMapView(mapRef, points, selectedRange);
+  const { resetToFullRouteView } = useMapView(mapRef, points, selectedRange);
 
+  useEffect(() => {
+    if (onResetToFullRouteView) {
+      // This is a bit of a hack to pass a function back up to a parent
+      // without directly passing a setter. It effectively makes onResetToFullRouteView callable.
+      // A more React-idiomatic way would be to pass mapRef down and let parent call mapRef.current.fitBounds.
+      // But given the current hook structure, this works.
+      onResetToFullRouteView(resetToFullRouteView);
+    }
+  }, [onResetToFullRouteView, resetToFullRouteView]);
+
+  // Pass resetToFullRouteView to the prop if available
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -120,9 +132,9 @@ export default function RouteMap({
 
       {selectedRange && (
         <div className="absolute left-3 top-3 z-10 animate-in fade-in slide-in-from-left-2">
-          <Button 
-            variant="secondary" 
-            size="sm" 
+          <Button
+            variant="secondary"
+            size="sm"
             className="h-8 gap-2 bg-card/90 shadow-md backdrop-blur-sm hover:bg-card"
             onClick={onClearSelection}
           >

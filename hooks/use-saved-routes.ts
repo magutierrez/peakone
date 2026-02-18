@@ -10,6 +10,7 @@ export interface SavedRoute {
   gpx_content: string;
   distance: number;
   elevation_gain: number;
+  elevation_loss: number;
   created_at: string;
 }
 
@@ -17,36 +18,76 @@ const ROUTES_CACHE_KEY = 'local-saved-routes';
 
 export function useSavedRoutes() {
   const { data: session } = useSession();
-  const userId = session?.user?.id || session?.user?.email;
+  const userEmail = session?.user?.email;
 
   const {
     data: routes = [],
     isLoading,
     error,
-  } = useSWR(userId ? [ROUTES_CACHE_KEY, userId] : null, async ([, uid]) => {
+  } = useSWR(userEmail ? [ROUTES_CACHE_KEY, userEmail] : null, async ([, email]) => {
     const db = await getDb();
-    if (!db) return [];
+    if (!db) {
+      console.log('DB instance is null, returning empty routes.');
+      return [];
+    }
 
-    const result = await db.query<SavedRoute>(
-      `SELECT * FROM saved_routes WHERE user_email = $1 ORDER BY created_at DESC`,
-      [uid],
-    );
-    return result.rows;
+    try {
+      console.log(`Fetching saved routes for user: ${email}`);
+      const result = await db.query<SavedRoute>(
+        `SELECT * FROM saved_routes WHERE user_email = $1 ORDER BY created_at DESC`,
+        [email],
+      );
+      console.log('Fetched routes:', result.rows);
+      return result.rows;
+    } catch (e) {
+      console.error('Error fetching saved routes:', e);
+      return [];
+    }
   });
 
-  const saveRoute = async (name: string, content: string, distance: number, elevation: number) => {
-    if (!userId) return;
+  const saveRoute = async (name: string, content: string, activityType: 'cycling' | 'walking', distance: number, elevationGain: number, elevationLoss: number) => {
+    if (!userEmail) return null;
     try {
       const db = await getDb();
-      if (!db) return;
+      if (!db) return null;
 
-      await db.query(
-        `INSERT INTO saved_routes (user_email, name, gpx_content, distance, elevation_gain) 
-         VALUES ($1, $2, $3, $4, $5)`,
-        [userId, name, content, distance, elevation],
+      // Check if a route with same name and distance already exists for this user
+      const existing = await db.query<SavedRoute>(
+        `SELECT id FROM saved_routes 
+         WHERE user_email = $1 AND name = $2 AND abs(distance - $3) < 0.01
+         LIMIT 1`,
+        [userEmail, name, distance]
       );
 
-      mutate([ROUTES_CACHE_KEY, userId]);
+      if (existing.rows.length > 0) {
+        console.log('Route already exists, returning existing ID:', existing.rows[0].id);
+        return existing.rows[0].id;
+      }
+
+      let routeId: string;
+      try {
+        routeId = crypto.randomUUID();
+      } catch (e) {
+        console.error('crypto.randomUUID() failed or is not available in useSavedRoutes, falling back to Math.random UUID:', e);
+        routeId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+          const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+          return v.toString(16);
+        });
+      }
+
+      if (!routeId) {
+        console.error('Failed to generate a routeId in useSavedRoutes.');
+        throw new Error('Failed to generate unique ID for route.');
+      }
+
+      await db.query(
+        `INSERT INTO saved_routes (id, user_email, name, gpx_content, activity_type, distance, elevation_gain, elevation_loss) 
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+        [routeId, userEmail, name, content, activityType, distance, elevationGain, elevationLoss],
+      );
+
+      await mutate([ROUTES_CACHE_KEY, userEmail]);
+      return routeId;
     } catch (e) {
       console.error('Failed to save route', e);
       throw e;
@@ -54,26 +95,26 @@ export function useSavedRoutes() {
   };
 
   const deleteRoute = async (id: string) => {
-    if (!userId) return;
+    if (!userEmail) return;
     try {
       const db = await getDb();
       if (!db) return;
 
       await db.query(`DELETE FROM saved_routes WHERE id = $1`, [id]);
-      mutate([ROUTES_CACHE_KEY, userId]);
+      mutate([ROUTES_CACHE_KEY, userEmail]);
     } catch (e) {
       console.error('Failed to delete route', e);
     }
   };
 
   const updateRouteName = async (id: string, newName: string) => {
-    if (!userId) return;
+    if (!userEmail) return;
     try {
       const db = await getDb();
       if (!db) return;
 
       await db.query(`UPDATE saved_routes SET name = $1 WHERE id = $2`, [newName, id]);
-      mutate([ROUTES_CACHE_KEY, userId]);
+      mutate([ROUTES_CACHE_KEY, userEmail]);
     } catch (e) {
       console.error('Failed to update route name', e);
     }
@@ -81,11 +122,11 @@ export function useSavedRoutes() {
 
   return {
     routes,
-    isLoading: isLoading && !!userId,
+    isLoading: isLoading && !!userEmail,
     error,
     saveRoute,
     deleteRoute,
     updateRouteName,
-    refresh: () => mutate([ROUTES_CACHE_KEY, userId]),
+    refresh: () => mutate([ROUTES_CACHE_KEY, userEmail]),
   };
 }

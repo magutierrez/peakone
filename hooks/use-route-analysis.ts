@@ -30,6 +30,11 @@ export function useRouteAnalysis(
   config: UseRouteAnalysisConfig,
   initialRawGpxContent: string | null,
   initialGpxFileName: string | null,
+  initialData?: {
+    distance: number;
+    elevationGain: number;
+    elevationLoss: number;
+  },
 ) {
   const t = useTranslations('HomePage');
   const [gpxData, setGPXData] = useState<GPXData | null>(null);
@@ -42,9 +47,9 @@ export function useRouteAnalysis(
   const [isLoading, setIsLoading] = useState(false); // For analyze button
   const [isRouteInfoLoading, setIsRouteInfoLoading] = useState(false); // For initial route data
   const [error, setError] = useState<string | null>(null);
-  const [recalculatedElevationGain, setRecalculatedElevationGain] = useState(0);
-  const [recalculatedElevationLoss, setRecalculatedElevationLoss] = useState(0);
-  const [recalculatedTotalDistance, setRecalculatedTotalDistance] = useState(0);
+  const [recalculatedElevationGain, setRecalculatedElevationGain] = useState(initialData?.elevationGain || 0);
+  const [recalculatedElevationLoss, setRecalculatedElevationLoss] = useState(initialData?.elevationLoss || 0);
+  const [recalculatedTotalDistance, setRecalculatedTotalDistance] = useState(initialData?.distance || 0);
   const [isWeatherAnalyzed, setIsWeatherAnalyzed] = useState(false); // New state
 
   // Effect to initialize GPX data from props received from setup page
@@ -54,10 +59,14 @@ export function useRouteAnalysis(
       try {
         let data: GPXData;
         if (initialRawGpxContent.startsWith('{')) {
-          // Assuming it's a Strava activity/route JSON string
-          const stravaData = JSON.parse(initialRawGpxContent);
-          // Assuming stravaToGPXData can handle both activity and route objects
-          data = stravaToGPXData(stravaData); // Convert Strava JSON to GPXData format
+          const jsonData = JSON.parse(initialRawGpxContent);
+          if (jsonData.points && jsonData.totalDistance !== undefined) {
+            // It's already in GPXData format
+            data = jsonData;
+          } else {
+            // It's a Strava API response
+            data = stravaToGPXData(jsonData);
+          }
         } else {
           // Assume it's GPX XML content
           data = parseGPX(initialRawGpxContent);
@@ -70,6 +79,12 @@ export function useRouteAnalysis(
         setGPXData(data);
         setGPXFileName(initialGpxFileName);
         setRawGPXContent(initialRawGpxContent);
+        
+        // Use provided initial data or fallback to parsed data
+        setRecalculatedTotalDistance(initialData?.distance || data.totalDistance);
+        setRecalculatedElevationGain(initialData?.elevationGain || data.totalElevationGain);
+        setRecalculatedElevationLoss(initialData?.elevationLoss || data.totalElevationLoss);
+        
         setError(null);
         setIsWeatherAnalyzed(false); // Reset weather analysis status
       } catch (err) {
@@ -77,7 +92,7 @@ export function useRouteAnalysis(
         setError(t('errors.readError'));
       }
     }
-  }, [initialRawGpxContent, initialGpxFileName, gpxData, t]);
+  }, [initialRawGpxContent, initialGpxFileName, gpxData, t, initialData]);
 
   // Effect to update initial elevation data when gpxData changes
   useEffect(() => {
@@ -121,7 +136,9 @@ export function useRouteAnalysis(
       const { totalElevationGain, totalElevationLoss } = calculateElevationGainLoss(elevationData);
       setRecalculatedElevationGain(totalElevationGain);
       setRecalculatedElevationLoss(totalElevationLoss);
-      setRecalculatedTotalDistance(elevationData[elevationData.length - 1].distance);
+      const calculatedDistance = elevationData[elevationData.length - 1].distance;
+      setRecalculatedTotalDistance(calculatedDistance);
+      console.log('useRouteAnalysis: recalculatedTotalDistance set to', calculatedDistance);
     }
   }, [elevationData]);
 
@@ -129,6 +146,9 @@ export function useRouteAnalysis(
     if (!gpxData) return;
     const reversed = reverseGPXData(gpxData);
     setGPXData(reversed);
+    setRecalculatedElevationGain(reversed.totalElevationGain);
+    setRecalculatedElevationLoss(reversed.totalElevationLoss);
+    setRecalculatedTotalDistance(reversed.totalDistance);
     setWeatherPoints([]);
     setSelectedPointIndex(null);
     setIsWeatherAnalyzed(false); // Reset weather analysis status

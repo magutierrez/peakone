@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { Session } from 'next-auth';
@@ -18,7 +18,6 @@ import { Button } from '@/components/ui/button';
 import { Bike, Footprints, ArrowRight } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { LocaleSwitcher } from '@/app/_components/locale-switcher';
-import { saveRouteToDb } from '@/lib/db'; // Import saveRouteToDb
 
 interface SetupPageClientProps {
   session: Session | null;
@@ -36,7 +35,12 @@ export function SetupPageClient({ session }: SetupPageClientProps) {
 
   const [activityType, setActivityType] = useState<'cycling' | 'walking'>('cycling');
 
-  const { routes: savedRoutes } = useSavedRoutes(); // to show saved routes
+  const { routes: savedRoutes, saveRoute, refresh } = useSavedRoutes(); // to show saved routes
+
+  // Refresh routes list whenever this component is mounted (e.g. navigation from /route)
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
 
   // Handlers for GPX, Strava, Saved Routes
   const handleGPXLoaded = (content: string, fileName: string) => {
@@ -76,13 +80,19 @@ export function SetupPageClient({ session }: SetupPageClientProps) {
     }
 
     try {
-      const routeId = await saveRouteToDb(
-        session.user.email,
+      const distance = selectedGpxData.totalDistance || 0;
+      if (distance <= 0) {
+        setError(t('errors.readError')); // Or a more specific error
+        return;
+      }
+
+      const routeId = await saveRoute(
         selectedGpxFileName || 'Unnamed Route',
         rawGpxContent,
         activityType,
-        selectedGpxData.totalDistance,
-        selectedGpxData.totalElevationGain,
+        distance,
+        selectedGpxData.totalElevationGain || 0,
+        selectedGpxData.totalElevationLoss || 0,
       );
 
       if (routeId) {
