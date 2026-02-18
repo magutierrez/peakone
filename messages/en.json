@@ -3,8 +3,8 @@
     "loadingMap": "Loading map...",
     "processingRoute": "Processing route...",
     "obtainingData": "Obtaining elevation and terrain data",
-    "analyzeFirst": "Analyze the route to see weather data",
-    "clickAnalyze": "Click 'Analyze weather' to see the forecast by segments",
+    "analyzeFirst": "Analyze the route to see all details",
+    "clickAnalyze": "Click 'Analyze route' to see weather forecast, risks, and effort by segments",
     "uploadFirst": "Upload a GPX file to start",
     "errors": {
       "insufficientPoints": "The GPX file does not contain enough points.",
@@ -20,7 +20,7 @@
     },
     "placeholders": {
       "title": "Upload a GPX file to start",
-      "description": "Set the date, time, and speed, and analyze your route to see the point-by-point weather forecast with wind analysis."
+      "description": "Set the date, time, and speed, and analyze your route to get a detailed report of weather, terrain, risks, and effort."
     },
     "sections": {
       "terrain": "Terrain and Road",
@@ -116,7 +116,7 @@
     "averageSpeed": "Average speed (km/h)",
     "estimatedDuration": "Estimated duration",
     "durationFormat": "{hours}h {minutes}min",
-    "analyze": "Analyze weather",
+    "analyze": "Analyze route",
     "analyzing": "Analyzing..."
   },
   "GPXUpload": {
@@ -354,5 +354,13 @@
     "95": "Thunderstorm",
     "96": "Thunderstorm with slight hail",
     "99": "Thunderstorm with heavy hail"
+  },
+  "BestWindow": {
+    "title": "Best time to start",
+    "suggest": "Suggest",
+    "analyzing": "Analyzing...",
+    "recommended": "Recommended",
+    "night": "Night",
+    "description": "Click 'Suggest' to analyze the next 12h and find the best weather window."
   }
 }

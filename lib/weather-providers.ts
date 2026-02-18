@@ -162,6 +162,47 @@ const tomorrowToWmo: Record<number, number> = {
   // ...
 };
 
+export const metNorwayProvider: WeatherProvider = {
+  name: 'MET Norway',
+  fetchWeather: async ({ locations }) => {
+    const allResults = await Promise.all(
+      locations.map(async (loc) => {
+        const url = new URL('https://api.met.no/weatherapi/locationforecast/2.0/compact');
+        url.searchParams.set('lat', loc.lat.toString());
+        url.searchParams.set('lon', loc.lon.toString());
+
+        const res = await fetch(url.toString(), {
+          headers: { 'User-Agent': 'peakOne/1.0 github.com/magutierrez/peakone' },
+        });
+
+        if (!res.ok) throw new Error(`MET Norway error: ${res.status}`);
+        const data = await res.json();
+
+        const timeseries = data.properties.timeseries;
+        const hourlyTimes = timeseries.map((t: any) => t.time);
+
+        return loc.indices.map((pointIndex, i) => {
+          const closest = findClosestWeather(hourlyTimes, loc.times[i], {
+            temperature: timeseries.map((t: any) => t.data.instant.details.air_temperature),
+            apparentTemperature: timeseries.map((t: any) => t.data.instant.details.air_temperature), // MET doesn't give feels-like in compact
+            humidity: timeseries.map((t: any) => t.data.instant.details.relative_humidity),
+            precipitation: timeseries.map((t: any) => t.data.next_1_hours?.details?.precipitation_amount || 0),
+            precipitationProbability: timeseries.map((t: any) => t.data.next_1_hours?.details?.probability_of_precipitation || 0),
+            weatherCode: timeseries.map(() => 0), // MET uses symbols, mapping would be complex
+            windSpeed: timeseries.map((t: any) => (t.data.instant.details.wind_speed || 0) * 3.6), // m/s to km/h
+            windDirection: timeseries.map((t: any) => t.data.instant.details.wind_from_direction),
+            windGusts: timeseries.map((t: any) => (t.data.instant.details.wind_speed_of_gust || t.data.instant.details.wind_speed || 0) * 3.6),
+            isDay: timeseries.map(() => 1), // Simplified
+          });
+          return { index: pointIndex, weather: closest };
+        });
+      }),
+    );
+
+    return allResults.flat();
+  },
+};
+
 export const tomorrowIoProvider: WeatherProvider = {
   name: 'Tomorrow.io',
   fetchWeather: async ({ locations, startDate, endDate }) => {

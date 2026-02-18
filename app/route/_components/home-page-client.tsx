@@ -122,6 +122,9 @@ export default function HomePageClient({ session }: HomePageClientProps) {
     recalculatedElevationLoss,
     recalculatedTotalDistance,
     isWeatherAnalyzed,
+    bestWindows,
+    isFindingWindow,
+    handleFindBestWindow,
   } = useRouteAnalysis({ ...config, activityType }, fetchedRawGpxContent, fetchedGpxFileName, {
     distance: initialDistance,
     elevationGain: initialElevationGain,
@@ -138,6 +141,21 @@ export default function HomePageClient({ session }: HomePageClientProps) {
     setSelectedRange(null);
     handleReverseRoute();
   }, [handleReverseRoute]);
+
+  const handleSelectBestWindow = useCallback((isoTime: string) => {
+    const date = new Date(isoTime);
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+
+    setConfig({
+      ...config,
+      date: `${year}-${month}-${day}`,
+      time: `${hours}:${minutes}`
+    });
+  }, [config]);
 
   const sidebarContent = (
     <Sidebar
@@ -238,6 +256,10 @@ export default function HomePageClient({ session }: HomePageClientProps) {
                     activityType={activityType}
                     showWaterSources={showWaterSources}
                     onToggleWaterSources={() => setShowWaterSources(!showWaterSources)}
+                    bestWindows={bestWindows}
+                    isFindingWindow={isFindingWindow}
+                    onFindBestWindow={handleFindBestWindow}
+                    onSelectBestWindow={handleSelectBestWindow}
                   />
                 ) : (
                   <div className="border-border bg-card/50 text-muted-foreground flex h-60 flex-col items-center justify-center rounded-lg border border-dashed p-6 text-center">

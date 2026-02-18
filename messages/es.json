@@ -3,8 +3,8 @@
     "loadingMap": "Cargando mapa...",
     "processingRoute": "Procesando ruta...",
     "obtainingData": "Obteniendo datos de elevación y terreno",
-    "analyzeFirst": "Analiza la ruta para ver los datos meteorológicos",
-    "clickAnalyze": "Haz clic en 'Analizar meteorología' para ver el pronóstico por tramos",
+    "analyzeFirst": "Analiza la ruta para ver todos los detalles",
+    "clickAnalyze": "Haz clic en 'Analizar ruta' para ver el pronóstico meteorológico, riesgos y esfuerzo por tramos",
     "uploadFirst": "Sube un archivo GPX para empezar",
     "errors": {
       "insufficientPoints": "El archivo GPX no contiene suficientes puntos.",
@@ -20,7 +20,7 @@
     },
     "placeholders": {
       "title": "Sube un archivo GPX para empezar",
-      "description": "Configura la fecha, hora y velocidad, y analiza tu ruta para ver el forecast meteorologico punto a punto con el analisis de vientos."
+      "description": "Configura la fecha, hora y velocidad, y analiza tu ruta para obtener un informe detallado de meteorología, terreno, riesgos y esfuerzo."
     },
     "sections": {
       "terrain": "Terreno y Vía",
@@ -116,7 +116,7 @@
     "averageSpeed": "Velocidad media (km/h)",
     "estimatedDuration": "Duracion estimada",
     "durationFormat": "{hours}h {minutes}min",
-    "analyze": "Analizar meteorología",
+    "analyze": "Analizar ruta",
     "analyzing": "Analizando..."
   },
   "GPXUpload": {
@@ -354,5 +354,13 @@
     "95": "Tormenta",
     "96": "Tormenta con granizo ligero",
     "99": "Tormenta con granizo intenso"
+  },
+  "BestWindow": {
+    "title": "Mejor momento para salir",
+    "suggest": "Sugerir",
+    "analyzing": "Analizando...",
+    "recommended": "Recomendado",
+    "night": "Nocturno",
+    "description": "Pulsa 'Sugerir' para analizar las próximas 12h y encontrar la mejor ventana meteorológica."
   }
 }

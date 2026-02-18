@@ -51,6 +51,8 @@ export function useRouteAnalysis(
   const [recalculatedElevationLoss, setRecalculatedElevationLoss] = useState(initialData?.elevationLoss || 0);
   const [recalculatedTotalDistance, setRecalculatedTotalDistance] = useState(initialData?.distance || 0);
   const [isWeatherAnalyzed, setIsWeatherAnalyzed] = useState(false); // New state
+  const [bestWindows, setBestWindows] = useState<any[]>([]);
+  const [isFindingWindow, setIsFindingWindow] = useState(false);
 
   // Effect to initialize GPX data from props received from setup page
   useEffect(() => {
@@ -365,6 +367,52 @@ export function useRouteAnalysis(
     }
   }, [gpxData, config, t, routeInfoData]);
 
+  const handleFindBestWindow = useCallback(async () => {
+    if (!gpxData) return;
+    setIsFindingWindow(true);
+    setBestWindows([]);
+
+    try {
+      // Pick 3 points: start, mid, end
+      const startPoint = gpxData.points[0];
+      const midPoint = gpxData.points[Math.floor(gpxData.points.length / 2)];
+      const endPoint = gpxData.points[gpxData.points.length - 1];
+
+      // Estimate bearings for mid points
+      const calculateApproxBearing = (idx: number) => {
+        const p1 = gpxData.points[idx];
+        const p2 = gpxData.points[Math.min(idx + 10, gpxData.points.length - 1)];
+        return calculateBearing(p1.lat, p1.lon, p2.lat, p2.lon);
+      };
+
+      const keyPoints = [
+        { ...startPoint, bearing: calculateApproxBearing(0) },
+        { ...midPoint, bearing: calculateApproxBearing(Math.floor(gpxData.points.length / 2)) },
+        { ...endPoint, bearing: calculateApproxBearing(gpxData.points.length - 1) }
+      ];
+
+      const response = await fetch('/api/weather/best-window', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          keyPoints,
+          activityType: config.activityType,
+          baseSpeed: config.speed,
+          startTime: `${config.date}T${config.time}:00`
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setBestWindows(data.windows || []);
+      }
+    } catch (e) {
+      console.error('Failed to find best window', e);
+    } finally {
+      setIsFindingWindow(false);
+    }
+  }, [gpxData, config]);
+
   return {
     gpxData,
     gpxFileName,
@@ -380,6 +428,9 @@ export function useRouteAnalysis(
     handleClearGPX,
     handleReverseRoute,
     handleAnalyze,
+    handleFindBestWindow,
+    bestWindows,
+    isFindingWindow,
     recalculatedElevationGain,
     recalculatedElevationLoss,
     recalculatedTotalDistance,

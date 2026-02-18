@@ -9,6 +9,7 @@ import { WeatherList } from '@/components/weather-timeline/weather-list';
 import { RouteAdvice } from '@/components/route-advice';
 import { WeatherPointDetail } from '@/components/weather-timeline/weather-point-detail';
 import { RouteHazards } from '@/components/route-hazards';
+import { BestDepartureFinder } from '@/components/best-departure-finder';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 
@@ -29,6 +30,10 @@ interface AnalysisResultsProps {
   activityType: 'cycling' | 'walking';
   showWaterSources: boolean;
   onToggleWaterSources: () => void;
+  bestWindows?: any[];
+  isFindingWindow?: boolean;
+  onFindBestWindow?: () => void;
+  onSelectBestWindow?: (time: string) => void;
 }
 
 export function AnalysisResults({
@@ -44,6 +49,10 @@ export function AnalysisResults({
   activityType,
   showWaterSources,
   onToggleWaterSources,
+  bestWindows = [],
+  isFindingWindow = false,
+  onFindBestWindow = () => {},
+  onSelectBestWindow = () => {},
 }: AnalysisResultsProps) {
   const t = useTranslations('HomePage');
   const tp = useTranslations('physiology');
@@ -124,6 +133,13 @@ export function AnalysisResults({
               }
               return null;
             })()}
+
+          <BestDepartureFinder
+            windows={bestWindows}
+            isLoading={isFindingWindow}
+            onFind={onFindBestWindow}
+            onSelect={onSelectBestWindow}
+          />
         </TabsContent>
 
         <TabsContent value="advice" className="mt-6 flex flex-col gap-6">
@@ -134,7 +150,7 @@ export function AnalysisResults({
             onToggleWaterSources={onToggleWaterSources}
           />
 
-          
+
         </TabsContent>
 
         <TabsContent value="hazards" className="mt-6 flex flex-col gap-6">

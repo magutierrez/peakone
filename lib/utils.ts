@@ -405,3 +405,60 @@ export function calculateElevationGainLoss(elevationPoints: { elevation: number 
 
   return { totalElevationGain: Math.round(totalElevationGain), totalElevationLoss: Math.round(totalElevationLoss) };
 }
+
+export interface WindowScoreResult {
+  startTime: string;
+  score: number;
+  reasons: string[];
+  avgTemp: number;
+  maxWind: number;
+  maxPrecipProb: number;
+  isNight: boolean;
+}
+
+export function calculateWindowScore(
+  scenarios: Array<{
+    point: any;
+    weather: any;
+    bearing: number;
+  }>,
+  activityType: 'cycling' | 'walking'
+): number {
+  let score = 100;
+  
+  scenarios.forEach((s) => {
+    // 1. Precipitation Penalty (Heavy)
+    if (s.weather.precipitationProbability > 20) {
+      score -= (s.weather.precipitationProbability - 20) * 0.5;
+    }
+    if (s.weather.precipitation > 0.5) {
+      score -= s.weather.precipitation * 10;
+    }
+
+    // 2. Wind Penalty
+    if (s.weather.windSpeed > 25) {
+      score -= (s.weather.windSpeed - 25) * 1.5;
+    }
+
+    // 3. Temperature (Comfort zone 10-25°C)
+    if (s.weather.temperature > 28) score -= (s.weather.temperature - 28) * 2;
+    if (s.weather.temperature < 5) score -= (5 - s.weather.temperature) * 3;
+
+    // 4. Night Penalty
+    if (s.weather.isDay === 0) {
+      score -= 20;
+    }
+
+    // 5. Wind Direction (for Cycling)
+    if (activityType === 'cycling') {
+      const windTo = (s.weather.windDirection + 180) % 360;
+      let angleDiff = Math.abs(windTo - s.bearing);
+      if (angleDiff > 180) angleDiff = 360 - angleDiff;
+      
+      if (angleDiff < 45) score += 2; // Tailwind bonus
+      if (angleDiff > 135) score -= 5; // Headwind penalty
+    }
+  });
+
+  return Math.max(0, Math.min(100, Math.round(score)));
+}
