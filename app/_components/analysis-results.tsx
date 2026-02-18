@@ -30,7 +30,6 @@ interface AnalysisResultsProps {
   activityType: 'cycling' | 'walking';
   showWaterSources: boolean;
   onToggleWaterSources: () => void;
-  onResetToFullRouteView: () => void;
 }
 
 export function AnalysisResults({
@@ -46,7 +45,6 @@ export function AnalysisResults({
   activityType,
   showWaterSources,
   onToggleWaterSources,
-  onResetToFullRouteView,
 }: AnalysisResultsProps) {
   const t = useTranslations('HomePage');
   const tp = useTranslations('physiology');
@@ -99,7 +97,7 @@ export function AnalysisResults({
   return (
     <div id="analysis-results-container">
       <Tabs value={tab} onValueChange={setTab}>
-        <TabsList className="grid w-full grid-cols-3 mb-8 bg-secondary/50 p-">
+        <TabsList className="bg-secondary/50 p- mb-8 grid w-full grid-cols-3">
           <TabsTrigger value="weather">{t('sections.weatherAnalysis')}</TabsTrigger>
           <TabsTrigger value="advice">{t('sections.advice')}</TabsTrigger>
           <TabsTrigger value="hazards">{t('sections.hazards')}</TabsTrigger>
@@ -114,8 +112,8 @@ export function AnalysisResults({
             onSelect={setSelectedPointIndex}
           />
 
-          {selectedPointIndex !== null && (
-            () => {
+          {selectedPointIndex !== null &&
+            (() => {
               const selectedWeatherPoint = weatherPoints[selectedPointIndex];
               if (selectedWeatherPoint) {
                 return (
@@ -126,8 +124,7 @@ export function AnalysisResults({
                 );
               }
               return null;
-            })()
-          }
+            })()}
         </TabsContent>
 
         <TabsContent value="advice" className="mt-6 flex flex-col gap-6">
@@ -138,24 +135,24 @@ export function AnalysisResults({
             onToggleWaterSources={onToggleWaterSources}
           />
 
-          <div className="flex flex-col gap-4 rounded-xl border border-border bg-card/50 p-6">
-            <div className="flex items-center gap-2 border-b border-border pb-2">
-              <div className="h-4 w-1 rounded-full bg-primary" />
-              <h3 className="text-sm font-bold uppercase tracking-wider text-foreground/80">
+          <div className="border-border bg-card/50 flex flex-col gap-4 rounded-xl border p-6">
+            <div className="border-border flex items-center gap-2 border-b pb-2">
+              <div className="bg-primary h-4 w-1 rounded-full" />
+              <h3 className="text-foreground/80 text-sm font-bold tracking-wider uppercase">
                 {t('sections.physiology')}
               </h3>
             </div>
             <div className="flex items-center justify-between">
-              <Label className="flex items-center gap-2 text-muted-foreground">
+              <Label className="text-muted-foreground flex items-center gap-2">
                 <ThermometerSnowflake className="h-4 w-4" /> {tp('calories')}
               </Label>
-              <p className="font-mono text-sm font-bold text-foreground">{calories} kcal</p>
+              <p className="text-foreground font-mono text-sm font-bold">{calories} kcal</p>
             </div>
             <div className="flex items-center justify-between">
-              <Label className="flex items-center gap-2 text-muted-foreground">
+              <Label className="text-muted-foreground flex items-center gap-2">
                 <Waves className="h-4 w-4" /> {tp('hydration')}
               </Label>
-              <p className="font-mono text-sm font-bold text-foreground">{waterLiters} L</p>
+              <p className="text-foreground font-mono text-sm font-bold">{waterLiters} L</p>
             </div>
           </div>
         </TabsContent>
@@ -167,20 +164,19 @@ export function AnalysisResults({
               segment && onRangeSelect({ start: segment?.start, end: segment?.end })
             }
             onClearSelection={() => onRangeSelect(null)}
-            onResetToFullRouteView={onResetToFullRouteView}
           />
 
           {totalSegments > 0 && (
-            <div className="flex flex-col gap-4 rounded-xl border border-border bg-card/50 p-6">
-              <div className="flex items-center gap-2 border-b border-border pb-2">
-                <div className="h-4 w-1 rounded-full bg-primary" />
-                <h3 className="text-sm font-bold uppercase tracking-wider text-foreground/80">
+            <div className="border-border bg-card/50 flex flex-col gap-4 rounded-xl border p-6">
+              <div className="border-border flex items-center gap-2 border-b pb-2">
+                <div className="bg-primary h-4 w-1 rounded-full" />
+                <h3 className="text-foreground/80 text-sm font-bold tracking-wider uppercase">
                   {th('effortLevel')}
                 </h3>
               </div>
 
               <div className="flex flex-col gap-2">
-                <div className="flex items-center justify-between text-sm text-foreground">
+                <div className="text-foreground flex items-center justify-between text-sm">
                   <p>{th('levels.high')}</p>
                   <p>{highDangerSegments}</p>
                 </div>
@@ -190,7 +186,7 @@ export function AnalysisResults({
                 />
               </div>
               <div className="flex flex-col gap-2">
-                <div className="flex items-center justify-between text-sm text-foreground">
+                <div className="text-foreground flex items-center justify-between text-sm">
                   <p>{th('levels.medium')}</p>
                   <p>{mediumDangerSegments}</p>
                 </div>
@@ -200,7 +196,7 @@ export function AnalysisResults({
                 />
               </div>
               <div className="flex flex-col gap-2">
-                <div className="flex items-center justify-between text-sm text-foreground">
+                <div className="text-foreground flex items-center justify-between text-sm">
                   <p>{th('levels.low')}</p>
                   <p>{lowDangerSegments}</p>
                 </div>

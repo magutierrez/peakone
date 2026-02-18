@@ -24,8 +24,8 @@ const RouteMap = dynamic(() => import('@/components/route-map'), {
   loading: function Loading() {
     const th = useTranslations('HomePage');
     return (
-      <div className="flex h-full items-center justify-center rounded-lg bg-card">
-        <span className="text-sm text-muted-foreground">{th('loadingMap')}</span>
+      <div className="bg-card flex h-full items-center justify-center rounded-lg">
+        <span className="text-muted-foreground text-sm">{th('loadingMap')}</span>
       </div>
     );
   },
@@ -49,7 +49,9 @@ export default function HomePageClient({ session }: HomePageClientProps) {
 
   const [fetchedRawGpxContent, setFetchedRawGpxContent] = useState<string | null>(null);
   const [fetchedGpxFileName, setFetchedGpxFileName] = useState<string | null>(null);
-  const [fetchedActivityType, setFetchedActivityType] = useState<'cycling' | 'walking'>(initialActivityType);
+  const [fetchedActivityType, setFetchedActivityType] = useState<'cycling' | 'walking'>(
+    initialActivityType,
+  );
   const [initialDistance, setInitialDistance] = useState<number>(0);
   const [initialElevationGain, setInitialElevationGain] = useState<number>(0);
   const [initialElevationLoss, setInitialElevationLoss] = useState<number>(0);
@@ -117,16 +119,11 @@ export default function HomePageClient({ session }: HomePageClientProps) {
     recalculatedElevationLoss,
     recalculatedTotalDistance,
     isWeatherAnalyzed,
-  } = useRouteAnalysis(
-    { ...config, activityType },
-    fetchedRawGpxContent,
-    fetchedGpxFileName,
-    {
-      distance: initialDistance,
-      elevationGain: initialElevationGain,
-      elevationLoss: initialElevationLoss,
-    }
-  );
+  } = useRouteAnalysis({ ...config, activityType }, fetchedRawGpxContent, fetchedGpxFileName, {
+    distance: initialDistance,
+    elevationGain: initialElevationGain,
+    elevationLoss: initialElevationLoss,
+  });
 
   const onClearGPXWithRange = useCallback(() => {
     setSelectedRange(null);
@@ -148,7 +145,7 @@ export default function HomePageClient({ session }: HomePageClientProps) {
       error={error}
       provider={session?.provider}
       activityType={activityType}
-      className="border-none sticky-none h-full w-full"
+      className="sticky-none h-full w-full border-none"
       recalculatedElevationGain={recalculatedElevationGain}
       recalculatedElevationLoss={recalculatedElevationLoss}
       recalculatedTotalDistance={recalculatedTotalDistance}
@@ -161,7 +158,7 @@ export default function HomePageClient({ session }: HomePageClientProps) {
   );
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="bg-background flex min-h-screen flex-col">
       <Header session={session} mobileMenuContent={sidebarContent} />
 
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
@@ -185,14 +182,12 @@ export default function HomePageClient({ session }: HomePageClientProps) {
         />
 
         <main className="relative flex min-w-0 flex-1 flex-col lg:flex-row lg:overflow-hidden">
-          <div className="flex w-full flex-col gap-10 p-4 md:p-8 lg:w-[60%] lg:overflow-y-auto lg:h-[calc(100vh-57px)] custom-scrollbar">
+          <div className="custom-scrollbar flex w-full flex-col gap-10 p-4 md:p-8 lg:h-[calc(100vh-57px)] lg:w-[60%] lg:overflow-y-auto">
             {isLoading && !gpxData ? (
               <AnalysisSkeleton />
             ) : !gpxData ? (
               <div className="flex flex-col gap-8">
-                <div className="lg:hidden">
-                  {sidebarContent}
-                </div>
+                <div className="lg:hidden">{sidebarContent}</div>
                 <div className="hidden lg:block">
                   <EmptyState />
                 </div>
@@ -226,7 +221,7 @@ export default function HomePageClient({ session }: HomePageClientProps) {
                     onToggleWaterSources={() => setShowWaterSources(!showWaterSources)}
                   />
                 ) : (
-                  <div className="flex h-60 flex-col items-center justify-center rounded-lg border border-dashed border-border bg-card/50 p-6 text-center text-muted-foreground">
+                  <div className="border-border bg-card/50 text-muted-foreground flex h-60 flex-col items-center justify-center rounded-lg border border-dashed p-6 text-center">
                     <h2 className="mb-2 text-xl font-semibold">{tHomePage('analyzeFirst')}</h2>
                     <p className="max-w-md text-sm">{tHomePage('clickAnalyze')}</p>
                   </div>
@@ -235,10 +230,12 @@ export default function HomePageClient({ session }: HomePageClientProps) {
             )}
           </div>
 
-          <div className={cn(
-            "h-[400px] lg:h-[calc(100vh-57px)] w-full border-t lg:border-t-0 lg:border-l border-border lg:w-[40%] relative",
-            !gpxData && "hidden lg:block"
-          )}>
+          <div
+            className={cn(
+              'border-border relative h-[400px] w-full border-t lg:h-[calc(100vh-57px)] lg:w-[40%] lg:border-t-0 lg:border-l',
+              !gpxData && 'hidden lg:block',
+            )}
+          >
             <RouteLoadingOverlay isVisible={isRouteInfoLoading} />
             <RouteMap
               points={gpxData?.points || []}
