@@ -1,5 +1,5 @@
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { clsx, type ClassValue } from "clsx"
+import { twMerge } from "tailwind-merge"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -125,7 +125,7 @@ export function getSolarIntensity(
 ): 'shade' | 'weak' | 'moderate' | 'intense' | 'night' {
   if (exposure === 'night') return 'night';
   if (exposure === 'shade' || (radiation !== undefined && radiation < 100)) return 'shade';
-  
+
   const rad = radiation || 0;
   if (rad < 400) return 'weak';
   if (rad < 800) return 'moderate';
@@ -153,10 +153,10 @@ export function calculateSmartSpeed(
     const totalTime = flatTimeHours + verticalPenaltyHours;
     return distanceKm / totalTime;
   } else {
-    // Cycling: Simplified speed reduction. 
+    // Cycling: Simplified speed reduction.
     // Every 100m of gain in 10km (1% grade) reduces speed by ~10%
     const grade = (elevationGainM / (distanceKm * 1000)) * 100;
-    const speedFactor = Math.max(0.4, 1 - (grade * 0.05)); 
+    const speedFactor = Math.max(0.4, 1 - (grade * 0.05));
     return baseSpeed * speedFactor;
   }
 }
@@ -172,7 +172,7 @@ export function calculatePhysiologicalNeeds(
   activityType: 'cycling' | 'walking',
 ) {
   const isHiking = activityType === 'walking';
-  
+
   // 1. Calories (Metabolic Equivalent Task approximation)
   // Cycling ~ 8-12 METs, Hiking ~ 6-9 METs
   const baseMet = isHiking ? 7 : 10;
@@ -246,7 +246,7 @@ export function analyzeRouteSegments(weatherPoints: any[]): RouteSegment[] {
         dangerLevel = 'low';
         dangerColor = 'text-amber-500';
       }
-    } 
+    }
     // 2. Bajadas
     else if (slope < -6) {
       type = 'steepDescent';
@@ -290,7 +290,7 @@ export function analyzeRouteSegments(weatherPoints: any[]): RouteSegment[] {
         currentSegment.points.push(wp);
         currentSegment.maxSlope = Math.max(currentSegment.maxSlope, Math.abs(slope));
         currentSegment.endDist = wp.point.distanceFromStart;
-        
+
         // Upgrade danger level if a steeper part is found
         const levels = ['low', 'medium', 'high'];
         if (levels.indexOf(dangerLevel) > levels.indexOf(currentSegment.dangerLevel)) {
@@ -342,4 +342,24 @@ export function formatWindSpeed(kmh: number, unit: 'kmh' | 'mph' | 'knots' | 'ms
     default:
       return `${Math.round(kmh)} km/h`;
   }
+}
+
+export function calculateElevationGainLoss(elevationPoints: { elevation: number }[]) {
+  let totalElevationGain = 0;
+  let totalElevationLoss = 0;
+
+  if (elevationPoints.length < 2) {
+    return { totalElevationGain, totalElevationLoss };
+  }
+
+  for (let i = 1; i < elevationPoints.length; i++) {
+    const eleDiff = elevationPoints[i].elevation - elevationPoints[i - 1].elevation;
+    if (eleDiff > 0) {
+      totalElevationGain += eleDiff;
+    } else {
+      totalElevationLoss += Math.abs(eleDiff);
+    }
+  }
+
+  return { totalElevationGain: Math.round(totalElevationGain), totalElevationLoss: Math.round(totalElevationLoss) };
 }

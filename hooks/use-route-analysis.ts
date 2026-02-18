@@ -8,23 +8,78 @@ import {
   calculateBearing,
   getWindEffect,
   reverseGPXData,
+  stravaToGPXData,
 } from '@/lib/gpx-parser';
 import type { GPXData, RouteConfig, RouteWeatherPoint, WeatherData } from '@/lib/types';
-import { getSunPosition, getSolarExposure, getSolarIntensity, calculateSmartSpeed } from '@/lib/utils';
+import {
+  getSunPosition,
+  getSolarExposure,
+  getSolarIntensity,
+  calculateSmartSpeed,
+  calculateElevationGainLoss,
+} from '@/lib/utils';
 
-export function useRouteAnalysis(config: RouteConfig) {
+interface UseRouteAnalysisConfig {
+  date: string;
+  time: string;
+  speed: number;
+  activityType: 'cycling' | 'walking';
+}
+
+export function useRouteAnalysis(
+  config: UseRouteAnalysisConfig,
+  initialRawGpxContent: string | null,
+  initialGpxFileName: string | null,
+) {
   const t = useTranslations('HomePage');
   const [gpxData, setGPXData] = useState<GPXData | null>(null);
   const [gpxFileName, setGPXFileName] = useState<string | null>(null);
   const [rawGPXContent, setRawGPXContent] = useState<string | null>(null);
   const [weatherPoints, setWeatherPoints] = useState<RouteWeatherPoint[]>([]);
   const [elevationData, setElevationData] = useState<{ distance: number; elevation: number }[]>([]);
-  const [routeInfoData, setRouteInfoData] = useState<any[]>([]);
+  const [routeInfoData, setRouteInfoData] = useState<any[]>([]); // Terrain, surface, etc.
   const [selectedPointIndex, setSelectedPointIndex] = useState<number | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isRouteInfoLoading, setIsRouteInfoLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // For analyze button
+  const [isRouteInfoLoading, setIsRouteInfoLoading] = useState(false); // For initial route data
   const [error, setError] = useState<string | null>(null);
+  const [recalculatedElevationGain, setRecalculatedElevationGain] = useState(0);
+  const [recalculatedElevationLoss, setRecalculatedElevationLoss] = useState(0);
+  const [recalculatedTotalDistance, setRecalculatedTotalDistance] = useState(0);
+  const [isWeatherAnalyzed, setIsWeatherAnalyzed] = useState(false); // New state
 
+  // Effect to initialize GPX data from props received from setup page
+  useEffect(() => {
+    // Only process if initial content is provided and gpxData hasn't been set yet
+    if (initialRawGpxContent && initialGpxFileName && !gpxData) {
+      try {
+        let data: GPXData;
+        if (initialRawGpxContent.startsWith('{')) {
+          // Assuming it's a Strava activity/route JSON string
+          const stravaData = JSON.parse(initialRawGpxContent);
+          // Assuming stravaToGPXData can handle both activity and route objects
+          data = stravaToGPXData(stravaData); // Convert Strava JSON to GPXData format
+        } else {
+          // Assume it's GPX XML content
+          data = parseGPX(initialRawGpxContent);
+        }
+
+        if (data.points.length < 2) {
+          setError(t('errors.insufficientPoints'));
+          return;
+        }
+        setGPXData(data);
+        setGPXFileName(initialGpxFileName);
+        setRawGPXContent(initialRawGpxContent);
+        setError(null);
+        setIsWeatherAnalyzed(false); // Reset weather analysis status
+      } catch (err) {
+        console.error('Error parsing initial GPX content:', err);
+        setError(t('errors.readError'));
+      }
+    }
+  }, [initialRawGpxContent, initialGpxFileName, gpxData, t]);
+
+  // Effect to update initial elevation data when gpxData changes
   useEffect(() => {
     if (gpxData) {
       const dense = sampleRoutePoints(gpxData.points, 200);
@@ -32,17 +87,26 @@ export function useRouteAnalysis(config: RouteConfig) {
         distance: p.distanceFromStart,
         elevation: p.ele || 0,
       }));
-      
+
       // Always set initial elevation to prepare the chart
       setElevationData(initialElevation);
+      // Also fetch route info (terrain, etc.) immediately when GPX data is available
+      // The old handleGPXLoaded also triggered routeInfoData fetch.
+      fetchRouteInfo();
     } else {
       setElevationData([]);
+      setRecalculatedElevationGain(0);
+      setRecalculatedElevationLoss(0);
+      setRecalculatedTotalDistance(0);
+      setRouteInfoData([]);
+      setWeatherPoints([]);
+      setIsWeatherAnalyzed(false);
     }
   }, [gpxData]);
 
+  // Effect to update elevation data with richer info from API (routeInfoData)
   useEffect(() => {
     if (routeInfoData.length > 0) {
-      // Update with richer data from API (OSM + Meteo Elevation)
       const newElevationData = routeInfoData.map((item) => ({
         distance: item.distanceFromStart,
         elevation: item.elevation || 0,
@@ -51,77 +115,63 @@ export function useRouteAnalysis(config: RouteConfig) {
     }
   }, [routeInfoData]);
 
+  // Effect to recalculate elevation gain/loss/distance when elevationData changes
+  useEffect(() => {
+    if (elevationData.length > 0) {
+      const { totalElevationGain, totalElevationLoss } = calculateElevationGainLoss(elevationData);
+      setRecalculatedElevationGain(totalElevationGain);
+      setRecalculatedElevationLoss(totalElevationLoss);
+      setRecalculatedTotalDistance(elevationData[elevationData.length - 1].distance);
+    }
+  }, [elevationData]);
+
   const handleReverseRoute = useCallback(() => {
     if (!gpxData) return;
     const reversed = reverseGPXData(gpxData);
     setGPXData(reversed);
     setWeatherPoints([]);
     setSelectedPointIndex(null);
+    setIsWeatherAnalyzed(false); // Reset weather analysis status
   }, [gpxData]);
 
-  const handleStravaActivityLoaded = useCallback((data: GPXData, fileName: string) => {
-    setGPXData(data);
-    setGPXFileName(fileName);
-    setRawGPXContent(JSON.stringify(data));
-    setWeatherPoints([]);
-    setSelectedPointIndex(null);
-    setError(null);
-  }, []);
-
-  useEffect(() => {
+  const fetchRouteInfo = useCallback(async () => {
     if (!gpxData) {
       setRouteInfoData([]);
       return;
     }
 
-    const fetchRouteInfo = async () => {
-      setIsRouteInfoLoading(true);
-      try {
-        const response = await fetch('/api/route-info', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            points: sampleRoutePoints(gpxData.points, 100).map((p) => ({
-              lat: p.lat,
-              lon: p.lon,
-              distanceFromStart: p.distanceFromStart,
-            })),
-          }),
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setRouteInfoData(data.pathData || []);
-        }
-      } catch (e) {
-        console.error('Failed to fetch route info', e);
-      } finally {
-        setIsRouteInfoLoading(false);
+    setIsRouteInfoLoading(true);
+    try {
+      const response = await fetch('/api/route-info', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          points: sampleRoutePoints(gpxData.points, 100).map((p) => ({
+            lat: p.lat,
+            lon: p.lon,
+            distanceFromStart: p.distanceFromStart,
+          })),
+        }),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setRouteInfoData(data.pathData || []);
       }
-    };
+    } catch (e) {
+      console.error('Failed to fetch route info', e);
+      setError(t('errors.unknownError'));
+    } finally {
+      setIsRouteInfoLoading(false);
+    }
+  }, [gpxData, t]);
 
-    fetchRouteInfo();
-  }, [gpxData]);
+  // Run fetchRouteInfo when gpxData is set/changes
+  useEffect(() => {
+    if (gpxData) {
+      fetchRouteInfo();
+    }
+  }, [gpxData, fetchRouteInfo]);
 
-  const handleGPXLoaded = useCallback(
-    (content: string, fileName: string) => {
-      try {
-        const data = parseGPX(content);
-        if (data.points.length < 2) {
-          setError(t('errors.insufficientPoints'));
-          return;
-        }
-        setGPXData(data);
-        setGPXFileName(fileName);
-        setRawGPXContent(content);
-        setWeatherPoints([]);
-        setSelectedPointIndex(null);
-        setError(null);
-      } catch {
-        setError(t('errors.readError'));
-      }
-    },
-    [t],
-  );
 
   const handleClearGPX = useCallback(() => {
     setGPXData(null);
@@ -131,12 +181,15 @@ export function useRouteAnalysis(config: RouteConfig) {
     setRouteInfoData([]);
     setSelectedPointIndex(null);
     setError(null);
+    setIsWeatherAnalyzed(false); // Reset weather analysis status
   }, []);
 
   const handleAnalyze = useCallback(async () => {
     if (!gpxData) return;
     setIsLoading(true);
     setError(null);
+    setWeatherPoints([]); // Clear previous weather points
+    setIsWeatherAnalyzed(false);
 
     const fetchWithRetry = async (
       url: string,
@@ -165,7 +218,7 @@ export function useRouteAnalysis(config: RouteConfig) {
     try {
       const sampled = sampleRoutePoints(gpxData.points, 48);
       const startTime = new Date(`${config.date}T${config.time}:00`);
-      
+
       // Calculate times point-to-point with smart speed
       const pointsWithTime: any[] = [];
       let currentElapsedTime = 0;
@@ -180,17 +233,17 @@ export function useRouteAnalysis(config: RouteConfig) {
           const prevPoint = sampled[idx - 1];
           const segmentDist = point.distanceFromStart - prevPoint.distanceFromStart;
           const segmentEleGain = Math.max(0, (point.ele || 0) - (prevPoint.ele || 0));
-          
+
           const speedAtSegment = calculateSmartSpeed(
             config.speed,
             segmentDist,
             segmentEleGain,
-            config.activityType
+            config.activityType,
           );
-          
+
           const segmentTimeHours = segmentDist / speedAtSegment;
           currentElapsedTime += segmentTimeHours;
-          
+
           pointsWithTime.push({
             ...point,
             estimatedTime: new Date(startTime.getTime() + currentElapsedTime * 3600000),
@@ -224,25 +277,37 @@ export function useRouteAnalysis(config: RouteConfig) {
         const prevIdx = Math.max(0, idx - 1);
         const nextPoint = pointsWithTime[nextIdx];
         const prevPoint = pointsWithTime[prevIdx];
-        
+
         const bearing = calculateBearing(point.lat, point.lon, nextPoint.lat, nextPoint.lon);
         const weather = weatherData[idx];
         const windResult = getWindEffect(bearing, weather.windDirection);
 
         // Find closest info by distance (not index) to be robust
-        const info = routeInfoData.reduce((prev, curr) => 
-          Math.abs(curr.distanceFromStart - point.distanceFromStart) < Math.abs(prev.distanceFromStart - point.distanceFromStart) ? curr : prev
-        , routeInfoData[0] || {});
+        const info = routeInfoData.reduce(
+          (prev, curr) =>
+            Math.abs(curr.distanceFromStart - point.distanceFromStart) <
+            Math.abs(prev.distanceFromStart - point.distanceFromStart)
+              ? curr
+              : prev,
+          routeInfoData[0] || {},
+        );
 
-        const ele = point.ele !== undefined && point.ele !== 0 ? point.ele : (info.elevation || 0);
+        const ele = point.ele !== undefined && point.ele !== 0 ? point.ele : info.elevation || 0;
 
         // Calculate slope and aspect for hillshading
         const distDiff = (nextPoint.distanceFromStart - prevPoint.distanceFromStart) * 1000; // meters
-        const eleDiff = (nextPoint.ele !== undefined ? nextPoint.ele : (routeInfoData.find((d: any) => d.distanceFromStart === nextPoint.distanceFromStart)?.elevation || 0)) - 
-                        (prevPoint.ele !== undefined ? prevPoint.ele : (routeInfoData.find((d: any) => d.distanceFromStart === prevPoint.distanceFromStart)?.elevation || 0));
+        const eleDiff =
+          (nextPoint.ele !== undefined
+            ? nextPoint.ele
+            : routeInfoData.find((d: any) => d.distanceFromStart === nextPoint.distanceFromStart)
+                ?.elevation || 0) -
+          (prevPoint.ele !== undefined
+            ? prevPoint.ele
+            : routeInfoData.find((d: any) => d.distanceFromStart === prevPoint.distanceFromStart)
+                ?.elevation || 0);
         const slopeRad = distDiff > 0 ? Math.atan(eleDiff / distDiff) : 0;
         const slopeDeg = (slopeRad * 180) / Math.PI;
-        
+
         // Aspect is the direction of the steepest descent
         // If going uphill, aspect is bearing + 180, if downhill, aspect is bearing
         const aspectDeg = eleDiff > 0 ? (bearing + 180) % 360 : bearing;
@@ -272,6 +337,7 @@ export function useRouteAnalysis(config: RouteConfig) {
 
       setWeatherPoints(routeWeatherPoints);
       setSelectedPointIndex(0);
+      setIsWeatherAnalyzed(true); // Mark weather as analyzed
     } catch (err) {
       setError(err instanceof Error ? err.message : t('errors.unknownError'));
     } finally {
@@ -291,10 +357,12 @@ export function useRouteAnalysis(config: RouteConfig) {
     isLoading,
     isRouteInfoLoading,
     error,
-    handleGPXLoaded,
-    handleStravaActivityLoaded,
     handleClearGPX,
     handleReverseRoute,
     handleAnalyze,
+    recalculatedElevationGain,
+    recalculatedElevationLoss,
+    recalculatedTotalDistance,
+    isWeatherAnalyzed, // Export new state
   };
 }

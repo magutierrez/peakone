@@ -83,7 +83,6 @@ export interface RouteConfig {
   date: string;
   time: string;
   speed: number;
-  activityType: 'cycling' | 'walking';
 }
 
 export interface GPXData {

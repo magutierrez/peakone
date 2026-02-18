@@ -2,9 +2,11 @@ import type { Metadata, Viewport } from 'next';
 import { Inter, JetBrains_Mono } from 'next/font/google';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
+
 import { ThemeProvider } from '@/components/theme-provider';
 import { SettingsProvider } from '@/components/settings-provider';
 import { SessionProvider } from 'next-auth/react';
+
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Analytics } from '@vercel/analytics/next';
 

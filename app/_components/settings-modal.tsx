@@ -1,13 +1,16 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useSettings, UnitSystem, WindUnit } from '@/hooks/use-settings';
+import { Settings } from 'lucide-react';
+
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import {
@@ -17,32 +20,40 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
+
+import { useSettings } from '@/hooks/use-settings';
 
 interface SettingsModalProps {
-  open: boolean;
+  isOpen: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
+export function SettingsModal({ isOpen, onOpenChange }: SettingsModalProps) {
   const t = useTranslations('Auth');
-  const { unitSystem, windUnit, setUnitSystem, setWindUnit } = useSettings();
+  const { unitSystem, windSpeedUnit, setUnitSystem, setWindSpeedUnit } = useSettings();
+
+  const handleSave = () => {
+    onOpenChange(false);
+    // Settings are saved automatically via localStorage in the useSettings hook
+  };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{t('settingsTitle')}</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <Settings className="h-5 w-5" /> {t('settingsTitle')}
+          </DialogTitle>
+          <DialogDescription>{t('settingsDescription')}</DialogDescription>
         </DialogHeader>
-        <div className="grid gap-6 py-4">
-          <div className="grid gap-2">
-            <Label htmlFor="system">{t('system')}</Label>
-            <Select
-              value={unitSystem}
-              onValueChange={(value) => setUnitSystem(value as UnitSystem)}
-            >
-              <SelectTrigger id="system">
-                <SelectValue />
+        <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="unitSystem" className="text-right">
+              {t('system')}
+            </Label>
+            <Select value={unitSystem} onValueChange={(value) => setUnitSystem(value as any)}>
+              <SelectTrigger id="unitSystem" className="col-span-3">
+                <SelectValue placeholder="Select unit system" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="metric">{t('metric')}</SelectItem>
@@ -52,14 +63,16 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
               </SelectContent>
             </Select>
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="wind">{t('windUnit')}</Label>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="windSpeedUnit" className="text-right">
+              {t('windUnit')}
+            </Label>
             <Select
-              value={windUnit}
-              onValueChange={(value) => setWindUnit(value as WindUnit)}
+              value={windSpeedUnit}
+              onValueChange={(value) => setWindSpeedUnit(value as any)}
             >
-              <SelectTrigger id="wind">
-                <SelectValue />
+              <SelectTrigger id="windSpeedUnit" className="col-span-3">
+                <SelectValue placeholder="Select wind speed unit" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="kmh">km/h</SelectItem>
@@ -71,7 +84,9 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
           </div>
         </div>
         <DialogFooter>
-          <Button onClick={() => onOpenChange(false)}>{t('save')}</Button>
+          <Button type="submit" onClick={handleSave}>
+            {t('save')}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

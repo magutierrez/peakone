@@ -17,7 +17,7 @@ import {
 import type { RouteWeatherPoint } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 
-interface ElevationProfileProps {
+interface AnalysisChartProps {
   weatherPoints: RouteWeatherPoint[];
   elevationData: { distance: number; elevation: number }[];
   selectedIndex: number | null;
@@ -25,13 +25,13 @@ interface ElevationProfileProps {
   onRangeSelect?: (range: { start: number; end: number } | null) => void;
 }
 
-export function ElevationProfile({
+export function AnalysisChart({
   weatherPoints,
   elevationData,
   selectedIndex,
   onSelect,
   onRangeSelect,
-}: ElevationProfileProps) {
+}: AnalysisChartProps) {
   const t = useTranslations('WeatherTimeline');
   const lastUpdateRef = useRef<number>(0);
 

@@ -5,16 +5,10 @@ export function EmptyState() {
   const t = useTranslations('HomePage');
 
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-3 py-12 text-center">
-      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-secondary">
-        <Mountain className="h-8 w-8 text-muted-foreground" />
-      </div>
-      <div>
-        <p className="text-sm font-medium text-foreground">{t('placeholders.title')}</p>
-        <p className="mt-1 max-w-sm text-xs leading-relaxed text-muted-foreground">
-          {t('placeholders.description')}
-        </p>
-      </div>
+    <div className="flex h-full flex-col items-center justify-center rounded-lg border border-dashed border-border bg-card/50 p-6 text-center text-muted-foreground">
+      <Mountain className="mb-4 h-12 w-12 text-muted-foreground" />
+      <h2 className="mb-2 text-xl font-semibold">{t('placeholders.title')}</h2>
+      <p className="max-w-md text-sm">{t('placeholders.description')}</p>
     </div>
   );
 }

@@ -35,6 +35,17 @@
       "hazardsDesc": "Analysis of the most demanding and dangerous sections of your track."
     }
   },
+  "SetupPage": {
+    "title": "Plan Your Route",
+    "selectRouteSource": "Select Route Source",
+    "savedRoutes": "My Saved Routes",
+    "analyzeRoute": "Analyze Route",
+    "errors": {
+      "insufficientPoints": "The GPX file does not contain enough points.",
+      "readError": "Error reading GPX file. Check the format.",
+      "noRouteSelected": "Please select or upload a route to analyze."
+    }
+  },
       "Hazards": {
         "title": "Critical Segments",
         "steepClimb": "Demanding Climb",
@@ -90,6 +101,7 @@
     }
   },
   "RouteConfigPanel": {
+    "routeSummary": "Route Summary",
     "gpxFile": "GPX File",
     "reverseRoute": "Reverse direction",
     "km": "km",
@@ -240,11 +252,13 @@
     "continueX": "Continue with X (Twitter)",
     "continueStrava": "Continue with Strava",
     "connectStrava": "Connect with Strava",
+    "connectStravaButton": "Connect Strava",
     "stravaDescription": "Sync your routes and activities directly.",
     "terms": "By continuing, you agree to our terms of service and privacy policy.",
     "logout": "Log out",
     "settings": "Settings",
     "settingsTitle": "Unit Preferences",
+    "settingsDescription": "Configure your preferred units for distance, elevation, temperature, and wind speed.",
     "system": "Measurement System",
     "windUnit": "Wind Speed",
     "metric": "Metric (km, m, °C)",
@@ -252,6 +266,9 @@
     "uk": "United Kingdom (mi, m, °C)",
     "imperial": "Imperial (mi, ft, °C)",
     "save": "Save changes"
+  },
+  "LocaleSwitcher": {
+    "switchLocale": "Switch language"
   },
   "SavedRoutes": {
     "title": "My Saved Routes",

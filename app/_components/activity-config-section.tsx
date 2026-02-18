@@ -14,6 +14,8 @@ interface ActivityConfigSectionProps {
   isLoading: boolean;
   hasGpxData: boolean;
   totalDistance: number;
+  recalculatedElevationGain: number;
+  recalculatedElevationLoss: number;
 }
 
 export function ActivityConfigSection({
@@ -23,6 +25,8 @@ export function ActivityConfigSection({
   isLoading,
   hasGpxData,
   totalDistance,
+  recalculatedElevationGain,
+  recalculatedElevationLoss,
 }: ActivityConfigSectionProps) {
   const t = useTranslations('RouteConfigPanel');
   const th = useTranslations('HomePage');
@@ -41,36 +45,6 @@ export function ActivityConfigSection({
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <div className="flex flex-col gap-3">
-          <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            {t('activity')}
-          </Label>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              onClick={() => setConfig({ ...config, activityType: 'cycling', speed: 25 })}
-              className={`flex items-center justify-center gap-2 rounded-lg border p-3 text-sm font-medium transition-all ${
-                config.activityType === 'cycling'
-                  ? 'border-primary bg-primary/10 text-primary'
-                  : 'border-border bg-secondary text-muted-foreground hover:border-primary/30'
-              }`}
-            >
-              <Bike className="h-4 w-4" />
-              {t('cycling')}
-            </button>
-            <button
-              onClick={() => setConfig({ ...config, activityType: 'walking', speed: 5 })}
-              className={`flex items-center justify-center gap-2 rounded-lg border p-3 text-sm font-medium transition-all ${
-                config.activityType === 'walking'
-                  ? 'border-primary bg-primary/10 text-primary'
-                  : 'border-border bg-secondary text-muted-foreground hover:border-primary/30'
-              }`}
-            >
-              <Footprints className="h-4 w-4" />
-              {t('walking')}
-            </button>
-          </div>
-        </div>
-
         <div className="flex flex-col gap-3">
           <Label
             htmlFor="speed"

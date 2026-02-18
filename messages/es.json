@@ -35,6 +35,17 @@
       "hazardsDesc": "Análisis de los tramos más exigentes y peligrosos de tu track."
     }
   },
+  "SetupPage": {
+    "title": "Planifica tu Ruta",
+    "selectRouteSource": "Selecciona Origen de Ruta",
+    "savedRoutes": "Mis Rutas Guardadas",
+    "analyzeRoute": "Analizar Ruta",
+    "errors": {
+      "insufficientPoints": "El archivo GPX no contiene suficientes puntos.",
+      "readError": "Error al leer el archivo GPX. Verifica el formato.",
+      "noRouteSelected": "Por favor, selecciona o sube una ruta para analizar."
+    }
+  },
       "Hazards": {
         "title": "Tramos Críticos",
         "steepClimb": "Subida Exigente",
@@ -90,6 +101,7 @@
     }
   },
   "RouteConfigPanel": {
+    "routeSummary": "Resumen de Ruta",
     "gpxFile": "Archivo GPX",
     "reverseRoute": "Invertir sentido",
     "km": "km",
@@ -240,11 +252,13 @@
     "continueX": "Continuar con X (Twitter)",
     "continueStrava": "Continuar con Strava",
     "connectStrava": "Conectar con Strava",
+    "connectStravaButton": "Conectar Strava",
     "stravaDescription": "Sincroniza tus rutas y actividades directamente.",
     "terms": "Al continuar, aceptas nuestros términos de servicio y política de privacidad.",
     "logout": "Cerrar sesión",
     "settings": "Ajustes",
     "settingsTitle": "Preferencias de Unidades",
+    "settingsDescription": "Configura tus unidades preferidas para distancia, elevación, temperatura y velocidad del viento.",
     "system": "Sistema de medidas",
     "windUnit": "Velocidad del viento",
     "metric": "Métrico (km, m, °C)",
@@ -252,6 +266,9 @@
     "uk": "Reino Unido (mi, m, °C)",
     "imperial": "Imperial (mi, ft, °C)",
     "save": "Guardar cambios"
+  },
+  "LocaleSwitcher": {
+    "switchLocale": "Cambiar idioma"
   },
   "SavedRoutes": {
     "title": "Mis Rutas Guardadas",

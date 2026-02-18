@@ -1,23 +1,23 @@
 'use client';
 
 import { signIn } from 'next-auth/react';
-import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
+import { useTranslations } from 'next-intl';
 
 export function StravaConnector() {
   const t = useTranslations('Auth');
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-[#FC6719]/20 bg-[#FC6719]/5 p-4">
-      <div className="flex flex-col gap-1">
-        <h4 className="text-sm font-bold text-foreground">{t('connectStrava')}</h4>
-        <p className="text-[10px] text-muted-foreground">{t('stravaDescription')}</p>
-      </div>
+    <div className="flex flex-col gap-3 rounded-xl border border-dashed border-border bg-muted/50 p-4 text-center">
+      <h3 className="text-sm font-semibold text-foreground">{t('connectStrava')}</h3>
+      <p className="text-xs text-muted-foreground">{t('stravaDescription')}</p>
       <Button
-        onClick={() => signIn('strava')}
-        className="h-8 w-full bg-[#FC6719] text-xs font-semibold text-white hover:bg-[#FC6719]/90"
+        variant="secondary"
+        size="sm"
+        onClick={() => signIn('strava', { redirectTo: '/setup' })}
+        className="flex items-center gap-2"
       >
-        {t('continueStrava')}
+        {t('connectStravaButton')}
       </Button>
     </div>
   );

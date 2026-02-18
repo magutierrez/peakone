@@ -1,90 +1,95 @@
 'use client';
 
-import { Mountain, Moon, Sun, Menu } from 'lucide-react';
-import { useTranslations } from 'next-intl';
-import { useTheme } from 'next-themes';
-import { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { Session } from 'next-auth';
-import { UserMenu } from './user-menu';
+import { signOut } from 'next-auth/react';
+import { Mountain, Settings, LogOut, Menu } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { useState } from 'react';
+import { SettingsModal } from './settings-modal';
 import { LocaleSwitcher } from './locale-switcher';
-import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetHeader } from '@/components/ui/sheet';
+import Link from 'next/link';
 
 interface HeaderProps {
   session: Session | null;
-  mobileMenuContent?: React.ReactNode;
+  mobileMenuContent: React.ReactNode;
 }
 
 export function Header({ session, mobileMenuContent }: HeaderProps) {
-  const t = useTranslations('HomePage');
-  const { setTheme, resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-  const [open, setOpen] = useState(false);
+  const t = useTranslations('Auth');
+  const isMobile = useIsMobile();
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
 
-  // Avoid hydration mismatch
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const userInitial = session?.user?.name
+    ? session.user.name.charAt(0).toUpperCase()
+    : session?.user?.email?.charAt(0).toUpperCase() || 'U';
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-card/80 backdrop-blur-md">
-      <div className="flex items-center justify-between px-4 py-3 lg:px-6">
-        <div className="flex items-center gap-3">
-          {mobileMenuContent && (
-            <div className="lg:hidden">
-              <Sheet open={open} onOpenChange={setOpen}>
-                <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-9 w-9">
-                    <Menu className="h-5 w-5" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="left" className="p-0 w-80" onClick={() => setOpen(false)}>
-                  <SheetHeader className="sr-only">
-                    <SheetTitle>Menu</SheetTitle>
-                  </SheetHeader>
-                  {mobileMenuContent}
-                </SheetContent>
-              </Sheet>
-            </div>
-          )}
-          
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
-              <Mountain className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-lg font-bold leading-tight text-foreground">{t('header.title')}</h1>
-              <p className="hidden sm:block text-[10px] text-muted-foreground">{t('header.subtitle')}</p>
-            </div>
-          </div>
-        </div>
+    <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-border bg-background px-4 lg:px-6">
+      <Link href="/setup" className="flex items-center gap-2">
+        <Mountain className="h-6 w-6 text-primary" />
+        <span className="text-lg font-bold">peakOne</span>
+      </Link>
 
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 pl-4">
-            <LocaleSwitcher />
-            
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
-              title="Cambiar tema"
-            >
-              {mounted ? (
-                resolvedTheme === 'dark' ? (
-                  <Sun className="h-5 w-5 text-orange-400" />
-                ) : (
-                  <Moon className="h-5 w-5 text-slate-700" />
-                )
-              ) : (
-                <div className="h-5 w-5" />
-              )}
-              <span className="sr-only">Toggle theme</span>
-            </Button>
+      <div className="flex items-center gap-2">
+        <LocaleSwitcher />
 
-            {session?.user && <UserMenu user={session.user} />}
-          </div>
-        </div>
+        {isMobile && mobileMenuContent && (
+          <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-9 w-9">
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Toggle Menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="flex flex-col p-0">
+              {mobileMenuContent}
+            </SheetContent>
+          </Sheet>
+        )}
+
+        {session?.user ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+                <Avatar className="h-9 w-9">
+                  <AvatarImage src={session.user.image || undefined} alt={session.user.name || 'User'} />
+                  <AvatarFallback>{userInitial}</AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56" align="end" forceMount>
+              <DropdownMenuItem onClick={() => setIsSettingsOpen(true)}>
+                <Settings className="mr-2 h-4 w-4" />
+                <span>{t('settings')}</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => signOut({ callbackUrl: '/login' })}>
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>{t('logout')}</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <Button asChild>
+            <Link href="/login">{t('loginDescription')}</Link>
+          </Button>
+        )}
       </div>
+
+      <SettingsModal isOpen={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
     </header>
   );
 }
