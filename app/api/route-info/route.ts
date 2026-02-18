@@ -35,7 +35,27 @@ export async function POST(request: NextRequest) {
       );
       out center;`;
 
-    const [osmResponse, elevationResponse] = await Promise.all([
+    // 3. OpenCellID Sampling: Query small areas around strategic points to stay within 4M sq.m limit
+    // We sample up to 8 points along the route to get a representative tower map
+    const samplingInterval = Math.max(2, Math.floor(points.length / 8));
+    const sampledPoints = points.filter((_, i) => i % samplingInterval === 0);
+    
+    const cellTowersPromises = process.env.OPENCELLID_API_KEY 
+      ? sampledPoints.map(p => {
+          // ~1.8km x 1.8km box = ~3.24M sq.m (Safe under 4M limit)
+          const b = {
+            minLat: p.lat - 0.008,
+            maxLat: p.lat + 0.008,
+            minLon: p.lon - 0.01,
+            maxLon: p.lon + 0.01
+          };
+          return fetch(`https://opencellid.org/cell/getInArea?key=${process.env.OPENCELLID_API_KEY}&BBOX=${b.minLat.toFixed(4)},${b.minLon.toFixed(4)},${b.maxLat.toFixed(4)},${b.maxLon.toFixed(4)}&format=json`)
+            .then(r => r.ok ? r.json() : { cells: [] })
+            .catch(() => ({ cells: [] }));
+        })
+      : [];
+
+    const [osmResponse, elevationResponse, ...cellResponses] = await Promise.all([
       fetch('https://overpass-api.de/api/interpreter', {
         method: 'POST',
         body: `data=${encodeURIComponent(overpassQuery)}`,
@@ -44,14 +64,19 @@ export async function POST(request: NextRequest) {
           'User-Agent': 'peakOne/1.0',
         },
       }),
-      // 3. Fetch Elevation Data
       fetch(
         `https://api.open-meteo.com/v1/elevation?latitude=${points.map((p) => p.lat).join(',')}&longitude=${points.map((p) => p.lon).join(',')}`,
       ),
+      ...cellTowersPromises
     ]);
 
     const osmData = osmResponse.ok ? await osmResponse.json() : { elements: [] };
     const elevationResponseJson = elevationResponse.ok ? await elevationResponse.json() : { elevation: [] };
+    
+    // Merge all cell towers found across all sampled boxes
+    const allCellTowers = cellResponses.flatMap((r: any) => r.cells || []);
+    // Remove duplicates by tower ID if available, otherwise by location
+    const cellTowers = Array.from(new Map(allCellTowers.map((c: any) => [`${c.lat},${c.lon}`, c])).values());
 
     const elements = osmData.elements || [];
     const elevations = elevationResponseJson.elevation || [];
@@ -68,13 +93,13 @@ export async function POST(request: NextRequest) {
       el.tags?.amenity === 'drinking_water' || el.tags?.natural === 'spring' || el.tags?.man_made === 'water_tap'
     );
 
-    // Map everything back
     const pathData = points.map((p, idx) => {
       let closestWay = null;
       let minWayDist = Infinity;
       let closestEscape: any = null;
       let minEscapeDist = Infinity;
       let nearbyInfraCount = 0;
+      let minCellDist = Infinity;
 
       // 1. Match Highways (within 100m)
       for (const element of highwayElements) {
@@ -87,7 +112,16 @@ export async function POST(request: NextRequest) {
         if (dist < 3) nearbyInfraCount++; // Coverage proxy
       }
 
-      // 2. Match Escape Points (within 2.5km)
+      // 2. Cell Tower Proximity (OpenCellID)
+      if (cellTowers.length > 0) {
+        for (const cell of cellTowers) {
+          const dist = getDistSq(p, { lat: cell.lat, lon: cell.lon });
+          if (dist < minCellDist) minCellDist = dist;
+          if (minCellDist < 1) break; // Optimization: close enough
+        }
+      }
+
+      // 3. Match Escape Points (within 2.5km)
       for (const element of escapeElements) {
         const center = element.center || { lat: element.lat, lon: element.lon };
         const dist = getDistSq(p, center);
@@ -100,7 +134,7 @@ export async function POST(request: NextRequest) {
       const tags = closestWay?.tags || {};
       const escapeTags = closestEscape?.tags || {};
       
-      // 3. Extract water sources (within 1.5km)
+      // 4. Extract water sources (within 1.5km)
       const waterSources: any[] = waterElements
         .map((el: any) => {
           const center = el.center || { lat: el.lat, lon: el.lon };
@@ -119,10 +153,16 @@ export async function POST(request: NextRequest) {
         })
         .filter(Boolean);
 
-      // Heuristic for mobile coverage
+      // Improved Coverage logic
       let coverage: 'none' | 'low' | 'full' = 'full';
-      if (nearbyInfraCount === 0) coverage = 'none';
-      else if (nearbyInfraCount < 3) coverage = 'low';
+      if (cellTowers.length > 0) {
+        if (minCellDist > 5) coverage = 'none';
+        else if (minCellDist > 2.5) coverage = 'low';
+      } else {
+        // Fallback to OSM heuristic
+        if (nearbyInfraCount === 0) coverage = 'none';
+        else if (nearbyInfraCount < 3) coverage = 'low';
+      }
 
       return {
         lat: p.lat,
