@@ -423,42 +423,80 @@ export function calculateWindowScore(
     bearing: number;
   }>,
   activityType: 'cycling' | 'walking'
-): number {
+): { score: number; reasons: string[] } {
   let score = 100;
+  const reasons: string[] = [];
   
-  scenarios.forEach((s) => {
-    // 1. Precipitation Penalty (Heavy)
-    if (s.weather.precipitationProbability > 20) {
-      score -= (s.weather.precipitationProbability - 20) * 0.5;
-    }
-    if (s.weather.precipitation > 0.5) {
-      score -= s.weather.precipitation * 10;
-    }
+  const maxPrecipProb = Math.max(...scenarios.map(s => s.weather.precipitationProbability));
+  const maxWind = Math.max(...scenarios.map(s => s.weather.windSpeed));
+  const avgTemp = scenarios.reduce((sum, s) => sum + s.weather.temperature, 0) / scenarios.length;
+  const isNight = scenarios.some(s => s.weather.isDay === 0);
 
-    // 2. Wind Penalty
-    if (s.weather.windSpeed > 25) {
-      score -= (s.weather.windSpeed - 25) * 1.5;
-    }
+  // 1. Precipitation
+  if (maxPrecipProb > 50) {
+    score -= (maxPrecipProb - 20) * 0.6;
+    reasons.push('rain_high');
+  } else if (maxPrecipProb > 20) {
+    score -= (maxPrecipProb - 20) * 0.3;
+    reasons.push('rain_low');
+  } else {
+    reasons.push('no_rain');
+  }
 
-    // 3. Temperature (Comfort zone 10-25°C)
-    if (s.weather.temperature > 28) score -= (s.weather.temperature - 28) * 2;
-    if (s.weather.temperature < 5) score -= (5 - s.weather.temperature) * 3;
+  // 2. Wind
+  if (maxWind > 35) {
+    score -= (maxWind - 25) * 1.5;
+    reasons.push('wind_heavy');
+  } else if (maxWind > 20) {
+    reasons.push('wind_moderate');
+  } else {
+    reasons.push('wind_calm');
+  }
 
-    // 4. Night Penalty
-    if (s.weather.isDay === 0) {
-      score -= 20;
-    }
+  // 3. Temperature
+  if (avgTemp > 30) {
+    score -= (avgTemp - 30) * 3;
+    reasons.push('temp_hot');
+  } else if (avgTemp < 5) {
+    score -= (5 - avgTemp) * 4;
+    reasons.push('temp_cold');
+  } else if (avgTemp >= 12 && avgTemp <= 22) {
+    reasons.push('temp_perfect');
+  }
 
-    // 5. Wind Direction (for Cycling)
-    if (activityType === 'cycling') {
+  // 4. Night
+  if (isNight) {
+    score -= 25;
+    reasons.push('night_warning');
+  } else {
+    reasons.push('daylight_ok');
+  }
+
+  // 5. Wind Direction (for Cycling)
+  if (activityType === 'cycling') {
+    let tailwindPoints = 0;
+    let headwindPoints = 0;
+
+    scenarios.forEach((s) => {
       const windTo = (s.weather.windDirection + 180) % 360;
       let angleDiff = Math.abs(windTo - s.bearing);
       if (angleDiff > 180) angleDiff = 360 - angleDiff;
       
-      if (angleDiff < 45) score += 2; // Tailwind bonus
-      if (angleDiff > 135) score -= 5; // Headwind penalty
-    }
-  });
+      if (angleDiff < 45) tailwindPoints++;
+      if (angleDiff > 135) headwindPoints++;
+    });
 
-  return Math.max(0, Math.min(100, Math.round(score)));
+    if (tailwindPoints > scenarios.length / 2) {
+      score += 5;
+      reasons.push('wind_favor');
+    } else if (headwindPoints > scenarios.length / 2) {
+      score -= 10;
+      reasons.push('wind_against');
+    }
+  }
+
+  return { 
+    score: Math.max(0, Math.min(100, Math.round(score))), 
+    reasons 
+  };
 }

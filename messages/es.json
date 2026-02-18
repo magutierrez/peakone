@@ -113,7 +113,7 @@
     "walking": "Hiking",
     "date": "Fecha",
     "startTime": "Hora salida",
-    "averageSpeed": "Velocidad media (km/h)",
+    "averageSpeed": "Velocidad media",
     "estimatedDuration": "Duracion estimada",
     "durationFormat": "{hours}h {minutes}min",
     "analyze": "Analizar ruta",
@@ -193,7 +193,7 @@
     },
     "detail": {
       "temperature": "Temperatura",
-      "feelsLike": "Sens. {temp}°C",
+      "feelsLike": "Sens. {temp}",
       "wind": "Viento",
       "gusts": "Rachas: {speed}",
       "rain": "Lluvia",
@@ -358,9 +358,28 @@
   "BestWindow": {
     "title": "Mejor momento para salir",
     "suggest": "Sugerir",
+    "analyze": "Analizar ruta",
+    "set_time": "Configurar hora",
     "analyzing": "Analizando...",
     "recommended": "Recomendado",
     "night": "Nocturno",
-    "description": "Pulsa 'Sugerir' para analizar las próximas 12h y encontrar la mejor ventana meteorológica."
+    "temp": "Temp.",
+    "wind": "Viento",
+    "description": "Pulsa 'Sugerir' para analizar las próximas 12h y encontrar la mejor ventana meteorológica.",
+    "reasons": {
+      "no_rain": "Sin lluvia a la vista",
+      "rain_low": "Ligera probabilidad de lluvia",
+      "rain_high": "Riesgo alto de lluvia",
+      "wind_calm": "Viento en calma",
+      "wind_moderate": "Viento moderado",
+      "wind_heavy": "Viento muy fuerte",
+      "temp_perfect": "Temperatura ideal",
+      "temp_hot": "Mucho calor",
+      "temp_cold": "Ambiente gélido",
+      "daylight_ok": "Luz diurna completa",
+      "night_warning": "Finaliza de noche",
+      "wind_favor": "Viento a favor dominante",
+      "wind_against": "Viento en contra dominante"
+    }
   }
 }

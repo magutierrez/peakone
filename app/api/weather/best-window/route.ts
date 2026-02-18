@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
         .filter(p => p.windowOffset === offset);
 
       if (windowPoints.length === optimizedKeyPoints.length && windowPoints.every(p => p.weather)) {
-        const score = calculateWindowScore(windowPoints, activityType);
+        const { score, reasons } = calculateWindowScore(windowPoints, activityType);
         
         const avgTemp = windowPoints.reduce((sum, s) => sum + s.weather.temperature, 0) / windowPoints.length;
         const maxWind = Math.max(...windowPoints.map(s => s.weather.windSpeed));
@@ -107,6 +107,7 @@ export async function POST(request: NextRequest) {
         windows.push({
           startTime: new Date(baseDate.getTime() + offset * 3600 * 1000).toISOString(),
           score,
+          reasons,
           avgTemp,
           maxWind,
           maxPrecipProb,

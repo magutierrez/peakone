@@ -358,9 +358,28 @@
   "BestWindow": {
     "title": "Best time to start",
     "suggest": "Suggest",
+    "analyze": "Analyze route",
+    "set_time": "Set time",
     "analyzing": "Analyzing...",
     "recommended": "Recommended",
     "night": "Night",
-    "description": "Click 'Suggest' to analyze the next 12h and find the best weather window."
+    "temp": "Temp.",
+    "wind": "Wind",
+    "description": "Click 'Suggest' to analyze the next 12h and find the best weather window.",
+    "reasons": {
+      "no_rain": "No rain in sight",
+      "rain_low": "Slight chance of rain",
+      "rain_high": "High rain risk",
+      "wind_calm": "Calm winds",
+      "wind_moderate": "Moderate wind",
+      "wind_heavy": "Very strong wind",
+      "temp_perfect": "Perfect temperature",
+      "temp_hot": "Very hot",
+      "temp_cold": "Freezing cold",
+      "daylight_ok": "Full daylight",
+      "night_warning": "Ends at night",
+      "wind_favor": "Dominant tailwind",
+      "wind_against": "Dominant headwind"
+    }
   }
 }
