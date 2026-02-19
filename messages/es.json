@@ -317,7 +317,7 @@
     },
     "resetView": "Ver ruta completa",
     "player": {
-      "title": "Vista 3D",
+      "title": "Reproducir ruta",
       "play": "Iniciar ruta",
       "stop": "Detener",
       "speed": "Velocidad"

@@ -26,7 +26,9 @@ export function RoutePlayer({ points, onPointUpdate, onStop, map }: RoutePlayerP
   const [isPlaying, setIsPlaying] = useState(false);
   const [speed, setSpeed] = useState(1);
   const [progress, setProgress] = useState(0); 
+  
   const currentIndexRef = useRef(0);
+  const currentBearingRef = useRef<number | null>(null);
   const requestRef = useRef<number>(0);
   const lastTimeRef = useRef<number>(0);
   const lastUiUpdateRef = useRef<number>(0);
@@ -41,11 +43,11 @@ export function RoutePlayer({ points, onPointUpdate, onStop, map }: RoutePlayerP
     const p1 = points[idx];
     const p2 = points[nextIdx];
 
-    // 1. Interpolate Position
+    // 1. Precise Position Interpolation
     const interpolatedLat = p1.lat + (p2.lat - p1.lat) * ratio;
     const interpolatedLon = p1.lon + (p2.lon - p1.lon) * ratio;
 
-    // 2. Update Dynamic Marker Layer directly for maximum performance
+    // 2. Update Dynamic Marker Layer (Bypass React for 60fps)
     const source = map.getSource('player-position');
     if (source) {
       source.setData({
@@ -55,37 +57,50 @@ export function RoutePlayer({ points, onPointUpdate, onStop, map }: RoutePlayerP
       });
     }
 
-    // 3. Smooth Bearing: average multiple look-ahead points
-    const lookAheadPoints = 20;
+    // 3. Smooth Cinematic Bearing (Strava Style)
+    // We look ahead to get the target direction
+    const lookAheadPoints = Math.max(10, Math.floor(20 / speed)); 
     const targetIdx = Math.min(idx + lookAheadPoints, points.length - 1);
     const targetPoint = points[targetIdx];
-    const bearing = calculateBearing(interpolatedLat, interpolatedLon, targetPoint.lat, targetPoint.lon);
+    const targetBearing = calculateBearing(interpolatedLat, interpolatedLon, targetPoint.lat, targetPoint.lon);
     
-    // 4. Ultra-smooth Camera movement
-    map.easeTo({
+    // Smooth the angle transition to avoid jerky camera rotations
+    if (currentBearingRef.current === null) {
+      currentBearingRef.current = targetBearing;
+    } else {
+      let diff = targetBearing - currentBearingRef.current;
+      if (diff > 180) diff -= 360;
+      if (diff < -180) diff += 360;
+      // 0.1 is the smoothing factor. Lower = more cinematic/slower rotation
+      currentBearingRef.current += diff * 0.1;
+      // Normalize to 0-360
+      currentBearingRef.current = (currentBearingRef.current + 360) % 360;
+    }
+    
+    // 4. Frame-Perfect Camera Positioning
+    // Using jumpTo for maximum precision during requestAnimationFrame
+    map.jumpTo({
       center: [interpolatedLon, interpolatedLat],
-      bearing: bearing,
-      pitch: 65,
-      zoom: 16,
-      duration: 50, 
-      easing: (t: number) => t 
+      bearing: currentBearingRef.current,
+      pitch: 60,
+      zoom: 16.5 // Slightly closer for more immersion
     });
     
     const now = Date.now();
-    // Throttle React state updates to 15fps to keep 60fps on map
-    if (forceUiUpdate || now - lastUiUpdateRef.current > 64) {
+    // Only update heavy React state at ~15fps
+    if (forceUiUpdate || now - lastUiUpdateRef.current > 66) {
       onPointUpdate(idx);
       setProgress((idx / (points.length - 1)) * 100);
       lastUiUpdateRef.current = now;
     }
-  }, [map, points, onPointUpdate]);
+  }, [map, points, onPointUpdate, speed]);
 
   const animate = useCallback((time: number) => {
     if (!lastTimeRef.current) lastTimeRef.current = time;
     const deltaTime = time - lastTimeRef.current;
     
-    // Smooth speed-based increment
-    const increment = (speed * deltaTime) / 250; 
+    // Adjust increment by speed. 300 is a magic number for base smoothness.
+    const increment = (speed * deltaTime) / 300; 
     currentIndexRef.current += increment;
 
     if (currentIndexRef.current >= points.length - 1) {
@@ -104,6 +119,7 @@ export function RoutePlayer({ points, onPointUpdate, onStop, map }: RoutePlayerP
   const startPlayback = () => {
     if (currentIndexRef.current >= points.length - 1) {
       currentIndexRef.current = 0;
+      currentBearingRef.current = null;
     }
     setIsPlaying(true);
     lastTimeRef.current = 0;
@@ -118,6 +134,7 @@ export function RoutePlayer({ points, onPointUpdate, onStop, map }: RoutePlayerP
   const stopPlayback = () => {
     pausePlayback();
     currentIndexRef.current = 0;
+    currentBearingRef.current = null;
     updateMapCamera(0, true);
     onStop();
   };
@@ -126,6 +143,8 @@ export function RoutePlayer({ points, onPointUpdate, onStop, map }: RoutePlayerP
     const newProgress = value[0];
     const newIndex = Math.floor((newProgress / 100) * (points.length - 1));
     currentIndexRef.current = newIndex;
+    // Reset bearing on jump to avoid camera spinning from old position
+    currentBearingRef.current = null; 
     updateMapCamera(newIndex, true);
   };
 
@@ -138,9 +157,10 @@ export function RoutePlayer({ points, onPointUpdate, onStop, map }: RoutePlayerP
   return (
     <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-20 w-[95%] max-w-lg animate-in fade-in slide-in-from-bottom-4">
       <div className="bg-background/95 backdrop-blur-md border border-border shadow-2xl rounded-2xl p-4">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-4 px-1">
           <div className="flex items-center gap-2">
-            <h4 className="text-xs font-black uppercase tracking-widest text-primary">{t('title')}</h4>
+            <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+            <h4 className="text-[10px] font-black uppercase tracking-widest text-foreground/70">{t('title')}</h4>
           </div>
           
           <div className="flex items-center gap-2">

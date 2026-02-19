@@ -317,7 +317,7 @@
     },
     "resetView": "Reset View",
     "player": {
-      "title": "3D View",
+      "title": "Play route",
       "play": "Start route",
       "stop": "Stop",
       "speed": "Speed"
