@@ -33,7 +33,7 @@ interface RouteMapProps {
   activityType?: 'cycling' | 'walking';
   onClearSelection?: () => void;
   showWaterSources?: boolean;
-  onResetToFullRouteView?: (func: () => void) => void; // Corrected type
+  onResetToFullRouteView?: (func: () => void) => void; 
 }
 
 export default function RouteMap({
@@ -48,7 +48,7 @@ export default function RouteMap({
   activityType = 'cycling',
   onClearSelection,
   showWaterSources = false,
-  onResetToFullRouteView, // New prop
+  onResetToFullRouteView,
 }: RouteMapProps) {
   const { resolvedTheme } = useTheme();
   const mapRef = useRef<MapRef>(null);
@@ -61,6 +61,31 @@ export default function RouteMap({
 
   const mapStyle = useMapStyle(mapType, resolvedTheme);
 
+  const onMapLoad = useCallback((event: any) => {
+    const map = event.target;
+    
+    const applyTerrain = () => {
+      if (!map.getSource('open-terrain')) {
+        map.addSource('open-terrain', {
+          type: 'raster-dem',
+          tiles: ['https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png'],
+          encoding: 'terrarium',
+          tileSize: 256,
+          maxzoom: 14
+        });
+      }
+      if (!map.getTerrain()) {
+        map.setTerrain({ source: 'open-terrain', exaggeration: 1.5 });
+      }
+    };
+
+    applyTerrain();
+    
+    map.on('styledata', () => {
+      applyTerrain();
+    });
+  }, []);
+
   const { routeData, highlightedData, rangeHighlightData } = useMapLayers(
     points,
     weatherPoints,
@@ -72,15 +97,10 @@ export default function RouteMap({
 
   useEffect(() => {
     if (onResetToFullRouteView) {
-      // This is a bit of a hack to pass a function back up to a parent
-      // without directly passing a setter. It effectively makes onResetToFullRouteView callable.
-      // A more React-idiomatic way would be to pass mapRef down and let parent call mapRef.current.fitBounds.
-      // But given the current hook structure, this works.
       onResetToFullRouteView(resetToFullRouteView);
     }
   }, [onResetToFullRouteView, resetToFullRouteView]);
 
-  // Pass resetToFullRouteView to the prop if available
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -112,6 +132,7 @@ export default function RouteMap({
         style={{ width: '100%', height: '100%' }}
         mapStyle={mapStyle as any}
         onClick={onMapClick}
+        onLoad={onMapLoad}
       >
         <NavigationControl position="bottom-right" />
 
@@ -192,14 +213,14 @@ export default function RouteMap({
       </Map>
 
       {!isPlayerActive && points.length > 0 && (
-        <div className="absolute bottom-3 left-3 z-10">
+        <div className="absolute left-1/2 -translate-x-1/2 bottom-8 z-10">
           <Button
             variant="secondary"
             size="sm"
-            className="bg-card/90 hover:bg-card hover:text-primary h-8 gap-2 text-[10px] font-bold uppercase shadow-md backdrop-blur-sm transition-all"
+            className="bg-card/90 hover:bg-card hover:text-primary h-9 px-4 gap-2 text-[11px] font-bold uppercase shadow-lg backdrop-blur-sm transition-all rounded-full border border-primary/20"
             onClick={() => setIsPlayerActive(true)}
           >
-            <Box className="h-3.5 w-3.5" />
+            <Box className="h-4 w-4" />
             {t('player.title')}
           </Button>
         </div>
