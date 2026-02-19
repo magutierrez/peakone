@@ -1,31 +1,18 @@
 'use client';
 
-import { Wind, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Sun, Moon, Cloud } from 'lucide-react';
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Wind } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { WeatherIcon } from '@/components/weather-icon';
-import { WEATHER_CODES } from '@/lib/types';
 import type { RouteWeatherPoint } from '@/lib/types';
+import { WEATHER_CODES } from '@/lib/types';
 import { useSettings } from '@/hooks/use-settings';
-import { formatTemperature, formatWindSpeed, formatDistance } from '@/lib/utils';
+import { formatDistance, formatTemperature, formatWindSpeed } from '@/lib/utils';
 
 interface WeatherListProps {
   weatherPoints: RouteWeatherPoint[];
   selectedIndex: number | null;
   onSelect: (index: number) => void;
-}
-
-function getSolarIcon(exposure: string) {
-  switch (exposure) {
-    case 'sun':
-      return <Sun className="h-3 w-3 fill-amber-500/20 text-amber-500" />;
-    case 'shade':
-      return <Cloud className="h-3 w-3 fill-slate-400/20 text-slate-400" />;
-    case 'night':
-      return <Moon className="h-3 w-3 fill-indigo-400/20 text-indigo-400" />;
-    default:
-      return null;
-  }
 }
 
 function getSolarIntensityColor(intensity: string) {
@@ -109,7 +96,6 @@ export function WeatherList({ weatherPoints, selectedIndex, onSelect }: WeatherL
                   <div
                     className={`flex items-center gap-1.5 rounded-full px-2 py-0.5 ${getSolarIntensityColor(wp.solarIntensity)}`}
                   >
-                    {getSolarIcon(wp.solarExposure || 'sun')}
                     <span className="text-[9px] font-bold tracking-tight uppercase">
                       {wp.solarIntensity === 'night'
                         ? t('solarExposure.night')

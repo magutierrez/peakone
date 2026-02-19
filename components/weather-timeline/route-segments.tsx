@@ -59,19 +59,29 @@ export function RouteSegments({
   const totalPoints = weatherPoints.length;
 
   const getBreakdown = (key: 'pathType' | 'surface', colorMap: Record<string, string>) => {
-    const counts: Record<string, number> = {};
-    weatherPoints.forEach((wp) => {
-      const val = wp[key] || 'unknown';
-      counts[val] = (counts[val] || 0) + 1;
-    });
+    const distances: Record<string, number> = {};
+    let totalDist = 0;
 
-    return Object.entries(counts)
-      .map(([name, count]) => ({
+    for (let i = 0; i < weatherPoints.length; i++) {
+      const wp = weatherPoints[i];
+      const val = wp[key] || 'unknown';
+
+      // Calculate distance for this segment
+      // We take the distance from previous point to current point
+      const prevDist = i > 0 ? weatherPoints[i - 1].point.distanceFromStart : 0;
+      const segmentDist = wp.point.distanceFromStart - prevDist;
+
+      distances[val] = (distances[val] || 0) + segmentDist;
+      totalDist += segmentDist;
+    }
+
+    return Object.entries(distances)
+      .map(([name, dist]) => ({
         name,
-        percent: (count / totalPoints) * 100,
+        percent: totalDist > 0 ? (dist / totalDist) * 100 : 0,
         color: colorMap[name] || colorMap.unknown,
       }))
-      .filter((item) => item.percent > 0)
+      .filter((item) => item.percent > 0.5) // Filter out negligible segments
       .sort((a, b) => b.percent - a.percent);
   };
 

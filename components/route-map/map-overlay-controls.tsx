@@ -41,7 +41,7 @@ export function MapOverlayControls({
         </div>
       )}
 
-      {(selectedRange || activeFilter) && onClearSelection && (
+      {selectedRange && onClearSelection && (
         <div className="animate-in fade-in slide-in-from-left-2 absolute top-3 left-3 z-10">
           <Button
             variant="secondary"

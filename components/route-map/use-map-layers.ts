@@ -27,25 +27,39 @@ export function useMapLayers(
   }, [points]);
 
   const highlightedData = useMemo<Feature<MultiLineString> | null>(() => {
-    if (!activeFilter || !weatherPoints || weatherPoints.length < 2) return null;
+    if (!activeFilter || !weatherPoints || weatherPoints.length < 2 || points.length < 2) return null;
+    
     const segments: number[][][] = [];
     let currentSegment: number[][] = [];
 
-    weatherPoints.forEach((wp, i) => {
-      const matches = (wp[activeFilter.key] || 'unknown') === activeFilter.value;
+    // 1. Assign filter metadata to every high-res point by proximity to weather points
+    // This ensures the highlight follows the exact road curves of 'points'
+    points.forEach((p, i) => {
+      // Find the segment this point belongs to
+      // A point belongs to wp[j] if its distance is between wp[j-1] and wp[j]
+      let matchingWp = weatherPoints[0];
+      for (let j = 0; j < weatherPoints.length; j++) {
+        if (p.distanceFromStart <= weatherPoints[j].point.distanceFromStart) {
+          matchingWp = weatherPoints[j];
+          break;
+        }
+        if (j === weatherPoints.length - 1) matchingWp = weatherPoints[j];
+      }
+
+      const matches = (matchingWp[activeFilter.key] || 'unknown') === activeFilter.value;
+      
       if (matches) {
-        currentSegment.push([wp.point.lon, wp.point.lat]);
-        if (i < weatherPoints.length - 1) {
-          currentSegment.push([weatherPoints[i + 1].point.lon, weatherPoints[i + 1].point.lat]);
-        }
+        currentSegment.push([p.lon, p.lat]);
       } else {
-        if (currentSegment.length > 0) {
+        if (currentSegment.length > 1) {
           segments.push(currentSegment);
-          currentSegment = [];
         }
+        currentSegment = [];
       }
     });
-    if (currentSegment.length > 0) segments.push(currentSegment);
+
+    if (currentSegment.length > 1) segments.push(currentSegment);
+
     return segments.length > 0
       ? {
           type: 'Feature',
@@ -53,7 +67,7 @@ export function useMapLayers(
           geometry: { type: 'MultiLineString', coordinates: segments },
         }
       : null;
-  }, [activeFilter, weatherPoints]);
+  }, [activeFilter, weatherPoints, points]);
 
   const rangeHighlightData = useMemo<Feature<LineString> | null>(() => {
     if (!selectedRange || points.length < 2) return null;

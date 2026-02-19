@@ -34,13 +34,21 @@ const segmentColors: Record<string, string> = {
   effort: 'text-blue-600 bg-blue-500/10 border-blue-200',
 };
 
+const getSlopeColorHex = (slope: number) => {
+  const absSlope = Math.abs(slope);
+  if (absSlope <= 1) return '#10b981'; // Flat - Emerald
+  if (absSlope < 5) return '#f59e0b';  // Moderate - Amber
+  if (absSlope < 10) return '#ef4444'; // Steep - Red
+  return '#991b1b';                    // Very Steep - Dark Red
+};
+
 export function RouteHazards({
   weatherPoints,
   onSelectSegment,
   onClearSelection,
 }: RouteHazardsProps) {
   const t = useTranslations('Hazards');
-  const tRouteMap = useTranslations('RouteMap'); // New translation import
+  const tRouteMap = useTranslations('RouteMap');
 
   if (weatherPoints.length === 0) return null;
 
@@ -73,11 +81,27 @@ export function RouteHazards({
       </div>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {sortedSegments.map((seg, idx) => {
-          const chartData = seg.points.map((p: any) => ({
-            dist: p.point.distanceFromStart,
-            ele: p.point.ele || 0,
-          }));
+          const chartData = seg.points.map((p: any, pIdx: number) => {
+            let slope = 0;
+            if (pIdx > 0) {
+              const prev = seg.points[pIdx - 1];
+              const distDiff = (p.point.distanceFromStart - prev.point.distanceFromStart) * 1000;
+              const eleDiff = (p.point.ele || 0) - (prev.point.ele || 0);
+              if (distDiff > 0.1) {
+                slope = (eleDiff / distDiff) * 100;
+              }
+            }
+            return {
+              dist: p.point.distanceFromStart,
+              ele: p.point.ele || 0,
+              slope: Math.abs(slope),
+              color: getSlopeColorHex(slope)
+            };
+          });
 
+          const elevations = chartData.map(d => d.ele);
+          const minEle = Math.min(...elevations);
+          const maxEle = Math.max(...elevations);
           const distance = seg.endDist - seg.startDist;
 
           return (
@@ -112,44 +136,49 @@ export function RouteHazards({
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-1">
-                    <Badge variant="outline" className="gap-1 font-mono text-[10px]">
+                    <Badge variant="outline" className="gap-1 font-mono text-[10px] bg-background/50">
                       <Activity className="h-3 w-3" />
                       {Math.round(seg.avgSlope)}% {t('avg')}
                     </Badge>
+                    <span className="text-[9px] font-bold text-muted-foreground tabular-nums">
+                      {Math.round(minEle)}m - {Math.round(maxEle)}m
+                    </span>
                   </div>
                 </div>
 
-                <div className="bg-secondary/5 h-24 w-full pt-2">
+                <div className="bg-secondary/5 h-28 w-full relative group">
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={chartData}>
+                    <AreaChart data={chartData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
                       <defs>
-                        <linearGradient id={`grad-${idx}`} x1="0" y1="0" x2="0" y2="1">
-                          <stop
-                            offset="5%"
-                            stopColor={seg.dangerLevel === 'high' ? '#ef4444' : '#f59e0b'}
-                            stopOpacity={0.3}
-                          />
-                          <stop
-                            offset="95%"
-                            stopColor={seg.dangerLevel === 'high' ? '#ef4444' : '#f59e0b'}
-                            stopOpacity={0}
-                          />
+                        <linearGradient id={`grad-${idx}`} x1="0" y1="0" x2="1" y2="0">
+                          {chartData.map((d, i) => (
+                            <stop 
+                              key={i} 
+                              offset={`${(i / (chartData.length - 1)) * 100}%`} 
+                              stopColor={d.color} 
+                            />
+                          ))}
+                        </linearGradient>
+                        <linearGradient id={`fill-${idx}`} x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor={seg.dangerLevel === 'high' ? '#ef4444' : '#f59e0b'} stopOpacity={0.2} />
+                          <stop offset="95%" stopColor={seg.dangerLevel === 'high' ? '#ef4444' : '#f59e0b'} stopOpacity={0} />
                         </linearGradient>
                       </defs>
                       <Area
                         type="linear"
                         dataKey="ele"
-                        stroke={seg.dangerLevel === 'high' ? '#ef4444' : '#f59e0b'}
-                        strokeWidth={2}
-                        fill={`url(#grad-${idx})`}
+                        stroke={`url(#grad-${idx})`}
+                        strokeWidth={3}
+                        fill={`url(#fill-${idx})`}
                         isAnimationActive={false}
+                        connectNulls
                       />
-                      <YAxis hide domain={['dataMin - 10', 'dataMax + 10']} />
+                      <YAxis hide domain={[minEle - 5, maxEle + 5]} />
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
 
-                <div className="bg-muted/10 flex items-center justify-between px-4 py-2">
+                <div className="bg-muted/10 flex items-center justify-between px-4 py-2 border-t border-border/30">
                   <div className="flex flex-col">
                     <span className="text-muted-foreground text-[9px] font-bold uppercase">
                       {t('slope')}

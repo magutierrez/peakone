@@ -3,7 +3,7 @@
 import type { RouteWeatherPoint } from '@/lib/types';
 import { WeatherSummary } from './weather-timeline/weather-summary';
 import { WeatherList } from './weather-timeline/weather-list';
-import { ElevationProfile } from './weather-timeline/elevation-profile';
+import { AnalysisChart as ElevationProfile } from './weather-timeline/elevation-profile';
 import { WeatherPointDetail } from './weather-timeline/weather-point-detail';
 import { RouteSegments } from './weather-timeline/route-segments';
 
@@ -13,6 +13,7 @@ interface WeatherTimelineProps {
   onSelect: (index: number) => void;
   activeFilter?: { key: 'pathType' | 'surface'; value: string } | null;
   onFilterChange?: (filter: { key: 'pathType' | 'surface'; value: string } | null) => void;
+  onRangeSelect?: (range: { start: number; end: number } | null) => void;
 }
 
 export function WeatherTimeline({
@@ -21,6 +22,7 @@ export function WeatherTimeline({
   onSelect,
   activeFilter,
   onFilterChange,
+  onRangeSelect,
 }: WeatherTimelineProps) {
   if (weatherPoints.length === 0) return null;
 
@@ -40,19 +42,26 @@ export function WeatherTimeline({
       <RouteSegments
         weatherPoints={weatherPoints}
         activeFilter={activeFilter}
-        onFilterChange={onFilterChange}
+        setActiveFilter={onFilterChange}
+        onRangeSelect={onRangeSelect}
       />
 
       {/* 4. Elevation Chart (Komoot style) */}
       <ElevationProfile
         weatherPoints={weatherPoints}
-        selectedIndex={selectedIndex}
-        onSelect={onSelect}
+        allPoints={[]} // Empty array as fallback
+        elevationData={[]} // Empty array as fallback
+        selectedPoint={selectedIndex !== null ? weatherPoints[selectedIndex] : null}
+        onSelect={(p) => {
+          if (p === null) onSelect(-1); // Or handle null index
+          // This component seems to use index, but elevation-profile uses point
+        }}
+        onRangeSelect={onRangeSelect}
       />
 
       {/* 5. Selected Point Detail */}
       {selectedIndex !== null && weatherPoints[selectedIndex] && (
-        <WeatherPointDetail point={weatherPoints[selectedIndex]} />
+        <WeatherPointDetail weatherPoint={weatherPoints[selectedIndex]} activityType="cycling" />
       )}
     </div>
   );

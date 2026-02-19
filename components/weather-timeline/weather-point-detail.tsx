@@ -117,7 +117,7 @@ export function WeatherPointDetail({
     day: 'numeric',
     month: 'short',
   });
-  console.log(weatherPoint.escapePoint);
+
   const hasTranslation = !!tw.raw(weatherPoint.weather.weatherCode.toString());
   const weatherDescription = hasTranslation
     ? tw(weatherPoint.weather.weatherCode.toString() as any)
