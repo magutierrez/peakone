@@ -1,0 +1,398 @@
+{
+  "HomePage": {
+    "loadingMap": "Carregant mapa...",
+    "processingRoute": "Processant ruta...",
+    "obtainingData": "Obtenint dades d'elevació i terreny",
+    "analyzeFirst": "Analitza la ruta per veure tots els detalls",
+    "clickAnalyze": "Fes clic a 'Analitzar ruta' per veure el pronòstic meteorològic, riscos i esforç per trams",
+    "uploadFirst": "Puja un arxiu GPX per començar",
+    "errors": {
+      "insufficientPoints": "L'arxiu GPX no conté suficients punts.",
+      "readError": "Error en llegir l'arxiu GPX. Verifica el format.",
+      "weatherFetchError": "Error en obtenir dades meteorològiques",
+      "tooManyRequests": "Massa peticions. Si us plau, espera un moment abans de tornar-ho a intentar.",
+      "unknownError": "Error desconegut"
+    },
+    "header": {
+      "title": "peakOne",
+      "subtitle": "Forecast per a rutes outdoor",
+      "apiVersion": "Open-Meteo API"
+    },
+    "placeholders": {
+      "title": "Puja un arxiu GPX per començar",
+      "description": "Configura la data, hora i velocitat, i analitza la teva ruta per obtenir un informe detallat de meteorologia, terreny, riscos i esforç."
+    },
+    "sections": {
+      "terrain": "Terreny i Via",
+      "altitude": "Altitud",
+      "activityConfig": "Configuració de l'Activitat",
+      "weatherAnalysis": "Anàlisi Meteorològica",
+      "advice": "Consells de Seguretat",
+      "hazards": "Riscos i Esforç",
+      "adviceCycling": "Recomanacions específiques de seguretat per a la teva ruta en bicicleta.",
+      "adviceHiking": "Recomanacions específiques de seguretat per a la teva ruta de senderisme.",
+      "physiology": "Subministraments Recomanats",
+      "hazardsDesc": "Anàlisi dels trams més exigents i perillosos del teu track."
+    }
+  },
+  "SetupPage": {
+    "title": "Planifica la teva Ruta",
+    "selectRouteSource": "Selecciona Origen de Ruta",
+    "savedRoutes": "Les meves Rutes Guardades",
+    "analyzeRoute": "Analitzar Ruta",
+    "errors": {
+      "insufficientPoints": "L'arxiu GPX no conté suficients punts.",
+      "readError": "Error en llegir l'arxiu GPX. Verifica el format.",
+      "noRouteSelected": "Si us plau, selecciona o puja una ruta per analitzar."
+    }
+  },
+  "Hazards": {
+    "title": "Trams Crítics",
+    "steepClimb": "Pujada Exigent",
+    "steepDescent": "Descens Perillós",
+    "heatStress": "Estrès Tèrmic",
+    "effortLevel": "Nivell d'Esforç",
+    "danger": "Risc",
+    "distance": "Distància",
+    "slope": "Pendent",
+    "avg": "Mitjana",
+    "max": "Màx",
+    "noSegments": "No s'han detectat trams de risc en aquesta ruta.",
+    "levels": {
+      "low": "BAIX",
+      "medium": "MITJÀ",
+      "high": "ALT"
+    }
+  },
+  "physiology": {
+    "calories": "Calories",
+    "hydration": "Aigua",
+    "total": "Necessitats totals",
+    "perHour": "per hora"
+  },
+  "Advice": {
+    "title": "Consells per a la teva ruta",
+    "weather": "Meteorologia",
+    "gear": "Equipament",
+    "safety": "Seguretat",
+    "nutrition": "Nutrició i Salut",
+    "water": "Estratègia d'Aigua",
+    "waterWarning": "Fonts naturals amb baixa fiabilitat detectades. Porta aigua extra.",
+    "waterOk": "Fonts fiables disponibles durant la ruta.",
+    "showOnMap": "Veure al mapa",
+    "hideFromMap": "Treure del mapa",
+    "reliability": {
+      "high": "Alta",
+      "medium": "Mitjana",
+      "low": "Baixa (Possible seca)"
+    },
+    "cycling": {
+      "rain": "Compte amb els corbes i l'asfalt mullat. Revisa els teus frens.",
+      "wind": "Vent fort detectat. Agafa amb fermesa el manillar en zones exposades.",
+      "heat": "Calor intensa. Hidrata't cada 15-20 minuts.",
+      "cold": "Utilitza capes tallavent. El descens pot ser gèlid.",
+      "night": "Llum davantera i posterior obligatòries. Armilla reflectant recomanada.",
+      "general": "Revisa la pressió dels pneumàtics i porta un kit de reparació."
+    },
+    "hiking": {
+      "rain": "Terreny relliscós. Utilitza calçat amb bona subjecció i impermeable.",
+      "wind": "Evita crestes exposades si les ratxes són fortes.",
+      "heat": "Busca ombres i porta almenys 2L d'aigua.",
+      "cold": "Risc d'hipotèrmia si t'atures. Porta manta tèrmica.",
+      "night": "Frontal amb piles de recanvi. No abandonis el sender marcat.",
+      "general": "Avisa algú de la teva ruta i hora estimada d'arribada."
+    }
+  },
+  "RouteConfigPanel": {
+    "routeSummary": "Resum de Ruta",
+    "gpxFile": "Arxiu GPX",
+    "reverseRoute": "Invertir sentit",
+    "km": "km",
+    "elevationGain": "m D+",
+    "elevationLoss": "m D-",
+    "activity": "Activitat",
+    "cycling": "Bicicleta",
+    "walking": "Hiking",
+    "date": "Data",
+    "startTime": "Hora sortida",
+    "averageSpeed": "Velocitat mitjana",
+    "estimatedDuration": "Durada estimada",
+    "durationFormat": "{hours}h {minutes}min",
+    "hours": "Hores",
+    "minutes": "Minuts",
+    "adjustDurationDesc": "Ajusta la durada per recalcular la velocitat mitjana automàticament.",
+    "analyze": "Analitzar ruta",
+    "analyzing": "Analitzant..."
+  },
+  "GPXUpload": {
+    "removeFile": "Eliminar arxiu",
+    "uploadAriaLabel": "Puja arxiu GPX",
+    "dragDrop": "Arrossega el teu arxiu GPX",
+    "clickSelect": "o fes clic per seleccionar"
+  },
+  "WeatherTimeline": {
+    "summary": {
+      "avgTemp": "Temp. mitjana",
+      "maxWind": "Vent max.",
+      "precipProb": "Prob. pluja",
+      "wind": "Vent",
+      "gusts": "Ratxes: {speed}",
+      "kmh": "km/h",
+      "favor": "{percent}% favor",
+      "contra": "{percent}% contra",
+      "solarTitle": "Intensitat Solar",
+      "daylight": "Llum restant",
+      "nightArrival": "Arribaràs de nit!",
+      "daylightFormat": "{hours}h {minutes}m",
+      "maxSolarLabel": "{percent}% Sol Màx",
+      "shadeLabel": "{percent}% Ombra"
+    },
+    "safety": {
+      "escapeTitle": "Punts d'Escapament",
+      "escapeDesc": "Poble o carretera principal a {dist}km",
+      "noCoverage": "Zona sense cobertura",
+      "lowCoverage": "Cobertura feble",
+      "evacuation": "Punt d'evacuació"
+    },
+    "timelineTitle": "Timeline per punt",
+    "elevationTitle": "Perfil d'elevació",
+    "segmentsTitle": "Tipus de via i superfícies",
+    "unknownWeather": "Desconegut",
+    "windFrom": "Vent des de {direction} graus",
+    "loading": "Carregant...",
+    "slope": "Pendent",
+    "chart": {
+      "elevation": "Elevació",
+      "distance": "Distància",
+      "m": "m",
+      "km": "km",
+      "slopeEasy": "Fàcil",
+      "slopeModerate": "Moderada",
+      "slopeHard": "Difícil",
+      "resetZoom": "Restablir zoom",
+      "highestPoint": "Punt més alt",
+      "lowestPoint": "Punt més baix"
+    },
+    "windEffect": {
+      "tailwind": "A favor",
+      "headwind": "En contra",
+      "crosswind-left": "Lateral esq.",
+      "crosswind-right": "Lateral dret",
+      "summary": "Vent {label}",
+      "relativeAngle": "Angle relatiu: {angle}° respecte a la teva direcció de viatge",
+      "bearing": "Rumb viatge"
+    },
+    "solarExposure": {
+      "sun": "Al sol",
+      "shade": "A l'ombra",
+      "night": "Nit"
+    },
+    "solarIntensity": {
+      "shade": "Ombra / Fresca",
+      "weak": "Sol suau",
+      "moderate": "Assolellat",
+      "intense": "Sol abrasador"
+    },
+    "reliability": {
+      "high": "Alta",
+      "medium": "Mitjana",
+      "low": "Baixa (Possible seca)"
+    },
+    "detail": {
+      "temperature": "Temperatura",
+      "feelsLike": "Sens. {temp}",
+      "wind": "Vent",
+      "gusts": "Ratxes: {speed}",
+      "rain": "Pluja",
+      "prob": "Prob: {percent}%",
+      "visibility": "Visibilitat",
+      "clouds": "Núvols: {percent}%",
+      "altitude": "Alt: {ele}m"
+    },
+    "pathTypes": {
+      "title": "Tipus de via",
+      "cycleway": "Carril bici",
+      "path": "Sender",
+      "footway": "Camí de vianants",
+      "pedestrian": "Zona de vianants",
+      "track": "Pista forestal",
+      "residential": "Carrer residencial",
+      "living_street": "Carrer de prioritat per a vianants",
+      "service": "Via de servei",
+      "primary": "Carretera principal",
+      "primary_link": "Enllaç principal",
+      "trunk": "Carretera nacional",
+      "secondary": "Carretera secundària",
+      "secondary_link": "Enllaç secundari",
+      "tertiary": "Carretera local",
+      "tertiary_link": "Enllaç local",
+      "unclassified": "Camí",
+      "raceway": "Circuit",
+      "motorway": "Autovia",
+      "unknown": "Altres",
+      "construction": "Construcció",
+      "motorway_link": "Enllaç autovia",
+      "trunk_link": "Enllaç carretera nacional"
+    },
+    "surfaces": {
+      "title": "Superfícies",
+      "asphalt": "Asfalt",
+      "paved": "Pavimentat",
+      "concrete": "Formigó",
+      "gravel": "Grava",
+      "fine_gravel": "Grava fina",
+      "unpaved": "Sense pavimentar",
+      "ground": "Terra",
+      "compacted": "Compactat",
+      "dirt": "Terra solta",
+      "sand": "Sorra",
+      "grass": "Herba",
+      "unknown": "Desconegut",
+      "sett": "Empedrat",
+      "paving_stones": "Adoquins"
+    }
+  },
+  "Auth": {
+    "welcome": "Benvingut a peakOne",
+    "loginDescription": "Inicia sessió per analitzar les teves rutes i veure el pronòstic meteorològic detallat.",
+    "continueGoogle": "Continuar amb Google",
+    "continueFacebook": "Continuar amb Facebook",
+    "continueX": "Continuar amb X (Twitter)",
+    "continueStrava": "Continuar amb Strava",
+    "connectStrava": "Connectar amb Strava",
+    "connectStravaButton": "Connectar Strava",
+    "stravaDescription": "Sincronitza les teves rutes i activitats directament.",
+    "terms": "En continuar, acceptes els nostres termes de servei i política de privadesa.",
+    "logout": "Tancar sessió",
+    "settings": "Ajustos",
+    "settingsTitle": "Preferències d'Unitats",
+    "settingsDescription": "Configura les teves unitats preferides per a distància, elevació, temperatura i velocitat del vent.",
+    "system": "Sistema de mesures",
+    "windUnit": "Velocitat del vent",
+    "metric": "Mètric (km, m, °C)",
+    "us": "Estats Units (mi, ft, °F)",
+    "uk": "Regne Unit (mi, m, °C)",
+    "imperial": "Imperial (mi, ft, °C)",
+    "save": "Guardar canvis"
+  },
+  "LocaleSwitcher": {
+    "switchLocale": "Canviar idioma"
+  },
+  "SavedRoutes": {
+    "title": "Les meves Rutes Guardades",
+    "loading": "Carregant rutes...",
+    "stravaTitle": "Les meves Activitats de Strava",
+    "stravaRoutes": "Les meves Rutes de Strava",
+    "activities": "Activitats",
+    "routes": "Rutes",
+    "noData": "No s'han trobat dades",
+    "ride": "Bicicleta",
+    "run": "Cursa",
+    "walk": "Hiking",
+    "hike": "Senderisme",
+    "types": {
+      "Ride": "Bicicleta",
+      "Run": "Cursa",
+      "Walk": "Hiking",
+      "Hike": "Senderisme",
+      "VirtualRide": "Bici Virtual",
+      "MountainBikeRide": "MTB",
+      "GravelRide": "Gravel"
+    }
+  },
+  "RouteMap": {
+    "start": "Inici",
+    "end": "Final",
+    "tooltip": {
+      "wind": "Vent"
+    },
+    "legend": {
+      "title": "Efecte vent",
+      "tailwind": "A favor",
+      "headwind": "En contra",
+      "crosswind": "Lateral"
+    },
+    "layers": {
+      "standard": "Estàndard",
+      "satellite": "Satèl·lit",
+      "hybrid": "Híbrid",
+      "topography": "Topogràfic"
+    },
+    "resetView": "Veure ruta completa",
+    "player": {
+      "title": "Reproduir ruta",
+      "play": "Iniciar ruta",
+      "stop": "Aturar",
+      "speed": "Velocitat"
+    }
+  },
+  "IBP": {
+    "title": "Índex IBP",
+    "description": "L'índex IBP index és un sistema de puntuació automàtic que valora el grau de dificultat d'una ruta. Es calcula analitzant les distàncies, els desnivells i els pendents.",
+    "difficulty": {
+      "veryEasy": "Molt fàcil",
+      "easy": "Fàcil",
+      "moderate": "Moderada",
+      "hard": "Difícil",
+      "veryHard": "Molt difícil",
+      "extreme": "Extrema"
+    }
+  },
+  "WeatherCodes": {
+    "0": "Clar",
+    "1": "Majoritàriament clar",
+    "2": "Parcialment ennuvolat",
+    "3": "Ennuvolat",
+    "45": "Boira",
+    "48": "Boira amb gebre",
+    "51": "Boira lleugera",
+    "53": "Boira moderada",
+    "55": "Boira intensa",
+    "56": "Boira gelada lleugera",
+    "57": "Boira gelada intensa",
+    "61": "Pluja lleugera",
+    "63": "Pluja moderada",
+    "65": "Pluja intensa",
+    "66": "Pluja gelada lleugera",
+    "67": "Pluja gelada intensa",
+    "71": "Nevada lleugera",
+    "73": "Nevada moderada",
+    "75": "Nevada intensa",
+    "77": "Granís fi",
+    "80": "Ruixats lleugers",
+    "81": "Ruixats moderats",
+    "82": "Ruixats violents",
+    "85": "Ruixats de neu lleugers",
+    "86": "Ruixats de neu intensos",
+    "95": "Tempesta",
+    "96": "Tempesta amb granís lleuger",
+    "99": "Tempesta amb granís intens"
+  },
+  "BestWindow": {
+    "title": "Millor moment per sortir",
+    "suggest": "Suggerir",
+    "analyze": "Analitzar ruta",
+    "set_time": "Configurar hora",
+    "analyzing": "Analitzant...",
+    "recommended": "Recomanat",
+    "night": "Nocturn",
+    "temp": "Temp.",
+    "wind": "Vent",
+    "description": "Prem 'Suggerir' per analitzar les pròximes 12h i trobar la millor finestra meteorològica.",
+    "reasons": {
+      "no_rain": "Sense pluja a la vista",
+      "rain_low": "Lleugera probabilitat de pluja",
+      "rain_high": "Risc alt de pluja",
+      "wind_calm": "Vent en calma",
+      "wind_moderate": "Vent moderat",
+      "wind_heavy": "Vent molt fort",
+      "temp_perfect": "Temperatura ideal",
+      "temp_hot": "Molta calor",
+      "temp_cold": "Ambient gèlid",
+      "daylight_ok": "Llum diürna completa",
+      "night_warning": "Finalitza de nit",
+      "wind_favor": "Vent a favor dominant",
+      "wind_against": "Vent en contra dominant"
+    }
+  }
+}

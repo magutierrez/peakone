@@ -37,6 +37,9 @@ export function LocaleSwitcher() {
         <DropdownMenuItem onClick={() => onSelectChange('es')} disabled={locale === 'es'}>
           Español
         </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => onSelectChange('ca')} disabled={locale === 'ca'}>
+          Català
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
