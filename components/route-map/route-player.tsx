@@ -4,13 +4,14 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Play, Pause, Square } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
+import { Source, Layer } from 'react-map-gl/maplibre';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 import { useTranslations } from 'next-intl';
 import type { RoutePoint } from '@/lib/types';
 
@@ -24,95 +25,100 @@ export function RoutePlayer({ points, onStop, map }: RoutePlayerProps) {
   const t = useTranslations('RouteMap.player');
   const [isPlaying, setIsPlaying] = useState(false);
   const [speed, setSpeed] = useState(1);
-  const [progress, setProgress] = useState(0); 
-  
+  const [progress, setProgress] = useState(0);
+
   const currentIndexRef = useRef(0);
   const currentBearingRef = useRef<number | null>(null);
   const requestRef = useRef<number>(0);
   const lastTimeRef = useRef<number>(0);
   const lastUiUpdateRef = useRef<number>(0);
 
-  const updateMapCamera = useCallback((fractionalIdx: number, forceUiUpdate = false) => {
-    if (!map || points.length < 2) return;
-    
-    const idx = Math.floor(fractionalIdx);
-    const nextIdx = Math.min(idx + 1, points.length - 1);
-    const ratio = fractionalIdx - idx;
+  const updateMapCamera = useCallback(
+    (fractionalIdx: number, forceUiUpdate = false) => {
+      const mapInstance = map?.getMap();
+      if (!mapInstance || points.length < 2) return;
 
-    const p1 = points[idx];
-    const p2 = points[nextIdx];
+      const idx = Math.floor(fractionalIdx);
+      const nextIdx = Math.min(idx + 1, points.length - 1);
+      const ratio = fractionalIdx - idx;
 
-    // 1. Precise Position Interpolation
-    const interpolatedLat = p1.lat + (p2.lat - p1.lat) * ratio;
-    const interpolatedLon = p1.lon + (p2.lon - p1.lon) * ratio;
+      const p1 = points[idx];
+      const p2 = points[nextIdx];
 
-    // 2. Update Dynamic Marker Layer (Bypass React for 60fps)
-    const source = map.getSource('player-position');
-    if (source) {
-      source.setData({
-        type: 'Feature',
-        geometry: { type: 'Point', coordinates: [interpolatedLon, interpolatedLat] },
-        properties: {}
+      // 1. Precise Position Interpolation
+      const interpolatedLat = p1.lat + (p2.lat - p1.lat) * ratio;
+      const interpolatedLon = p1.lon + (p2.lon - p1.lon) * ratio;
+
+      // 2. Update Dynamic Marker Layer (Bypass React for 60fps)
+      const source = mapInstance.getSource('player-position');
+      if (source) {
+        source.setData({
+          type: 'Feature',
+          geometry: { type: 'Point', coordinates: [interpolatedLon, interpolatedLat] },
+          properties: {},
+        });
+      }
+
+      // 3. Smooth Cinematic Bearing
+      const lookAheadPoints = Math.max(10, Math.floor(20 / speed));
+      const targetIdx = Math.min(idx + lookAheadPoints, points.length - 1);
+      const targetPoint = points[targetIdx];
+      const targetBearing = calculateBearing(
+        interpolatedLat,
+        interpolatedLon,
+        targetPoint.lat,
+        targetPoint.lon,
+      );
+
+      if (currentBearingRef.current === null) {
+        currentBearingRef.current = targetBearing;
+      } else {
+        let diff = targetBearing - currentBearingRef.current;
+        if (diff > 180) diff -= 360;
+        if (diff < -180) diff += 360;
+        currentBearingRef.current += diff * 0.1;
+        currentBearingRef.current = (currentBearingRef.current + 360) % 360;
+      }
+
+      // 4. Frame-Perfect Camera Positioning
+      mapInstance.jumpTo({
+        center: [interpolatedLon, interpolatedLat],
+        bearing: currentBearingRef.current,
+        pitch: 60,
+        zoom: 16.5,
       });
-    }
 
-    // 3. Smooth Cinematic Bearing (Strava Style)
-    // We look ahead to get the target direction
-    const lookAheadPoints = Math.max(10, Math.floor(20 / speed)); 
-    const targetIdx = Math.min(idx + lookAheadPoints, points.length - 1);
-    const targetPoint = points[targetIdx];
-    const targetBearing = calculateBearing(interpolatedLat, interpolatedLon, targetPoint.lat, targetPoint.lon);
-    
-    // Smooth the angle transition to avoid jerky camera rotations
-    if (currentBearingRef.current === null) {
-      currentBearingRef.current = targetBearing;
-    } else {
-      let diff = targetBearing - currentBearingRef.current;
-      if (diff > 180) diff -= 360;
-      if (diff < -180) diff += 360;
-      // 0.1 is the smoothing factor. Lower = more cinematic/slower rotation
-      currentBearingRef.current += diff * 0.1;
-      // Normalize to 0-360
-      currentBearingRef.current = (currentBearingRef.current + 360) % 360;
-    }
-    
-    // 4. Frame-Perfect Camera Positioning
-    // Using jumpTo for maximum precision during requestAnimationFrame
-    map.jumpTo({
-      center: [interpolatedLon, interpolatedLat],
-      bearing: currentBearingRef.current,
-      pitch: 60,
-      zoom: 16.5 // Slightly closer for more immersion
-    });
-    
-    const now = Date.now();
-    // Only update heavy React state at ~15fps
-    if (forceUiUpdate || now - lastUiUpdateRef.current > 66) {
-      setProgress((idx / (points.length - 1)) * 100);
-      lastUiUpdateRef.current = now;
-    }
-  }, [map, points, speed]);
+      const now = Date.now();
+      if (forceUiUpdate || now - lastUiUpdateRef.current > 66) {
+        setProgress((idx / (points.length - 1)) * 100);
+        lastUiUpdateRef.current = now;
+      }
+    },
+    [map, points, speed],
+  );
 
-  const animate = useCallback((time: number) => {
-    if (!lastTimeRef.current) lastTimeRef.current = time;
-    const deltaTime = time - lastTimeRef.current;
-    
-    // Adjust increment by speed. 300 is a magic number for base smoothness.
-    const increment = (speed * deltaTime) / 300; 
-    currentIndexRef.current += increment;
+  const animate = useCallback(
+    (time: number) => {
+      if (!lastTimeRef.current) lastTimeRef.current = time;
+      const deltaTime = time - lastTimeRef.current;
 
-    if (currentIndexRef.current >= points.length - 1) {
-      currentIndexRef.current = points.length - 1;
-      updateMapCamera(currentIndexRef.current, true);
-      setIsPlaying(false);
-      return;
-    }
+      const increment = (speed * deltaTime) / 300;
+      currentIndexRef.current += increment;
 
-    updateMapCamera(currentIndexRef.current);
+      if (currentIndexRef.current >= points.length - 1) {
+        currentIndexRef.current = points.length - 1;
+        updateMapCamera(currentIndexRef.current, true);
+        setIsPlaying(false);
+        return;
+      }
 
-    lastTimeRef.current = time;
-    requestRef.current = requestAnimationFrame(animate);
-  }, [points, speed, updateMapCamera]);
+      updateMapCamera(currentIndexRef.current);
+
+      lastTimeRef.current = time;
+      requestRef.current = requestAnimationFrame(animate);
+    },
+    [points, speed, updateMapCamera],
+  );
 
   const startPlayback = () => {
     if (currentIndexRef.current >= points.length - 1) {
@@ -141,8 +147,7 @@ export function RoutePlayer({ points, onStop, map }: RoutePlayerProps) {
     const newProgress = value[0];
     const newIndex = Math.floor((newProgress / 100) * (points.length - 1));
     currentIndexRef.current = newIndex;
-    // Reset bearing on jump to avoid camera spinning from old position
-    currentBearingRef.current = null; 
+    currentBearingRef.current = null;
     updateMapCamera(newIndex, true);
   };
 
@@ -153,64 +158,123 @@ export function RoutePlayer({ points, onStop, map }: RoutePlayerProps) {
   }, []);
 
   return (
-    <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-20 w-[95%] max-w-lg animate-in fade-in slide-in-from-bottom-4">
-      <div className="bg-background/95 backdrop-blur-md border border-border shadow-2xl rounded-2xl p-4">
-        <div className="flex items-center justify-between mb-4 px-1">
-          <div className="flex items-center gap-2">
-            <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-            <h4 className="text-[10px] font-black uppercase tracking-widest text-foreground/70">{t('title')}</h4>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <Select value={speed.toString()} onValueChange={(v) => setSpeed(parseFloat(v))}>
-              <SelectTrigger className="h-7 w-20 text-[10px] font-bold bg-secondary/50 border-none focus:ring-0">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="1" className="text-[10px] font-bold cursor-pointer">1x</SelectItem>
-                <SelectItem value="2" className="text-[10px] font-bold cursor-pointer">2x</SelectItem>
-                <SelectItem value="3" className="text-[10px] font-bold cursor-pointer">3x</SelectItem>
-                <SelectItem value="4" className="text-[10px] font-bold cursor-pointer">4x</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+    <>
+      <Source
+        id="player-position"
+        type="geojson"
+        data={{
+          type: 'Feature',
+          geometry: { type: 'Point', coordinates: [0, 0] },
+          properties: {},
+        }}
+      >
+        <Layer
+          id="player-marker-glow"
+          type="circle"
+          paint={{
+            'circle-radius': 12,
+            'circle-color': '#3b82f6',
+            'circle-opacity': 0.3,
+            'circle-stroke-width': 2,
+            'circle-stroke-color': '#ffffff',
+          }}
+        />
+        <Layer
+          id="player-marker-core"
+          type="circle"
+          paint={{
+            'circle-radius': 6,
+            'circle-color': '#ffffff',
+            'circle-stroke-width': 3,
+            'circle-stroke-color': '#3b82f6',
+          }}
+        />
+      </Source>
 
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-1">
-            {!isPlaying ? (
-              <Button size="icon" variant="ghost" className="h-9 w-9 rounded-full hover:bg-primary/10 hover:text-primary transition-colors" onClick={startPlayback}>
-                <Play className="h-5 w-5 fill-current" />
-              </Button>
-            ) : (
-              <Button size="icon" variant="ghost" className="h-9 w-9 rounded-full text-primary bg-primary/5 hover:bg-primary/20" onClick={pausePlayback}>
-                <Pause className="h-5 w-5 fill-current" />
-              </Button>
-            )}
-            <Button size="icon" variant="ghost" className="h-9 w-9 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/5" onClick={stopPlayback}>
-              <Square className="h-4 w-4 fill-current" />
-            </Button>
+      <div className="animate-in fade-in slide-in-from-bottom-4 absolute bottom-20 left-1/2 z-20 w-[95%] max-w-lg -translate-x-1/2">
+        <div className="bg-background/95 border-border rounded-2xl border p-4 shadow-2xl backdrop-blur-md">
+          <div className="mb-4 flex items-center justify-between px-1">
+            <div className="flex items-center gap-2">
+              <div className="bg-primary h-2 w-2 animate-pulse rounded-full" />
+              <h4 className="text-foreground/70 text-[10px] font-black tracking-widest uppercase">
+                {t('title')}
+              </h4>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Select value={speed.toString()} onValueChange={(v) => setSpeed(parseFloat(v))}>
+                <SelectTrigger className="bg-secondary/50 h-7 w-20 border-none text-[10px] font-bold focus:ring-0">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1" className="cursor-pointer text-[10px] font-bold">
+                    1x
+                  </SelectItem>
+                  <SelectItem value="2" className="cursor-pointer text-[10px] font-bold">
+                    2x
+                  </SelectItem>
+                  <SelectItem value="3" className="cursor-pointer text-[10px] font-bold">
+                    3x
+                  </SelectItem>
+                  <SelectItem value="4" className="cursor-pointer text-[10px] font-bold">
+                    4x
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
-          <div className="flex-1 px-2">
-            <Slider 
-              value={[progress]} 
-              min={0} 
-              max={100} 
-              step={0.1} 
-              onValueChange={handleSeek}
-              className="cursor-pointer"
-            />
-          </div>
-          
-          <div className="min-w-[40px] text-right">
-            <span className="text-[10px] font-black font-mono text-muted-foreground">
-              {Math.round(progress)}%
-            </span>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1">
+              {!isPlaying ? (
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="hover:bg-primary/10 hover:text-primary h-9 w-9 rounded-full transition-colors"
+                  onClick={startPlayback}
+                >
+                  <Play className="h-5 w-5 fill-current" />
+                </Button>
+              ) : (
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="text-primary bg-primary/5 hover:bg-primary/20 h-9 w-9 rounded-full"
+                  onClick={pausePlayback}
+                >
+                  <Pause className="h-5 w-5 fill-current" />
+                </Button>
+              )}
+              <Button
+                size="icon"
+                variant="ghost"
+                className="text-muted-foreground hover:text-destructive hover:bg-destructive/5 h-9 w-9 rounded-full"
+                onClick={stopPlayback}
+              >
+                <Square className="h-4 w-4 fill-current" />
+              </Button>
+            </div>
+
+            <div className="flex-1 px-2">
+              <Slider
+                value={[progress]}
+                min={0}
+                max={100}
+                step={0.1}
+                onValueChange={handleSeek}
+                className="cursor-pointer"
+              />
+            </div>
+
+            <div className="min-w-[40px] text-right">
+              <span className="text-muted-foreground font-mono text-[10px] font-black">
+                {Math.round(progress)}%
+              </span>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
