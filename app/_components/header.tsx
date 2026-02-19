@@ -39,9 +39,9 @@ export function Header({ session, mobileMenuContent }: HeaderProps) {
     : session?.user?.email?.charAt(0).toUpperCase() || 'U';
 
   return (
-    <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-border bg-background px-4 lg:px-6">
+    <header className="border-border bg-background sticky top-0 z-40 flex h-14 items-center justify-between border-b px-4 lg:px-6">
       <Link href="/setup" className="flex items-center gap-2">
-        <Mountain className="h-6 w-6 text-primary" />
+        <Mountain className="text-primary h-6 w-6" />
         <span className="text-lg font-bold">peakOne</span>
       </Link>
 
@@ -54,11 +54,7 @@ export function Header({ session, mobileMenuContent }: HeaderProps) {
           className="h-9 w-9"
           onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
         >
-          {theme === 'dark' ? (
-            <Sun className="h-5 w-5" />
-          ) : (
-            <Moon className="h-5 w-5" />
-          )}
+          {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           <span className="sr-only">Toggle theme</span>
         </Button>
 
@@ -81,7 +77,10 @@ export function Header({ session, mobileMenuContent }: HeaderProps) {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-9 w-9 rounded-full">
                 <Avatar className="h-9 w-9">
-                  <AvatarImage src={session.user.image || undefined} alt={session.user.name || 'User'} />
+                  <AvatarImage
+                    src={session.user.image || undefined}
+                    alt={session.user.name || 'User'}
+                  />
                   <AvatarFallback>{userInitial}</AvatarFallback>
                 </Avatar>
               </Button>

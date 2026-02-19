@@ -47,9 +47,15 @@ export function useRouteAnalysis(
   const [isLoading, setIsLoading] = useState(false); // For analyze button
   const [isRouteInfoLoading, setIsRouteInfoLoading] = useState(false); // For initial route data
   const [error, setError] = useState<string | null>(null);
-  const [recalculatedElevationGain, setRecalculatedElevationGain] = useState(initialData?.elevationGain || 0);
-  const [recalculatedElevationLoss, setRecalculatedElevationLoss] = useState(initialData?.elevationLoss || 0);
-  const [recalculatedTotalDistance, setRecalculatedTotalDistance] = useState(initialData?.distance || 0);
+  const [recalculatedElevationGain, setRecalculatedElevationGain] = useState(
+    initialData?.elevationGain || 0,
+  );
+  const [recalculatedElevationLoss, setRecalculatedElevationLoss] = useState(
+    initialData?.elevationLoss || 0,
+  );
+  const [recalculatedTotalDistance, setRecalculatedTotalDistance] = useState(
+    initialData?.distance || 0,
+  );
   const [isWeatherAnalyzed, setIsWeatherAnalyzed] = useState(false); // New state
   const [bestWindows, setBestWindows] = useState<any[]>([]);
   const [isFindingWindow, setIsFindingWindow] = useState(false);
@@ -81,12 +87,12 @@ export function useRouteAnalysis(
         setGPXData(data);
         setGPXFileName(initialGpxFileName);
         setRawGPXContent(initialRawGpxContent);
-        
+
         // Use provided initial data or fallback to parsed data
         setRecalculatedTotalDistance(initialData?.distance || data.totalDistance);
         setRecalculatedElevationGain(initialData?.elevationGain || data.totalElevationGain);
         setRecalculatedElevationLoss(initialData?.elevationLoss || data.totalElevationLoss);
-        
+
         setError(null);
         setIsWeatherAnalyzed(false); // Reset weather analysis status
       } catch (err) {
@@ -191,7 +197,6 @@ export function useRouteAnalysis(
     }
   }, [gpxData, fetchRouteInfo]);
 
-
   const handleClearGPX = useCallback(() => {
     setGPXData(null);
     setGPXFileName(null);
@@ -203,175 +208,179 @@ export function useRouteAnalysis(
     setIsWeatherAnalyzed(false); // Reset weather analysis status
   }, []);
 
-  const handleAnalyze = useCallback(async (params?: UseRouteAnalysisConfig | React.MouseEvent | any) => {
-    if (!gpxData) return;
-    
-    // Safety check: React events might be passed if called directly from onClick
-    const hasOverride = params && typeof params === 'object' && 'date' in params && 'time' in params;
-    const analysisConfig = hasOverride ? params : config;
+  const handleAnalyze = useCallback(
+    async (params?: UseRouteAnalysisConfig | React.MouseEvent | any) => {
+      if (!gpxData) return;
 
-    setIsLoading(true);
-    setError(null);
-    setWeatherPoints([]); // Clear previous weather points
-    setIsWeatherAnalyzed(false);
+      // Safety check: React events might be passed if called directly from onClick
+      const hasOverride =
+        params && typeof params === 'object' && 'date' in params && 'time' in params;
+      const analysisConfig = hasOverride ? params : config;
 
-    const fetchWithRetry = async (
-      url: string,
-      options: RequestInit,
-      maxRetries = 3,
-    ): Promise<Response> => {
-      let lastError: Error | null = null;
-      for (let i = 0; i < maxRetries; i++) {
-        try {
-          const response = await fetch(url, options);
-          if (response.status === 429) {
+      setIsLoading(true);
+      setError(null);
+      setWeatherPoints([]); // Clear previous weather points
+      setIsWeatherAnalyzed(false);
+
+      const fetchWithRetry = async (
+        url: string,
+        options: RequestInit,
+        maxRetries = 3,
+      ): Promise<Response> => {
+        let lastError: Error | null = null;
+        for (let i = 0; i < maxRetries; i++) {
+          try {
+            const response = await fetch(url, options);
+            if (response.status === 429) {
+              const waitTime = Math.pow(2, i) * 1000;
+              await new Promise((resolve) => setTimeout(resolve, waitTime));
+              continue;
+            }
+            return response;
+          } catch (err) {
+            lastError = err instanceof Error ? err : new Error('Unknown error');
             const waitTime = Math.pow(2, i) * 1000;
             await new Promise((resolve) => setTimeout(resolve, waitTime));
-            continue;
           }
-          return response;
-        } catch (err) {
-          lastError = err instanceof Error ? err : new Error('Unknown error');
-          const waitTime = Math.pow(2, i) * 1000;
-          await new Promise((resolve) => setTimeout(resolve, waitTime));
         }
-      }
-      throw lastError || new Error('Retry limit reached');
-    };
+        throw lastError || new Error('Retry limit reached');
+      };
 
-    try {
-      const sampled = sampleRoutePoints(gpxData.points, 48);
-      const startTime = new Date(`${analysisConfig.date}T${analysisConfig.time}:00`);
+      try {
+        const sampled = sampleRoutePoints(gpxData.points, 48);
+        const startTime = new Date(`${analysisConfig.date}T${analysisConfig.time}:00`);
 
-      if (isNaN(startTime.getTime())) {
-        throw new Error('Invalid start time configuration');
-      }
+        if (isNaN(startTime.getTime())) {
+          throw new Error('Invalid start time configuration');
+        }
 
-      // Calculate times point-to-point with smart speed
-      const pointsWithTime: any[] = [];
-      let currentElapsedTime = 0;
+        // Calculate times point-to-point with smart speed
+        const pointsWithTime: any[] = [];
+        let currentElapsedTime = 0;
 
-      sampled.forEach((point, idx) => {
-        if (idx === 0) {
-          pointsWithTime.push({
-            ...point,
-            estimatedTime: new Date(startTime.getTime()),
-          });
-        } else {
-          const prevPoint = sampled[idx - 1];
-          const segmentDist = point.distanceFromStart - prevPoint.distanceFromStart;
-          const segmentEleGain = Math.max(0, (point.ele || 0) - (prevPoint.ele || 0));
+        sampled.forEach((point, idx) => {
+          if (idx === 0) {
+            pointsWithTime.push({
+              ...point,
+              estimatedTime: new Date(startTime.getTime()),
+            });
+          } else {
+            const prevPoint = sampled[idx - 1];
+            const segmentDist = point.distanceFromStart - prevPoint.distanceFromStart;
+            const segmentEleGain = Math.max(0, (point.ele || 0) - (prevPoint.ele || 0));
 
-          const speedAtSegment = calculateSmartSpeed(
-            analysisConfig.speed,
-            segmentDist,
-            segmentEleGain,
-            analysisConfig.activityType,
+            const speedAtSegment = calculateSmartSpeed(
+              analysisConfig.speed,
+              segmentDist,
+              segmentEleGain,
+              analysisConfig.activityType,
+            );
+
+            const segmentTimeHours = segmentDist / speedAtSegment;
+            currentElapsedTime += segmentTimeHours;
+
+            pointsWithTime.push({
+              ...point,
+              estimatedTime: new Date(startTime.getTime() + currentElapsedTime * 3600000),
+            });
+          }
+        });
+
+        const response = await fetchWithRetry('/api/weather', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            points: pointsWithTime.map((p) => ({
+              lat: p.lat,
+              lon: p.lon,
+              estimatedTime: p.estimatedTime.toISOString(),
+            })),
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(
+            response.status === 429 ? t('errors.tooManyRequests') : t('errors.weatherFetchError'),
+          );
+        }
+
+        const weatherDataObj = await response.json();
+        const weatherData: WeatherData[] = weatherDataObj.weather;
+
+        const routeWeatherPoints: RouteWeatherPoint[] = pointsWithTime.map((point, idx) => {
+          const nextIdx = Math.min(idx + 1, pointsWithTime.length - 1);
+          const prevIdx = Math.max(0, idx - 1);
+          const nextPoint = pointsWithTime[nextIdx];
+          const prevPoint = pointsWithTime[prevIdx];
+
+          const bearing = calculateBearing(point.lat, point.lon, nextPoint.lat, nextPoint.lon);
+          const weather = weatherData[idx];
+          const windResult = getWindEffect(bearing, weather.windDirection);
+
+          // Find closest info by distance (not index) to be robust
+          const info = routeInfoData.reduce(
+            (prev, curr) =>
+              Math.abs(curr.distanceFromStart - point.distanceFromStart) <
+              Math.abs(prev.distanceFromStart - point.distanceFromStart)
+                ? curr
+                : prev,
+            routeInfoData[0] || {},
           );
 
-          const segmentTimeHours = segmentDist / speedAtSegment;
-          currentElapsedTime += segmentTimeHours;
+          const ele = point.ele !== undefined && point.ele !== 0 ? point.ele : info.elevation || 0;
 
-          pointsWithTime.push({
-            ...point,
-            estimatedTime: new Date(startTime.getTime() + currentElapsedTime * 3600000),
-          });
-        }
-      });
+          // Calculate slope and aspect for hillshading
+          const distDiff = (nextPoint.distanceFromStart - prevPoint.distanceFromStart) * 1000; // meters
+          const eleDiff =
+            (nextPoint.ele !== undefined
+              ? nextPoint.ele
+              : routeInfoData.find((d: any) => d.distanceFromStart === nextPoint.distanceFromStart)
+                  ?.elevation || 0) -
+            (prevPoint.ele !== undefined
+              ? prevPoint.ele
+              : routeInfoData.find((d: any) => d.distanceFromStart === prevPoint.distanceFromStart)
+                  ?.elevation || 0);
+          const slopeRad = distDiff > 0 ? Math.atan(eleDiff / distDiff) : 0;
+          const slopeDeg = (slopeRad * 180) / Math.PI;
 
-      const response = await fetchWithRetry('/api/weather', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          points: pointsWithTime.map((p) => ({
-            lat: p.lat,
-            lon: p.lon,
-            estimatedTime: p.estimatedTime.toISOString(),
-          })),
-        }),
-      });
+          // Aspect is the direction of the steepest descent
+          // If going uphill, aspect is bearing + 180, if downhill, aspect is bearing
+          const aspectDeg = eleDiff > 0 ? (bearing + 180) % 360 : bearing;
 
-      if (!response.ok) {
-        throw new Error(
-          response.status === 429 ? t('errors.tooManyRequests') : t('errors.weatherFetchError'),
-        );
+          const sunPos = getSunPosition(point.estimatedTime, point.lat, point.lon);
+          const solarExposure = getSolarExposure(weather, sunPos, Math.abs(slopeDeg), aspectDeg);
+          const solarIntensity = getSolarIntensity(weather.directRadiation, solarExposure);
+
+          return {
+            point: {
+              ...point,
+              ele,
+            },
+            weather,
+            windEffect: windResult.effect,
+            windEffectAngle: windResult.angle,
+            bearing,
+            pathType: info.pathType,
+            surface: info.surface,
+            solarExposure,
+            solarIntensity,
+            escapePoint: info.escapePoint,
+            mobileCoverage: info.mobileCoverage,
+            waterSources: info.waterSources,
+          };
+        });
+
+        setWeatherPoints(routeWeatherPoints);
+        setSelectedPointIndex(0);
+        setIsWeatherAnalyzed(true); // Mark weather as analyzed
+      } catch (err) {
+        setError(err instanceof Error ? err.message : t('errors.unknownError'));
+      } finally {
+        setIsLoading(false);
       }
-
-      const weatherDataObj = await response.json();
-      const weatherData: WeatherData[] = weatherDataObj.weather;
-
-      const routeWeatherPoints: RouteWeatherPoint[] = pointsWithTime.map((point, idx) => {
-        const nextIdx = Math.min(idx + 1, pointsWithTime.length - 1);
-        const prevIdx = Math.max(0, idx - 1);
-        const nextPoint = pointsWithTime[nextIdx];
-        const prevPoint = pointsWithTime[prevIdx];
-
-        const bearing = calculateBearing(point.lat, point.lon, nextPoint.lat, nextPoint.lon);
-        const weather = weatherData[idx];
-        const windResult = getWindEffect(bearing, weather.windDirection);
-
-        // Find closest info by distance (not index) to be robust
-        const info = routeInfoData.reduce(
-          (prev, curr) =>
-            Math.abs(curr.distanceFromStart - point.distanceFromStart) <
-            Math.abs(prev.distanceFromStart - point.distanceFromStart)
-              ? curr
-              : prev,
-          routeInfoData[0] || {},
-        );
-
-        const ele = point.ele !== undefined && point.ele !== 0 ? point.ele : info.elevation || 0;
-
-        // Calculate slope and aspect for hillshading
-        const distDiff = (nextPoint.distanceFromStart - prevPoint.distanceFromStart) * 1000; // meters
-        const eleDiff =
-          (nextPoint.ele !== undefined
-            ? nextPoint.ele
-            : routeInfoData.find((d: any) => d.distanceFromStart === nextPoint.distanceFromStart)
-                ?.elevation || 0) -
-          (prevPoint.ele !== undefined
-            ? prevPoint.ele
-            : routeInfoData.find((d: any) => d.distanceFromStart === prevPoint.distanceFromStart)
-                ?.elevation || 0);
-        const slopeRad = distDiff > 0 ? Math.atan(eleDiff / distDiff) : 0;
-        const slopeDeg = (slopeRad * 180) / Math.PI;
-
-        // Aspect is the direction of the steepest descent
-        // If going uphill, aspect is bearing + 180, if downhill, aspect is bearing
-        const aspectDeg = eleDiff > 0 ? (bearing + 180) % 360 : bearing;
-
-        const sunPos = getSunPosition(point.estimatedTime, point.lat, point.lon);
-        const solarExposure = getSolarExposure(weather, sunPos, Math.abs(slopeDeg), aspectDeg);
-        const solarIntensity = getSolarIntensity(weather.directRadiation, solarExposure);
-
-        return {
-          point: {
-            ...point,
-            ele,
-          },
-          weather,
-          windEffect: windResult.effect,
-          windEffectAngle: windResult.angle,
-          bearing,
-          pathType: info.pathType,
-          surface: info.surface,
-          solarExposure,
-          solarIntensity,
-          escapePoint: info.escapePoint,
-          mobileCoverage: info.mobileCoverage,
-          waterSources: info.waterSources,
-        };
-      });
-
-      setWeatherPoints(routeWeatherPoints);
-      setSelectedPointIndex(0);
-      setIsWeatherAnalyzed(true); // Mark weather as analyzed
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t('errors.unknownError'));
-    } finally {
-      setIsLoading(false);
-    }
-  }, [gpxData, config, t, routeInfoData]);
+    },
+    [gpxData, config, t, routeInfoData],
+  );
 
   const handleFindBestWindow = useCallback(async () => {
     if (!gpxData) return;
@@ -394,7 +403,7 @@ export function useRouteAnalysis(
       const keyPoints = [
         { ...startPoint, bearing: calculateApproxBearing(0) },
         { ...midPoint, bearing: calculateApproxBearing(Math.floor(gpxData.points.length / 2)) },
-        { ...endPoint, bearing: calculateApproxBearing(gpxData.points.length - 1) }
+        { ...endPoint, bearing: calculateApproxBearing(gpxData.points.length - 1) },
       ];
 
       const response = await fetch('/api/weather/best-window', {
@@ -404,8 +413,8 @@ export function useRouteAnalysis(
           keyPoints,
           activityType: config.activityType,
           baseSpeed: config.speed,
-          startTime: `${config.date}T${config.time}:00`
-        })
+          startTime: `${config.date}T${config.time}:00`,
+        }),
       });
 
       if (response.ok) {

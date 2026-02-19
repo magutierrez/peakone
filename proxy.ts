@@ -16,20 +16,19 @@ export async function proxy(request: NextRequest) {
   if (!session?.user && !pathname.startsWith('/login') && !pathname.startsWith('/api/auth')) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
-  
-    // Apply next-intl middleware for i18n
-  
-    // if (pathname.startsWith('/login')) { // Temporarily skip nextIntlMiddleware for /login
-  
-    //   return NextResponse.next();
-  
-    // }
-  
-    // return nextIntlMiddleware(request); // Temporarily disabled completely
-  
-    return NextResponse.next();
-  
-  }
+
+  // Apply next-intl middleware for i18n
+
+  // if (pathname.startsWith('/login')) { // Temporarily skip nextIntlMiddleware for /login
+
+  //   return NextResponse.next();
+
+  // }
+
+  // return nextIntlMiddleware(request); // Temporarily disabled completely
+
+  return NextResponse.next();
+}
 
 export const config = {
   matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],

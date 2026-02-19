@@ -93,9 +93,9 @@ export function RouteSegments({ weatherPoints, activeFilter, onFilterChange }: R
   }) => (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-medium text-muted-foreground">{title}</span>
+        <span className="text-muted-foreground text-xs font-medium">{title}</span>
       </div>
-      <div className="flex h-3 w-full overflow-hidden rounded-full bg-secondary ring-1 ring-border">
+      <div className="bg-secondary ring-border flex h-3 w-full overflow-hidden rounded-full ring-1">
         {data.map((item, idx) => {
           const isActive = activeFilter?.key === typeKey && activeFilter.value === item.name;
           const isFilteringOther =
@@ -110,7 +110,7 @@ export function RouteSegments({ weatherPoints, activeFilter, onFilterChange }: R
                 backgroundColor: item.color,
                 opacity: isFilteringOther ? 0.3 : 1,
               }}
-              className={`h-full transition-all hover:brightness-110 ${isActive ? 'ring-2 ring-inset ring-white' : ''}`}
+              className={`h-full transition-all hover:brightness-110 ${isActive ? 'ring-2 ring-white ring-inset' : ''}`}
               title={`${item.name}: ${item.percent.toFixed(0)}%`}
             />
           );
@@ -126,14 +126,14 @@ export function RouteSegments({ weatherPoints, activeFilter, onFilterChange }: R
               className={`flex items-center gap-1.5 rounded border px-1.5 py-0.5 transition-all ${
                 isActive
                   ? 'border-primary bg-primary/10 text-primary'
-                  : 'border-transparent bg-secondary/50 text-foreground hover:border-border'
+                  : 'bg-secondary/50 text-foreground hover:border-border border-transparent'
               }`}
             >
               <div className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color }} />
               <span className="text-[10px] font-medium">
                 {t(`${translationNamespace}.${item.name}` as any)}
               </span>
-              <span className="text-[10px] text-muted-foreground">{item.percent.toFixed(0)}%</span>
+              <span className="text-muted-foreground text-[10px]">{item.percent.toFixed(0)}%</span>
             </button>
           );
         })}
@@ -142,10 +142,10 @@ export function RouteSegments({ weatherPoints, activeFilter, onFilterChange }: R
   );
 
   return (
-    <div className="rounded-xl border border-border bg-card p-4">
+    <div className="border-border bg-card rounded-xl border p-4">
       <div className="mb-4 flex items-center gap-2">
-        <MapIcon className="h-4 w-4 text-primary" />
-        <h3 className="text-sm font-semibold text-foreground">{t('segmentsTitle')}</h3>
+        <MapIcon className="text-primary h-4 w-4" />
+        <h3 className="text-foreground text-sm font-semibold">{t('segmentsTitle')}</h3>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">

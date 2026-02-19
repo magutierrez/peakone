@@ -8,9 +8,9 @@ export function StravaConnector() {
   const t = useTranslations('Auth');
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-dashed border-border bg-muted/50 p-4 text-center">
-      <h3 className="text-sm font-semibold text-foreground">{t('connectStrava')}</h3>
-      <p className="text-xs text-muted-foreground">{t('stravaDescription')}</p>
+    <div className="border-border bg-muted/50 flex flex-col gap-3 rounded-xl border border-dashed p-4 text-center">
+      <h3 className="text-foreground text-sm font-semibold">{t('connectStrava')}</h3>
+      <p className="text-muted-foreground text-xs">{t('stravaDescription')}</p>
       <Button
         variant="secondary"
         size="sm"

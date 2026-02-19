@@ -25,31 +25,55 @@ export function RoutePlayer({ points, onPointUpdate, onStop, map }: RoutePlayerP
   const t = useTranslations('RouteMap.player');
   const [isPlaying, setIsPlaying] = useState(false);
   const [speed, setSpeed] = useState(1);
-  const [progress, setProgress] = useState(0); // 0 to 100
+  const [progress, setProgress] = useState(0); 
   const currentIndexRef = useRef(0);
   const requestRef = useRef<number>(0);
   const lastTimeRef = useRef<number>(0);
-
   const lastUiUpdateRef = useRef<number>(0);
 
-  const updateMapCamera = useCallback((idx: number, forceUiUpdate = false) => {
-    if (!map || !points[idx]) return;
+  const updateMapCamera = useCallback((fractionalIdx: number, forceUiUpdate = false) => {
+    if (!map || points.length < 2) return;
     
-    const p = points[idx];
-    const nextP = points[Math.min(idx + 10, points.length - 1)]; 
-    const bearing = calculateBearing(p.lat, p.lon, nextP.lat, nextP.lon);
+    const idx = Math.floor(fractionalIdx);
+    const nextIdx = Math.min(idx + 1, points.length - 1);
+    const ratio = fractionalIdx - idx;
+
+    const p1 = points[idx];
+    const p2 = points[nextIdx];
+
+    // 1. Interpolate Position
+    const interpolatedLat = p1.lat + (p2.lat - p1.lat) * ratio;
+    const interpolatedLon = p1.lon + (p2.lon - p1.lon) * ratio;
+
+    // 2. Update Dynamic Marker Layer directly for maximum performance
+    const source = map.getSource('player-position');
+    if (source) {
+      source.setData({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [interpolatedLon, interpolatedLat] },
+        properties: {}
+      });
+    }
+
+    // 3. Smooth Bearing: average multiple look-ahead points
+    const lookAheadPoints = 20;
+    const targetIdx = Math.min(idx + lookAheadPoints, points.length - 1);
+    const targetPoint = points[targetIdx];
+    const bearing = calculateBearing(interpolatedLat, interpolatedLon, targetPoint.lat, targetPoint.lon);
     
-    // Use jumpTo for animation frames to get maximum FPS
-    map.jumpTo({
-      center: [p.lon, p.lat],
+    // 4. Ultra-smooth Camera movement
+    map.easeTo({
+      center: [interpolatedLon, interpolatedLat],
       bearing: bearing,
       pitch: 65,
-      zoom: 16
+      zoom: 16,
+      duration: 50, 
+      easing: (t: number) => t 
     });
     
     const now = Date.now();
-    // Only update React state (heavy) at ~20fps to keep map animation at 60fps
-    if (forceUiUpdate || now - lastUiUpdateRef.current > 50) {
+    // Throttle React state updates to 15fps to keep 60fps on map
+    if (forceUiUpdate || now - lastUiUpdateRef.current > 64) {
       onPointUpdate(idx);
       setProgress((idx / (points.length - 1)) * 100);
       lastUiUpdateRef.current = now;
@@ -60,22 +84,27 @@ export function RoutePlayer({ points, onPointUpdate, onStop, map }: RoutePlayerP
     if (!lastTimeRef.current) lastTimeRef.current = time;
     const deltaTime = time - lastTimeRef.current;
     
-    const increment = (speed * deltaTime) / 150; 
+    // Smooth speed-based increment
+    const increment = (speed * deltaTime) / 250; 
     currentIndexRef.current += increment;
 
     if (currentIndexRef.current >= points.length - 1) {
-      stopPlayback();
+      currentIndexRef.current = points.length - 1;
+      updateMapCamera(currentIndexRef.current, true);
+      setIsPlaying(false);
       return;
     }
 
-    const idx = Math.floor(currentIndexRef.current);
-    updateMapCamera(idx);
+    updateMapCamera(currentIndexRef.current);
 
     lastTimeRef.current = time;
     requestRef.current = requestAnimationFrame(animate);
   }, [points, speed, updateMapCamera]);
 
   const startPlayback = () => {
+    if (currentIndexRef.current >= points.length - 1) {
+      currentIndexRef.current = 0;
+    }
     setIsPlaying(true);
     lastTimeRef.current = 0;
     requestRef.current = requestAnimationFrame(animate);
@@ -89,7 +118,7 @@ export function RoutePlayer({ points, onPointUpdate, onStop, map }: RoutePlayerP
   const stopPlayback = () => {
     pausePlayback();
     currentIndexRef.current = 0;
-    updateMapCamera(0);
+    updateMapCamera(0, true);
     onStop();
   };
 
@@ -116,14 +145,14 @@ export function RoutePlayer({ points, onPointUpdate, onStop, map }: RoutePlayerP
           
           <div className="flex items-center gap-2">
             <Select value={speed.toString()} onValueChange={(v) => setSpeed(parseFloat(v))}>
-              <SelectTrigger className="h-7 w-20 text-[10px] font-bold bg-secondary/50 border-none">
+              <SelectTrigger className="h-7 w-20 text-[10px] font-bold bg-secondary/50 border-none focus:ring-0">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="1" className="text-[10px] font-bold">1x</SelectItem>
-                <SelectItem value="2" className="text-[10px] font-bold">2x</SelectItem>
-                <SelectItem value="3" className="text-[10px] font-bold">3x</SelectItem>
-                <SelectItem value="4" className="text-[10px] font-bold">4x</SelectItem>
+                <SelectItem value="1" className="text-[10px] font-bold cursor-pointer">1x</SelectItem>
+                <SelectItem value="2" className="text-[10px] font-bold cursor-pointer">2x</SelectItem>
+                <SelectItem value="3" className="text-[10px] font-bold cursor-pointer">3x</SelectItem>
+                <SelectItem value="4" className="text-[10px] font-bold cursor-pointer">4x</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -167,7 +196,6 @@ export function RoutePlayer({ points, onPointUpdate, onStop, map }: RoutePlayerP
   );
 }
 
-// Internal helper for camera bearing
 function calculateBearing(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const dLon = ((lon2 - lon1) * Math.PI) / 180;
   const y = Math.sin(dLon) * Math.cos((lat2 * Math.PI) / 180);

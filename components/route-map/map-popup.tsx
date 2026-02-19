@@ -31,13 +31,16 @@ export function MapPopup({ popupInfo, onClose }: MapPopupProps) {
       className="weather-popup"
       offset={15}
     >
-      <div className="p-1 text-xs leading-relaxed text-foreground">
-        <div className="mb-1 flex items-center justify-between border-b border-border pb-1">
+      <div className="text-foreground p-1 text-xs leading-relaxed">
+        <div className="border-border mb-1 flex items-center justify-between border-b pb-1">
           <strong className="font-mono">
-            {new Date(popupInfo.point.estimatedTime || popupInfo.weather.time).toLocaleTimeString('es-ES', {
-              hour: '2-digit',
-              minute: '2-digit',
-            })}
+            {new Date(popupInfo.point.estimatedTime || popupInfo.weather.time).toLocaleTimeString(
+              'es-ES',
+              {
+                hour: '2-digit',
+                minute: '2-digit',
+              },
+            )}
           </strong>
           <span className="text-muted-foreground">
             km {popupInfo.point.distanceFromStart.toFixed(1)}

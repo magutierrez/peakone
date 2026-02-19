@@ -67,10 +67,7 @@ export function SettingsModal({ isOpen, onOpenChange }: SettingsModalProps) {
             <Label htmlFor="windUnit" className="text-right">
               {t('windUnit')}
             </Label>
-            <Select
-              value={windUnit}
-              onValueChange={(value) => setWindUnit(value as any)}
-            >
+            <Select value={windUnit} onValueChange={(value) => setWindUnit(value as any)}>
               <SelectTrigger id="windUnit" className="col-span-3">
                 <SelectValue placeholder="Select wind speed unit" />
               </SelectTrigger>

@@ -46,46 +46,48 @@
       "noRouteSelected": "Por favor, selecciona o sube una ruta para analizar."
     }
   },
-      "Hazards": {
-        "title": "Tramos Críticos",
-        "steepClimb": "Subida Exigente",
-        "steepDescent": "Descenso Peligroso",
-        "heatStress": "Estrés Térmico",
-        "effortLevel": "Nivel de Esfuerzo",
-              "danger": "Riesgo",
-              "distance": "Distancia",
-              "slope": "Pendiente",
-              "avg": "Media",
-              "max": "Máx",
-              "noSegments": "No se han detectado tramos de riesgo en esta ruta.",        "levels": {
-          "low": "BAJO",
-          "medium": "MEDIO",
-          "high": "ALTO"
-        }
-      },  "physiology": {
+  "Hazards": {
+    "title": "Tramos Críticos",
+    "steepClimb": "Subida Exigente",
+    "steepDescent": "Descenso Peligroso",
+    "heatStress": "Estrés Térmico",
+    "effortLevel": "Nivel de Esfuerzo",
+    "danger": "Riesgo",
+    "distance": "Distancia",
+    "slope": "Pendiente",
+    "avg": "Media",
+    "max": "Máx",
+    "noSegments": "No se han detectado tramos de riesgo en esta ruta.",
+    "levels": {
+      "low": "BAJO",
+      "medium": "MEDIO",
+      "high": "ALTO"
+    }
+  },
+  "physiology": {
     "calories": "Calorías",
     "hydration": "Agua",
     "total": "Necesidades totales",
     "perHour": "por hora"
   },
-      "Advice": {
-        "title": "Consejos para tu ruta",
-        "weather": "Meteorología",
-        "gear": "Equipamiento",
-        "safety": "Seguridad",
-        "nutrition": "Nutrición y Salud",
-        "water": "Estrategia de Agua",
-              "waterWarning": "Fuentes naturales con baja fiabilidad detectadas. Lleva agua extra.",
-              "waterOk": "Fuentes fiables disponibles durante la ruta.",
-              "showOnMap": "Ver en el mapa",
-              "hideFromMap": "Quitar del mapa",
-              "reliability": {
-                "high": "Alta",
-                "medium": "Media",
-                "low": "Baja (Posible seca)"
-              },
-              "cycling": {
-              "rain": "Cuidado con las curvas y el asfalto mojado. Revisa tus frenos.",
+  "Advice": {
+    "title": "Consejos para tu ruta",
+    "weather": "Meteorología",
+    "gear": "Equipamiento",
+    "safety": "Seguridad",
+    "nutrition": "Nutrición y Salud",
+    "water": "Estrategia de Agua",
+    "waterWarning": "Fuentes naturales con baja fiabilidad detectadas. Lleva agua extra.",
+    "waterOk": "Fuentes fiables disponibles durante la ruta.",
+    "showOnMap": "Ver en el mapa",
+    "hideFromMap": "Quitar del mapa",
+    "reliability": {
+      "high": "Alta",
+      "medium": "Media",
+      "low": "Baja (Posible seca)"
+    },
+    "cycling": {
+      "rain": "Cuidado con las curvas y el asfalto mojado. Revisa tus frenos.",
       "wind": "Viento fuerte detectado. Sujeta con firmeza el manillar en zonas expuestas.",
       "heat": "Calor intenso. Hidrátate cada 15-20 minutos.",
       "cold": "Usa capas cortavientos. El descenso puede ser gélido.",

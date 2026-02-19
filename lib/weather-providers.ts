@@ -186,12 +186,21 @@ export const metNorwayProvider: WeatherProvider = {
             temperature: timeseries.map((t: any) => t.data.instant.details.air_temperature),
             apparentTemperature: timeseries.map((t: any) => t.data.instant.details.air_temperature), // MET doesn't give feels-like in compact
             humidity: timeseries.map((t: any) => t.data.instant.details.relative_humidity),
-            precipitation: timeseries.map((t: any) => t.data.next_1_hours?.details?.precipitation_amount || 0),
-            precipitationProbability: timeseries.map((t: any) => t.data.next_1_hours?.details?.probability_of_precipitation || 0),
+            precipitation: timeseries.map(
+              (t: any) => t.data.next_1_hours?.details?.precipitation_amount || 0,
+            ),
+            precipitationProbability: timeseries.map(
+              (t: any) => t.data.next_1_hours?.details?.probability_of_precipitation || 0,
+            ),
             weatherCode: timeseries.map(() => 0), // MET uses symbols, mapping would be complex
             windSpeed: timeseries.map((t: any) => (t.data.instant.details.wind_speed || 0) * 3.6), // m/s to km/h
             windDirection: timeseries.map((t: any) => t.data.instant.details.wind_from_direction),
-            windGusts: timeseries.map((t: any) => (t.data.instant.details.wind_speed_of_gust || t.data.instant.details.wind_speed || 0) * 3.6),
+            windGusts: timeseries.map(
+              (t: any) =>
+                (t.data.instant.details.wind_speed_of_gust ||
+                  t.data.instant.details.wind_speed ||
+                  0) * 3.6,
+            ),
             isDay: timeseries.map(() => 1), // Simplified
           });
           return { index: pointIndex, weather: closest };

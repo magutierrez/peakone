@@ -3,7 +3,14 @@
 import { signIn } from 'next-auth/react';
 import { Mountain, Facebook } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { useTranslations } from 'next-intl';
 import { LocaleSwitcher } from '../../_components/locale-switcher';
 
@@ -11,17 +18,17 @@ export function LoginPageClient() {
   const t = useTranslations('Auth');
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
-      <div className="absolute right-4 top-4">
+    <div className="bg-background flex min-h-screen items-center justify-center p-4">
+      <div className="absolute top-4 right-4">
         <LocaleSwitcher />
       </div>
       <div className="absolute inset-0 -z-10 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:14px_24px]"></div>
 
-      <Card className="w-full max-w-md border-border shadow-xl">
+      <Card className="border-border w-full max-w-md shadow-xl">
         <CardHeader className="space-y-4 text-center">
           <div className="flex justify-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
-              <Mountain className="h-7 w-7 text-primary" />
+            <div className="bg-primary/10 flex h-12 w-12 items-center justify-center rounded-xl">
+              <Mountain className="text-primary h-7 w-7" />
             </div>
           </div>
           <div className="space-y-2">
@@ -32,7 +39,7 @@ export function LoginPageClient() {
         <CardContent className="grid gap-4">
           <Button
             variant="outline"
-            className="h-12 border-border bg-card hover:bg-muted"
+            className="border-border bg-card hover:bg-muted h-12"
             onClick={() => signIn('google', { redirectTo: '/' })}
           >
             <svg
@@ -55,7 +62,7 @@ export function LoginPageClient() {
 
           <Button
             variant="outline"
-            className="h-12 border-border bg-card text-foreground hover:bg-muted"
+            className="border-border bg-card text-foreground hover:bg-muted h-12"
             onClick={() => signIn('strava', { redirectTo: '/' })}
           >
             <svg
@@ -79,21 +86,17 @@ export function LoginPageClient() {
 
           <Button
             variant="outline"
-            className="h-12 border-border bg-card text-foreground hover:bg-muted"
+            className="border-border bg-card text-foreground hover:bg-muted h-12"
             onClick={() => signIn('twitter', { redirectTo: '/' })}
           >
-            <svg
-              className="mr-2 h-4 w-4 fill-current"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
+            <svg className="mr-2 h-4 w-4 fill-current" viewBox="0 0 24 24" aria-hidden="true">
               <path d="M18.244 2.25h3.308l-7.227 7.717 8.502 11.25h-6.657l-5.214-6.817L4.99 21.25H1.68l7.73-8.235L1.25 2.25h6.826l4.717 6.176L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z"></path>
             </svg>
             {t('continueX')}
           </Button>
         </CardContent>
         <CardFooter className="flex flex-col gap-4 text-center">
-          <p className="px-8 text-xs leading-relaxed text-muted-foreground">{t('terms')}</p>
+          <p className="text-muted-foreground px-8 text-xs leading-relaxed">{t('terms')}</p>
         </CardFooter>
       </Card>
     </div>

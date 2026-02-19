@@ -41,7 +41,14 @@ export function useSavedRoutes() {
     }
   });
 
-  const saveRoute = async (name: string, content: string, activityType: 'cycling' | 'walking', distance: number, elevationGain: number, elevationLoss: number) => {
+  const saveRoute = async (
+    name: string,
+    content: string,
+    activityType: 'cycling' | 'walking',
+    distance: number,
+    elevationGain: number,
+    elevationLoss: number,
+  ) => {
     if (!userEmail) return null;
     try {
       const db = await getDb();
@@ -52,7 +59,7 @@ export function useSavedRoutes() {
         `SELECT id FROM saved_routes 
          WHERE user_email = $1 AND name = $2 AND abs(distance - $3) < 0.01
          LIMIT 1`,
-        [userEmail, name, distance]
+        [userEmail, name, distance],
       );
 
       if (existing.rows.length > 0) {
@@ -63,8 +70,9 @@ export function useSavedRoutes() {
       try {
         routeId = crypto.randomUUID();
       } catch (e) {
-        routeId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-          const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+        routeId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+          const r = (Math.random() * 16) | 0,
+            v = c === 'x' ? r : (r & 0x3) | 0x8;
           return v.toString(16);
         });
       }

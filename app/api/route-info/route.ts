@@ -15,8 +15,8 @@ export async function POST(request: NextRequest) {
     }
 
     // 1. Calculate Bounding Box with buffer
-    const lats = points.map(p => p.lat);
-    const lons = points.map(p => p.lon);
+    const lats = points.map((p) => p.lat);
+    const lons = points.map((p) => p.lon);
     const minLat = Math.min(...lats) - 0.02; // ~2km buffer
     const maxLat = Math.max(...lats) + 0.02;
     const minLon = Math.min(...lons) - 0.02;
@@ -39,18 +39,20 @@ export async function POST(request: NextRequest) {
     // We sample up to 8 points along the route to get a representative tower map
     const samplingInterval = Math.max(2, Math.floor(points.length / 8));
     const sampledPoints = points.filter((_, i) => i % samplingInterval === 0);
-    
-    const cellTowersPromises = process.env.OPENCELLID_API_KEY 
-      ? sampledPoints.map(p => {
+
+    const cellTowersPromises = process.env.OPENCELLID_API_KEY
+      ? sampledPoints.map((p) => {
           // ~1.8km x 1.8km box = ~3.24M sq.m (Safe under 4M limit)
           const b = {
             minLat: p.lat - 0.008,
             maxLat: p.lat + 0.008,
             minLon: p.lon - 0.01,
-            maxLon: p.lon + 0.01
+            maxLon: p.lon + 0.01,
           };
-          return fetch(`https://opencellid.org/cell/getInArea?key=${process.env.OPENCELLID_API_KEY}&BBOX=${b.minLat.toFixed(4)},${b.minLon.toFixed(4)},${b.maxLat.toFixed(4)},${b.maxLon.toFixed(4)}&format=json`)
-            .then(r => r.ok ? r.json() : { cells: [] })
+          return fetch(
+            `https://opencellid.org/cell/getInArea?key=${process.env.OPENCELLID_API_KEY}&BBOX=${b.minLat.toFixed(4)},${b.minLon.toFixed(4)},${b.maxLat.toFixed(4)},${b.maxLon.toFixed(4)}&format=json`,
+          )
+            .then((r) => (r.ok ? r.json() : { cells: [] }))
             .catch(() => ({ cells: [] }));
         })
       : [];
@@ -67,16 +69,20 @@ export async function POST(request: NextRequest) {
       fetch(
         `https://api.open-meteo.com/v1/elevation?latitude=${points.map((p) => p.lat).join(',')}&longitude=${points.map((p) => p.lon).join(',')}`,
       ),
-      ...cellTowersPromises
+      ...cellTowersPromises,
     ]);
 
     const osmData = osmResponse.ok ? await osmResponse.json() : { elements: [] };
-    const elevationResponseJson = elevationResponse.ok ? await elevationResponse.json() : { elevation: [] };
-    
+    const elevationResponseJson = elevationResponse.ok
+      ? await elevationResponse.json()
+      : { elevation: [] };
+
     // Merge all cell towers found across all sampled boxes
     const allCellTowers = cellResponses.flatMap((r: any) => r.cells || []);
     // Remove duplicates by tower ID if available, otherwise by location
-    const cellTowers = Array.from(new Map(allCellTowers.map((c: any) => [`${c.lat},${c.lon}`, c])).values());
+    const cellTowers = Array.from(
+      new Map(allCellTowers.map((c: any) => [`${c.lat},${c.lon}`, c])).values(),
+    );
 
     const elements = osmData.elements || [];
     const elevations = elevationResponseJson.elevation || [];
@@ -86,11 +92,15 @@ export async function POST(request: NextRequest) {
 
     // Pre-filter elements by category to speed up the loop
     const highwayElements = elements.filter((el: any) => el.tags?.highway);
-    const escapeElements = elements.filter((el: any) => 
-      el.tags?.place || (el.tags?.highway && ["primary", "secondary"].includes(el.tags.highway))
+    const escapeElements = elements.filter(
+      (el: any) =>
+        el.tags?.place || (el.tags?.highway && ['primary', 'secondary'].includes(el.tags.highway)),
     );
-    const waterElements = elements.filter((el: any) => 
-      el.tags?.amenity === 'drinking_water' || el.tags?.natural === 'spring' || el.tags?.man_made === 'water_tap'
+    const waterElements = elements.filter(
+      (el: any) =>
+        el.tags?.amenity === 'drinking_water' ||
+        el.tags?.natural === 'spring' ||
+        el.tags?.man_made === 'water_tap',
     );
 
     const pathData = points.map((p, idx) => {
@@ -133,7 +143,7 @@ export async function POST(request: NextRequest) {
 
       const tags = closestWay?.tags || {};
       const escapeTags = closestEscape?.tags || {};
-      
+
       // 4. Extract water sources (within 1.5km)
       const waterSources: any[] = waterElements
         .map((el: any) => {
@@ -148,7 +158,7 @@ export async function POST(request: NextRequest) {
             name: el.tags?.name || (isNatural ? 'Manantial' : 'Fuente'),
             type: isNatural ? 'natural' : 'urban',
             distanceFromRoute: Math.round(dist * 10) / 10,
-            reliability: calculateWaterReliability(isNatural ? 'natural' : 'urban', new Date())
+            reliability: calculateWaterReliability(isNatural ? 'natural' : 'urban', new Date()),
           };
         })
         .filter(Boolean);
@@ -173,13 +183,16 @@ export async function POST(request: NextRequest) {
         distanceFromStart: (p as any).distanceFromStart,
         mobileCoverage: coverage,
         waterSources,
-        escapePoint: closestEscape ? {
-          lat: closestEscape.center?.lat || closestEscape.lat,
-          lon: closestEscape.center?.lon || closestEscape.lon,
-          name: escapeTags.name || (escapeTags.highway ? 'Carretera principal' : 'Núcleo urbano'),
-          type: escapeTags.place ? 'town' : 'road',
-          distanceFromRoute: Math.round(minEscapeDist * 10) / 10
-        } : undefined
+        escapePoint: closestEscape
+          ? {
+              lat: closestEscape.center?.lat || closestEscape.lat,
+              lon: closestEscape.center?.lon || closestEscape.lon,
+              name:
+                escapeTags.name || (escapeTags.highway ? 'Carretera principal' : 'Núcleo urbano'),
+              type: escapeTags.place ? 'town' : 'road',
+              distanceFromRoute: Math.round(minEscapeDist * 10) / 10,
+            }
+          : undefined,
       };
     });
 

@@ -106,7 +106,7 @@ export function ActivityConfigSection({
         <Button
           onClick={onAnalyze}
           disabled={!hasGpxData || isLoading}
-          className="bg-primary text-primary-foreground  hover:bg-primary/90 w-full font-semibold shadow-lg"
+          className="bg-primary text-primary-foreground hover:bg-primary/90 w-full font-semibold shadow-lg"
           size="lg"
         >
           {isLoading ? (

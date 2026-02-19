@@ -1,5 +1,5 @@
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -16,10 +16,10 @@ export function calculateIBP(
 
   if (activityType === 'cycling') {
     // Simplified formula for cycling
-    ibp = (elevationGainM * 100) / distanceM * 2 + elevationGainM / 40 + distanceKm / 2;
+    ibp = ((elevationGainM * 100) / distanceM) * 2 + elevationGainM / 40 + distanceKm / 2;
   } else {
     // Simplified formula for walking/hiking
-    ibp = (elevationGainM * 100) / distanceM * 1.5 + elevationGainM / 50 + distanceKm / 2;
+    ibp = ((elevationGainM * 100) / distanceM) * 1.5 + elevationGainM / 50 + distanceKm / 2;
   }
 
   return Math.round(ibp);
@@ -53,7 +53,7 @@ const RAD = PI / 180;
 export function getSunPosition(date: Date, lat: number, lon: number) {
   const lw = RAD * -lon;
   const phi = RAD * lat;
-  const d = (date.getTime() / 86400000) - (new Date('2000-01-01T12:00:00Z').getTime() / 86400000);
+  const d = date.getTime() / 86400000 - new Date('2000-01-01T12:00:00Z').getTime() / 86400000;
 
   const n = d;
   const L = RAD * (280.46 + 0.9856474 * n);
@@ -156,7 +156,7 @@ export function calculateSmartSpeed(
     // Cycling: Simplified speed reduction.
     // Every 100m of gain in 10km (1% grade) reduces speed by ~10%
     const grade = (elevationGainM / (distanceKm * 1000)) * 100;
-    const speedFactor = Math.max(0.4, 1 - (grade * 0.05));
+    const speedFactor = Math.max(0.4, 1 - grade * 0.05);
     return baseSpeed * speedFactor;
   }
 }
@@ -176,7 +176,7 @@ export function calculatePhysiologicalNeeds(
   // 1. Calories (Metabolic Equivalent Task approximation)
   // Cycling ~ 8-12 METs, Hiking ~ 6-9 METs
   const baseMet = isHiking ? 7 : 10;
-  const effortCorrection = 1 + (elevationGainM / 1000); // More gain = more effort
+  const effortCorrection = 1 + elevationGainM / 1000; // More gain = more effort
   const calories = Math.round(baseMet * 75 * durationHours * effortCorrection); // 75kg avg human
 
   // 2. Hydration (ml)
@@ -243,7 +243,7 @@ export function analyzeRouteSegments(weatherPoints: any[]): RouteSegment[] {
     const slope = distKm > 0 ? (eleDiff / (distKm * 1000)) * 100 : 0;
 
     let type: RouteSegment['type'] | null = null;
-    
+
     // Garmin-style thresholds:
     // Climb: Slope > 3%
     // Descent: Slope < -5%
@@ -267,7 +267,7 @@ export function analyzeRouteSegments(weatherPoints: any[]): RouteSegment[] {
           points: [prev, wp],
           maxSlope: Math.abs(slope),
           avgTemp: wp.weather.temperature,
-          endDist: wp.point.distanceFromStart
+          endDist: wp.point.distanceFromStart,
         };
       } else {
         currentSegment.points.push(wp);
@@ -295,7 +295,7 @@ export function analyzeRouteSegments(weatherPoints: any[]): RouteSegment[] {
     if (seg.type === 'steepClimb') {
       // Garmin ClimbPro thresholds: length > 500m, avg slope > 3%, score > 3500
       if (lengthM < 500 || absAvgSlope < 3 || score < 3500) return;
-      
+
       const cat = getClimbCategory(score);
       seg.climbCategory = cat;
       seg.avgSlope = absAvgSlope;
@@ -315,7 +315,7 @@ export function analyzeRouteSegments(weatherPoints: any[]): RouteSegment[] {
     } else if (seg.type === 'steepDescent') {
       // Technical/Steep descent: length > 300m and avg slope < -5%
       if (lengthM < 300 || absAvgSlope < 5) return;
-      
+
       seg.avgSlope = absAvgSlope;
       seg.lengthM = lengthM;
       seg.score = score;
@@ -403,7 +403,10 @@ export function calculateElevationGainLoss(elevationPoints: { elevation: number 
     }
   }
 
-  return { totalElevationGain: Math.round(totalElevationGain), totalElevationLoss: Math.round(totalElevationLoss) };
+  return {
+    totalElevationGain: Math.round(totalElevationGain),
+    totalElevationLoss: Math.round(totalElevationLoss),
+  };
 }
 
 export interface WindowScoreResult {
@@ -422,15 +425,15 @@ export function calculateWindowScore(
     weather: any;
     bearing: number;
   }>,
-  activityType: 'cycling' | 'walking'
+  activityType: 'cycling' | 'walking',
 ): { score: number; reasons: string[] } {
   let score = 100;
   const reasons: string[] = [];
-  
-  const maxPrecipProb = Math.max(...scenarios.map(s => s.weather.precipitationProbability));
-  const maxWind = Math.max(...scenarios.map(s => s.weather.windSpeed));
+
+  const maxPrecipProb = Math.max(...scenarios.map((s) => s.weather.precipitationProbability));
+  const maxWind = Math.max(...scenarios.map((s) => s.weather.windSpeed));
   const avgTemp = scenarios.reduce((sum, s) => sum + s.weather.temperature, 0) / scenarios.length;
-  const isNight = scenarios.some(s => s.weather.isDay === 0);
+  const isNight = scenarios.some((s) => s.weather.isDay === 0);
 
   // 1. Precipitation
   if (maxPrecipProb > 50) {
@@ -481,7 +484,7 @@ export function calculateWindowScore(
       const windTo = (s.weather.windDirection + 180) % 360;
       let angleDiff = Math.abs(windTo - s.bearing);
       if (angleDiff > 180) angleDiff = 360 - angleDiff;
-      
+
       if (angleDiff < 45) tailwindPoints++;
       if (angleDiff > 135) headwindPoints++;
     });
@@ -495,8 +498,8 @@ export function calculateWindowScore(
     }
   }
 
-  return { 
-    score: Math.max(0, Math.min(100, Math.round(score))), 
-    reasons 
+  return {
+    score: Math.max(0, Math.min(100, Math.round(score))),
+    reasons,
   };
 }

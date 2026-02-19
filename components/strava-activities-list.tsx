@@ -53,7 +53,7 @@ export function StravaActivitiesList({ onLoadGPX }: StravaActivitiesListProps) {
           ) : (
             <Route className="h-4 w-4 text-[#FC6719]" />
           )}
-          <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+          <h3 className="text-muted-foreground text-xs font-bold tracking-wider uppercase">
             {type === 'activities' ? t('stravaTitle') : t('stravaRoutes')}
           </h3>
         </div>
@@ -75,10 +75,10 @@ export function StravaActivitiesList({ onLoadGPX }: StravaActivitiesListProps) {
 
       {isLoading ? (
         <div className="flex items-center justify-center p-8">
-          <Loader2 className="h-6 w-6 animate-spin text-primary" />
+          <Loader2 className="text-primary h-6 w-6 animate-spin" />
         </div>
       ) : error || !Array.isArray(data) ? (
-        <div className="p-4 text-center text-xs text-muted-foreground">{t('noData')}</div>
+        <div className="text-muted-foreground p-4 text-center text-xs">{t('noData')}</div>
       ) : (
         <ScrollArea className="flex-1 pr-4">
           <div className="flex flex-col gap-2">
@@ -86,10 +86,10 @@ export function StravaActivitiesList({ onLoadGPX }: StravaActivitiesListProps) {
               <button
                 key={item.id}
                 onClick={() => handleSelect(item)}
-                className="group flex flex-col gap-2 rounded-lg border border-border bg-[#FC6719]/5 p-3 text-left transition-all hover:border-[#FC6719]/30 hover:bg-[#FC6719]/10"
+                className="group border-border flex flex-col gap-2 rounded-lg border bg-[#FC6719]/5 p-3 text-left transition-all hover:border-[#FC6719]/30 hover:bg-[#FC6719]/10"
               >
-                <p className="line-clamp-1 text-sm font-semibold text-foreground">{item.name}</p>
-                <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-muted-foreground">
+                <p className="text-foreground line-clamp-1 text-sm font-semibold">{item.name}</p>
+                <div className="text-muted-foreground mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[10px]">
                   <span className="flex items-center gap-1">
                     <MapPin className="h-3 w-3" />
                     {(item.distance / 1000).toFixed(1)} km

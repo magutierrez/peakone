@@ -26,7 +26,9 @@ export function UserMenu({ userName, userEmail, userImage }: UserMenuProps) {
   const t = useTranslations('Auth');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
-  const userInitial = userName ? userName.charAt(0).toUpperCase() : userEmail?.charAt(0).toUpperCase() || 'U';
+  const userInitial = userName
+    ? userName.charAt(0).toUpperCase()
+    : userEmail?.charAt(0).toUpperCase() || 'U';
 
   return (
     <>

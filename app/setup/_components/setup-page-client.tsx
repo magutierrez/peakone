@@ -111,18 +111,24 @@ export function SetupPageClient({ session }: SetupPageClientProps) {
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
-      <div className="absolute right-4 top-4">
+    <div className="bg-background flex min-h-screen flex-col items-center justify-center p-4">
+      <div className="absolute top-4 right-4">
         <LocaleSwitcher />
       </div>
 
-      <div className="w-full max-w-2xl rounded-xl border border-border bg-card p-6 shadow-xl">
-        <h1 className="mb-6 text-center text-2xl font-bold text-foreground">{t('title')}</h1>
+      <div className="border-border bg-card w-full max-w-2xl rounded-xl border p-6 shadow-xl">
+        <h1 className="text-foreground mb-6 text-center text-2xl font-bold">{t('title')}</h1>
 
         <div className="mb-8 flex flex-col gap-6">
           <div className="flex flex-col gap-3">
-            <Label className="text-sm font-semibold text-muted-foreground">{t('selectRouteSource')}</Label>
-            <GPXUpload onFileLoaded={handleGPXLoaded} fileName={selectedGpxFileName} onClear={handleClearGPX} />
+            <Label className="text-muted-foreground text-sm font-semibold">
+              {t('selectRouteSource')}
+            </Label>
+            <GPXUpload
+              onFileLoaded={handleGPXLoaded}
+              fileName={selectedGpxFileName}
+              onClear={handleClearGPX}
+            />
           </div>
 
           <div className="flex flex-col gap-3">
@@ -131,9 +137,11 @@ export function SetupPageClient({ session }: SetupPageClientProps) {
               <StravaActivitiesList onLoadGPX={handleStravaActivityLoaded} />
             )}
           </div>
-          
+
           <div className="flex flex-col gap-3">
-            <Label className="text-sm font-semibold text-muted-foreground">{t('savedRoutes')}</Label>
+            <Label className="text-muted-foreground text-sm font-semibold">
+              {t('savedRoutes')}
+            </Label>
             <SavedRoutesList onLoadRoute={handleGPXLoaded} />
           </div>
 
@@ -141,17 +149,17 @@ export function SetupPageClient({ session }: SetupPageClientProps) {
             <>
               <div className="grid grid-cols-1 gap-4">
                 <div className="flex flex-col gap-3">
-                  <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  <Label className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
                     {tRouteConfig('activity')}
                   </Label>
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       onClick={() => setActivityType('cycling')}
                       className={cn(
-                        "flex items-center justify-center gap-2 rounded-lg border p-3 text-sm font-medium transition-all",
+                        'flex items-center justify-center gap-2 rounded-lg border p-3 text-sm font-medium transition-all',
                         activityType === 'cycling'
                           ? 'border-primary bg-primary/10 text-primary'
-                          : 'border-border bg-secondary text-muted-foreground hover:border-primary/30'
+                          : 'border-border bg-secondary text-muted-foreground hover:border-primary/30',
                       )}
                     >
                       <Bike className="h-4 w-4" />
@@ -160,10 +168,10 @@ export function SetupPageClient({ session }: SetupPageClientProps) {
                     <button
                       onClick={() => setActivityType('walking')}
                       className={cn(
-                        "flex items-center justify-center gap-2 rounded-lg border p-3 text-sm font-medium transition-all",
+                        'flex items-center justify-center gap-2 rounded-lg border p-3 text-sm font-medium transition-all',
                         activityType === 'walking'
                           ? 'border-primary bg-primary/10 text-primary'
-                          : 'border-border bg-secondary text-muted-foreground hover:border-primary/30'
+                          : 'border-border bg-secondary text-muted-foreground hover:border-primary/30',
                       )}
                     >
                       <Footprints className="h-4 w-4" />
@@ -177,12 +185,16 @@ export function SetupPageClient({ session }: SetupPageClientProps) {
         </div>
 
         {error && (
-            <div className="mt-auto shrink-0 rounded-lg border border-destructive/30 bg-destructive/10 p-3 mb-6">
-              <p className="text-xs text-destructive">{error}</p>
-            </div>
-          )}
+          <div className="border-destructive/30 bg-destructive/10 mt-auto mb-6 shrink-0 rounded-lg border p-3">
+            <p className="text-destructive text-xs">{error}</p>
+          </div>
+        )}
 
-        <Button onClick={handleAnalyzeRoute} disabled={!selectedGpxData} className="w-full text-lg h-12 gap-2">
+        <Button
+          onClick={handleAnalyzeRoute}
+          disabled={!selectedGpxData}
+          className="h-12 w-full gap-2 text-lg"
+        >
           {t('analyzeRoute')} <ArrowRight className="h-5 w-5" />
         </Button>
       </div>

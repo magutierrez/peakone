@@ -64,8 +64,9 @@ export async function saveRouteToDb(
     routeId = crypto.randomUUID();
   } catch (e) {
     // Fallback if crypto.randomUUID is not available (e.g., in some non-secure contexts)
-    routeId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-      const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+    routeId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+      const r = (Math.random() * 16) | 0,
+        v = c === 'x' ? r : (r & 0x3) | 0x8;
       return v.toString(16);
     });
   }
@@ -73,12 +74,21 @@ export async function saveRouteToDb(
   if (!routeId) {
     return null;
   }
-  
+
   try {
     await db.query(
       `INSERT INTO saved_routes (id, user_email, name, gpx_content, activity_type, distance, elevation_gain, elevation_loss)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-      [routeId, userEmail, name, rawGpxContent, activityType, distance, elevationGain, elevationLoss],
+      [
+        routeId,
+        userEmail,
+        name,
+        rawGpxContent,
+        activityType,
+        distance,
+        elevationGain,
+        elevationLoss,
+      ],
     );
     return routeId;
   } catch (error) {
@@ -89,9 +99,9 @@ export async function saveRouteToDb(
 export async function getRouteFromDb(
   routeId: string,
   userEmail: string,
-): Promise<{ 
-  name: string; 
-  gpx_content: string; 
+): Promise<{
+  name: string;
+  gpx_content: string;
   activity_type: 'cycling' | 'walking';
   distance: number;
   elevation_gain: number;

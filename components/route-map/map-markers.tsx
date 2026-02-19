@@ -35,20 +35,28 @@ export function MapMarkers({
   const startPoint = points[0];
   const endPoint = points[points.length - 1];
 
-  const currentTrackPoint = exactSelectedPoint || (fullSelectedPointIndex !== null ? points[fullSelectedPointIndex] : null);
+  const currentTrackPoint =
+    exactSelectedPoint || (fullSelectedPointIndex !== null ? points[fullSelectedPointIndex] : null);
 
   // Unique escape points to avoid clutter
-  const escapePoints = activityType === 'walking' 
-    ? Array.from(new Set(weatherPoints?.map(wp => wp.escapePoint?.name).filter(Boolean)))
-        .map(name => weatherPoints?.find(wp => wp.escapePoint?.name === name)?.escapePoint)
-    : [];
+  const escapePoints =
+    activityType === 'walking'
+      ? Array.from(new Set(weatherPoints?.map((wp) => wp.escapePoint?.name).filter(Boolean))).map(
+          (name) => weatherPoints?.find((wp) => wp.escapePoint?.name === name)?.escapePoint,
+        )
+      : [];
 
   // Unique water sources
-  const waterSources = (showWaterSources && weatherPoints)
-    ? Array.from(new Map(
-        weatherPoints.flatMap(wp => wp.waterSources || []).map(ws => [`${ws.lat},${ws.lon}`, ws])
-      ).values())
-    : [];
+  const waterSources =
+    showWaterSources && weatherPoints
+      ? Array.from(
+          new Map(
+            weatherPoints
+              .flatMap((wp) => wp.waterSources || [])
+              .map((ws) => [`${ws.lat},${ws.lon}`, ws]),
+          ).values(),
+        )
+      : [];
 
   return (
     <>
@@ -56,29 +64,38 @@ export function MapMarkers({
       {waterSources.map((ws, i) => (
         <Marker key={`water-${i}`} longitude={ws.lon} latitude={ws.lat} anchor="bottom">
           <div className="group flex flex-col items-center">
-            <div className="invisible group-hover:visible absolute -top-8 rounded-lg border border-border bg-card px-2 py-1 text-[9px] font-bold shadow-sm whitespace-nowrap z-50">
+            <div className="border-border bg-card invisible absolute -top-8 z-50 rounded-lg border px-2 py-1 text-[9px] font-bold whitespace-nowrap shadow-sm group-hover:visible">
               {ws.name} ({t(`reliability.${ws.reliability}` as any)})
             </div>
-            <div className={`p-1 rounded-full border-2 border-white shadow-md ${
-              ws.reliability === 'high' ? 'bg-emerald-500' : (ws.reliability === 'medium' ? 'bg-amber-500' : 'bg-red-500')
-            }`}>
-              <Droplets className="h-3 w-3 text-white fill-white/20" />
+            <div
+              className={`rounded-full border-2 border-white p-1 shadow-md ${
+                ws.reliability === 'high'
+                  ? 'bg-emerald-500'
+                  : ws.reliability === 'medium'
+                    ? 'bg-amber-500'
+                    : 'bg-red-500'
+              }`}
+            >
+              <Droplets className="h-3 w-3 fill-white/20 text-white" />
             </div>
           </div>
         </Marker>
       ))}
 
       {/* Escape Points */}
-      {escapePoints.map((ep, i) => ep && (
-        <Marker key={`escape-${i}`} longitude={ep.lon} latitude={ep.lat} anchor="bottom">
-          <div className="flex flex-col items-center">
-            <div className="rounded-lg border border-border bg-card px-2 py-1 text-[9px] font-bold shadow-sm whitespace-nowrap">
-              {ep.name}
-            </div>
-            <MapPin className="h-5 w-5 text-indigo-500 fill-indigo-500/20" />
-          </div>
-        </Marker>
-      ))}
+      {escapePoints.map(
+        (ep, i) =>
+          ep && (
+            <Marker key={`escape-${i}`} longitude={ep.lon} latitude={ep.lat} anchor="bottom">
+              <div className="flex flex-col items-center">
+                <div className="border-border bg-card rounded-lg border px-2 py-1 text-[9px] font-bold whitespace-nowrap shadow-sm">
+                  {ep.name}
+                </div>
+                <MapPin className="h-5 w-5 fill-indigo-500/20 text-indigo-500" />
+              </div>
+            </Marker>
+          ),
+      )}
 
       {startPoint && (
         <Marker
@@ -102,13 +119,13 @@ export function MapMarkers({
 
       {/* Dynamic Cursor Point (Komoot style) */}
       {currentTrackPoint && (
-        <Marker 
-          longitude={currentTrackPoint.lon} 
-          latitude={currentTrackPoint.lat} 
+        <Marker
+          longitude={currentTrackPoint.lon}
+          latitude={currentTrackPoint.lat}
           anchor="center"
           z-index={100}
         >
-          <div className="h-4 w-4 bg-white border-2 border-blue-500 rounded-full shadow-md animate-in fade-in zoom-in duration-150" />
+          <div className="animate-in fade-in zoom-in h-4 w-4 rounded-full border-2 border-blue-500 bg-white shadow-md duration-150" />
         </Marker>
       )}
 

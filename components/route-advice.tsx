@@ -1,17 +1,17 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { 
+import {
   Wind,
-  CloudRain, 
-  ThermometerSun, 
-  ThermometerSnowflake, 
-  Moon, 
+  CloudRain,
+  ThermometerSun,
+  ThermometerSnowflake,
+  Moon,
   ShieldCheck,
   Zap,
   Droplets,
   Eye,
-  EyeOff
+  EyeOff,
 } from 'lucide-react';
 import type { RouteWeatherPoint } from '@/lib/types';
 import { Card, CardContent } from '@/components/ui/card';
@@ -25,11 +25,11 @@ interface RouteAdviceProps {
   onToggleWaterSources?: () => void;
 }
 
-export function RouteAdvice({ 
-  weatherPoints, 
+export function RouteAdvice({
+  weatherPoints,
   activityType,
   showWaterSources,
-  onToggleWaterSources
+  onToggleWaterSources,
 }: RouteAdviceProps) {
   const t = useTranslations('Advice');
   const tp = useTranslations('physiology');
@@ -40,25 +40,38 @@ export function RouteAdvice({
   // Analysis
   const firstPoint = weatherPoints[0];
   const lastPoint = weatherPoints[weatherPoints.length - 1];
-  const durationHours = (new Date(lastPoint.weather.time).getTime() - new Date(firstPoint.weather.time).getTime()) / 3600000;
+  const durationHours =
+    (new Date(lastPoint.weather.time).getTime() - new Date(firstPoint.weather.time).getTime()) /
+    3600000;
   const distance = lastPoint.point.distanceFromStart;
   const elevationGain = weatherPoints.reduce((acc, curr, i) => {
     if (i === 0) return 0;
-    const diff = (curr.point.ele || 0) - (weatherPoints[i-1].point.ele || 0);
+    const diff = (curr.point.ele || 0) - (weatherPoints[i - 1].point.ele || 0);
     return acc + Math.max(0, diff);
   }, 0);
-  const avgTemp = weatherPoints.reduce((acc, curr) => acc + curr.weather.temperature, 0) / weatherPoints.length;
+  const avgTemp =
+    weatherPoints.reduce((acc, curr) => acc + curr.weather.temperature, 0) / weatherPoints.length;
 
-  const needs = calculatePhysiologicalNeeds(durationHours, distance, elevationGain, avgTemp, activityType);
+  const needs = calculatePhysiologicalNeeds(
+    durationHours,
+    distance,
+    elevationGain,
+    avgTemp,
+    activityType,
+  );
 
-  const hasRain = weatherPoints.some(wp => wp.weather.precipitation > 0.5);
-  const hasStrongWind = weatherPoints.some(wp => wp.weather.windSpeed > 30 || wp.weather.windGusts > 50);
-  const hasHeat = weatherPoints.some(wp => wp.weather.temperature > 28 || wp.solarIntensity === 'intense');
-  const hasCold = weatherPoints.some(wp => wp.weather.temperature < 8);
-  const hasNight = weatherPoints.some(wp => wp.solarIntensity === 'night');
+  const hasRain = weatherPoints.some((wp) => wp.weather.precipitation > 0.5);
+  const hasStrongWind = weatherPoints.some(
+    (wp) => wp.weather.windSpeed > 30 || wp.weather.windGusts > 50,
+  );
+  const hasHeat = weatherPoints.some(
+    (wp) => wp.weather.temperature > 28 || wp.solarIntensity === 'intense',
+  );
+  const hasCold = weatherPoints.some((wp) => wp.weather.temperature < 8);
+  const hasNight = weatherPoints.some((wp) => wp.solarIntensity === 'night');
 
-  const allWaterSources = weatherPoints.flatMap(wp => wp.waterSources || []);
-  const hasLowReliabilityWater = allWaterSources.some(ws => ws.reliability === 'low');
+  const allWaterSources = weatherPoints.flatMap((wp) => wp.waterSources || []);
+  const hasLowReliabilityWater = allWaterSources.some((ws) => ws.reliability === 'low');
   const hasWater = allWaterSources.length > 0;
 
   const advices = [
@@ -68,13 +81,15 @@ export function RouteAdvice({
       text: (
         <div className="flex flex-col gap-3">
           <p>{hasLowReliabilityWater ? t('waterWarning') : t('waterOk')}</p>
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             onClick={onToggleWaterSources}
             className={cn(
-              "w-fit h-7 gap-2 text-[10px] uppercase font-bold transition-all",
-              showWaterSources ? "bg-cyan-500 text-white border-cyan-600 hover:bg-cyan-600" : "bg-card border-border hover:bg-muted"
+              'h-7 w-fit gap-2 text-[10px] font-bold uppercase transition-all',
+              showWaterSources
+                ? 'border-cyan-600 bg-cyan-500 text-white hover:bg-cyan-600'
+                : 'bg-card border-border hover:bg-muted',
             )}
           >
             {showWaterSources ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
@@ -82,63 +97,64 @@ export function RouteAdvice({
           </Button>
         </div>
       ),
-      category: t('water')
+      category: t('water'),
     },
     {
       condition: hasRain,
       icon: <CloudRain className="h-5 w-5 text-blue-500" />,
       text: t(`${typeKey}.rain`),
-      category: t('weather')
+      category: t('weather'),
     },
     {
       condition: hasStrongWind,
       icon: <Wind className="h-5 w-5 text-slate-500" />,
       text: t(`${typeKey}.wind`),
-      category: t('weather')
+      category: t('weather'),
     },
     {
       condition: hasHeat,
       icon: <ThermometerSun className="h-5 w-5 text-orange-500" />,
       text: t(`${typeKey}.heat`),
-      category: t('nutrition')
+      category: t('nutrition'),
     },
     {
       condition: hasCold,
       icon: <ThermometerSnowflake className="h-5 w-5 text-cyan-500" />,
       text: t(`${typeKey}.cold`),
-      category: t('gear')
+      category: t('gear'),
     },
     {
       condition: hasNight,
       icon: <Moon className="h-5 w-5 text-indigo-500" />,
       text: t(`${typeKey}.night`),
-      category: t('safety')
+      category: t('safety'),
     },
     {
       condition: true, // General advice
-      icon: <ShieldCheck className="h-5 w-5 text-primary" />,
+      icon: <ShieldCheck className="text-primary h-5 w-5" />,
       text: t(`${typeKey}.general`),
-      category: t('safety')
-    }
-  ].filter(a => a.condition);
+      category: t('safety'),
+    },
+  ].filter((a) => a.condition);
 
   return (
     <div className="flex flex-col gap-6">
       {/* Physiology Summary */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <Card className="border-primary/20 bg-primary/5">
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="bg-primary/10 p-2 rounded-full">
-              <Zap className="h-5 w-5 text-primary" />
+          <CardContent className="flex items-center gap-4 p-4">
+            <div className="bg-primary/10 rounded-full p-2">
+              <Zap className="text-primary h-5 w-5" />
             </div>
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              <p className="text-muted-foreground text-[10px] font-bold tracking-wider uppercase">
                 {tp('calories')} ({tp('total')})
               </p>
-              <p className="text-xl font-mono font-bold text-foreground">
-                {needs.calories} <span className="text-xs font-normal text-muted-foreground">kcal</span>
+              <p className="text-foreground font-mono text-xl font-bold">
+                {needs.calories}{' '}
+                <span className="text-muted-foreground text-xs font-normal">kcal</span>
               </p>
-              <p className="text-[10px] text-muted-foreground">
+              <p className="text-muted-foreground text-[10px]">
                 ~{Math.round(needs.calories / durationHours)} kcal {tp('perHour')}
               </p>
             </div>
@@ -146,18 +162,19 @@ export function RouteAdvice({
         </Card>
 
         <Card className="border-accent/20 bg-accent/5">
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="bg-accent/10 p-2 rounded-full">
-              <Droplets className="h-5 w-5 text-accent" />
+          <CardContent className="flex items-center gap-4 p-4">
+            <div className="bg-accent/10 rounded-full p-2">
+              <Droplets className="text-accent h-5 w-5" />
             </div>
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              <p className="text-muted-foreground text-[10px] font-bold tracking-wider uppercase">
                 {tp('hydration')} ({tp('total')})
               </p>
-              <p className="text-xl font-mono font-bold text-foreground">
-                {needs.waterLiters} <span className="text-xs font-normal text-muted-foreground">L</span>
+              <p className="text-foreground font-mono text-xl font-bold">
+                {needs.waterLiters}{' '}
+                <span className="text-muted-foreground text-xs font-normal">L</span>
               </p>
-              <p className="text-[10px] text-muted-foreground">
+              <p className="text-muted-foreground text-[10px]">
                 ~{Math.round((needs.waterLiters * 1000) / durationHours)} ml {tp('perHour')}
               </p>
             </div>
@@ -165,20 +182,16 @@ export function RouteAdvice({
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
         {advices.map((advice, i) => (
           <Card key={i} className="border-border/50 bg-secondary/20 overflow-hidden">
-            <CardContent className="p-4 flex gap-4">
-              <div className="flex-shrink-0 mt-1">
-                {advice.icon}
-              </div>
+            <CardContent className="flex gap-4 p-4">
+              <div className="mt-1 flex-shrink-0">{advice.icon}</div>
               <div className="flex flex-col gap-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                <span className="text-muted-foreground text-[10px] font-bold tracking-wider uppercase">
                   {advice.category}
                 </span>
-                <div className="text-sm text-foreground leading-relaxed">
-                  {advice.text}
-                </div>
+                <div className="text-foreground text-sm leading-relaxed">{advice.text}</div>
               </div>
             </CardContent>
           </Card>

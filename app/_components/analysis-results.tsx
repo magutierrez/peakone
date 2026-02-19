@@ -115,13 +115,11 @@ export function AnalysisResults({
 
         <TabsContent value="weather" className="mt-6 flex flex-col gap-6">
           <WeatherSummary weatherPoints={weatherPoints} />
-
           <WeatherList
             weatherPoints={weatherPoints}
             selectedIndex={selectedPointIndex}
             onSelect={setSelectedPointIndex}
           />
-
           {selectedPointIndex !== null &&
             (() => {
               const selectedWeatherPoint = weatherPoints[selectedPointIndex];
@@ -135,14 +133,14 @@ export function AnalysisResults({
               }
               return null;
             })()}
-
-                    <BestDepartureFinder 
-                      windows={bestWindows} 
-                      isLoading={isFindingWindow} 
-                      onFind={onFindBestWindow}
-                      onSelect={onSelectBestWindow}
-                      onAnalyze={onAnalyzeBestWindow}
-                    />        </TabsContent>
+          <BestDepartureFinder
+            windows={bestWindows}
+            isLoading={isFindingWindow}
+            onFind={onFindBestWindow}
+            onSelect={onSelectBestWindow}
+            onAnalyze={onAnalyzeBestWindow}
+          />{' '}
+        </TabsContent>
 
         <TabsContent value="advice" className="mt-6 flex flex-col gap-6">
           <RouteAdvice
@@ -151,8 +149,6 @@ export function AnalysisResults({
             showWaterSources={showWaterSources}
             onToggleWaterSources={onToggleWaterSources}
           />
-
-
         </TabsContent>
 
         <TabsContent value="hazards" className="mt-6 flex flex-col gap-6">

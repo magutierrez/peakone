@@ -143,39 +143,45 @@ export default function HomePageClient({ session }: HomePageClientProps) {
     handleReverseRoute();
   }, [handleReverseRoute]);
 
-  const handleSelectBestWindow = useCallback((isoTime: string) => {
-    const date = new Date(isoTime);
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
+  const handleSelectBestWindow = useCallback(
+    (isoTime: string) => {
+      const date = new Date(isoTime);
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
 
-    setConfig({
-      ...config,
-      date: `${year}-${month}-${day}`,
-      time: `${hours}:${minutes}`
-    });
-  }, [config]);
+      setConfig({
+        ...config,
+        date: `${year}-${month}-${day}`,
+        time: `${hours}:${minutes}`,
+      });
+    },
+    [config],
+  );
 
-  const handleSelectAndAnalyze = useCallback((isoTime: string) => {
-    const date = new Date(isoTime);
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
+  const handleSelectAndAnalyze = useCallback(
+    (isoTime: string) => {
+      const date = new Date(isoTime);
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
 
-    const newConfig: UseRouteAnalysisConfig = {
-      ...config,
-      date: `${year}-${month}-${day}`,
-      time: `${hours}:${minutes}`,
-      activityType
-    };
-    
-    setConfig(newConfig);
-    handleAnalyze(newConfig); 
-  }, [config, handleAnalyze, activityType]);
+      const newConfig: UseRouteAnalysisConfig = {
+        ...config,
+        date: `${year}-${month}-${day}`,
+        time: `${hours}:${minutes}`,
+        activityType,
+      };
+
+      setConfig(newConfig);
+      handleAnalyze(newConfig);
+    },
+    [config, handleAnalyze, activityType],
+  );
 
   const sidebarContent = (
     <Sidebar
@@ -238,7 +244,7 @@ export default function HomePageClient({ session }: HomePageClientProps) {
             ) : (
               <div className="flex flex-col gap-10">
                 <Tabs defaultValue="elevation" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2 bg-secondary/50 mb-4">
+                  <TabsList className="bg-secondary/50 mb-4 grid w-full grid-cols-2">
                     <TabsTrigger value="elevation">{twt('elevationTitle')}</TabsTrigger>
                     <TabsTrigger value="terrain">{twt('segmentsTitle')}</TabsTrigger>
                   </TabsList>

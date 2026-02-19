@@ -50,17 +50,20 @@ export function RouteConfigPanel({
     <div className="flex flex-col gap-5">
       {/* GPX Upload */}
       <div className="mb-2 flex items-center justify-between">
-        <Label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        <Label className="text-muted-foreground block text-xs font-semibold tracking-wider uppercase">
           {t('gpxFile')}
         </Label>
         {gpxData && (
           <Button
             variant="ghost"
             size="sm"
-            className="h-7 gap-1.5 px-2 text-[10px] text-muted-foreground hover:text-primary"
+            className="text-muted-foreground hover:text-primary h-7 gap-1.5 px-2 text-[10px]"
             onClick={onReverseRoute}
           >
-            <span className="rotate-90"><RotateCcw /></span> {t('reverseRoute')}
+            <span className="rotate-90">
+              <RotateCcw />
+            </span>{' '}
+            {t('reverseRoute')}
           </Button>
         )}
       </div>
@@ -72,48 +75,60 @@ export function RouteConfigPanel({
       {gpxData && (
         <div className="flex flex-col gap-3">
           <div className="grid grid-cols-3 gap-2">
-            <div className="rounded-lg bg-secondary p-3 text-center">
-              <p className="font-mono text-lg font-bold text-foreground">
+            <div className="bg-secondary rounded-lg p-3 text-center">
+              <p className="text-foreground font-mono text-lg font-bold">
                 {formatDistance(gpxData.totalDistance, unitSystem).split(' ')[0]}
               </p>
-              <p className="text-xs text-muted-foreground">{formatDistance(gpxData.totalDistance, unitSystem).split(' ')[1]}</p>
+              <p className="text-muted-foreground text-xs">
+                {formatDistance(gpxData.totalDistance, unitSystem).split(' ')[1]}
+              </p>
             </div>
-            <div className="rounded-lg bg-secondary p-3 text-center">
-              <p className="font-mono text-lg font-bold text-primary">
+            <div className="bg-secondary rounded-lg p-3 text-center">
+              <p className="text-primary font-mono text-lg font-bold">
                 +{formatElevation(gpxData.totalElevationGain, unitSystem).split(' ')[0]}
               </p>
-              <p className="text-xs text-muted-foreground">{formatElevation(gpxData.totalElevationGain, unitSystem).split(' ')[1]}</p>
+              <p className="text-muted-foreground text-xs">
+                {formatElevation(gpxData.totalElevationGain, unitSystem).split(' ')[1]}
+              </p>
             </div>
-            <div className="rounded-lg bg-secondary p-3 text-center">
-              <p className="font-mono text-lg font-bold text-destructive">
+            <div className="bg-secondary rounded-lg p-3 text-center">
+              <p className="text-destructive font-mono text-lg font-bold">
                 -{formatElevation(gpxData.totalElevationLoss, unitSystem).split(' ')[0]}
               </p>
-              <p className="text-xs text-muted-foreground">{formatElevation(gpxData.totalElevationLoss, unitSystem).split(' ')[1]}</p>
+              <p className="text-muted-foreground text-xs">
+                {formatElevation(gpxData.totalElevationLoss, unitSystem).split(' ')[1]}
+              </p>
             </div>
           </div>
 
-          <div className="flex items-center justify-between rounded-lg bg-secondary/50 px-3 py-2">
+          <div className="bg-secondary/50 flex items-center justify-between rounded-lg px-3 py-2">
             <div className="flex flex-col">
               <div className="flex items-center gap-1">
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                <span className="text-muted-foreground text-[10px] font-semibold tracking-wider uppercase">
                   {tibp('title')}
                 </span>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <HelpCircle className="h-3 w-3 text-muted-foreground/50 transition-colors hover:text-muted-foreground" />
+                      <HelpCircle className="text-muted-foreground/50 hover:text-muted-foreground h-3 w-3 transition-colors" />
                     </TooltipTrigger>
-                    <TooltipContent side="right" className="max-w-[200px] text-[11px] leading-relaxed">
+                    <TooltipContent
+                      side="right"
+                      className="max-w-[200px] text-[11px] leading-relaxed"
+                    >
                       {tibp('description')}
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               </div>
-              <span className="font-mono text-lg font-bold text-foreground">
-                {ibpIndex}
-              </span>
+              <span className="text-foreground font-mono text-lg font-bold">{ibpIndex}</span>
             </div>
-            <Badge className={cn('px-3 py-1 text-[10px] uppercase tracking-wider', difficultyColors[difficulty])}>
+            <Badge
+              className={cn(
+                'px-3 py-1 text-[10px] tracking-wider uppercase',
+                difficultyColors[difficulty],
+              )}
+            >
               {tibp(`difficulty.${difficulty}`)}
             </Badge>
           </div>

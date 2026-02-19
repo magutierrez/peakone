@@ -11,7 +11,8 @@ export function useMapView(
 ) {
   const fitFullRoute = useCallback(() => {
     const validPoints = points.filter(
-      (p) => typeof p.lon === 'number' && typeof p.lat === 'number' && !isNaN(p.lon) && !isNaN(p.lat),
+      (p) =>
+        typeof p.lon === 'number' && typeof p.lat === 'number' && !isNaN(p.lon) && !isNaN(p.lat),
     );
     if (validPoints.length > 0 && mapRef.current) {
       const lons = validPoints.map((p) => p.lon);

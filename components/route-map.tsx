@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { useTheme } from 'next-themes';
-import Map, { NavigationControl, MapRef } from 'react-map-gl/maplibre';
+import Map, { NavigationControl, MapRef, Source, Layer } from 'react-map-gl/maplibre';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useTranslations } from 'next-intl';
@@ -53,7 +53,7 @@ export default function RouteMap({
   const { resolvedTheme } = useTheme();
   const mapRef = useRef<MapRef>(null);
   const t = useTranslations('RouteMap');
-  
+
   const [hoveredPointIdx, setHoveredPointIdx] = useState<number | null>(null);
   const [mounted, setMounted] = useState(false);
   const [mapType, setMapType] = useState<MapLayerType>('standard');
@@ -67,7 +67,7 @@ export default function RouteMap({
     activeFilter,
     selectedRange,
   );
-  
+
   const { resetToFullRouteView } = useMapView(mapRef, points, selectedRange);
 
   useEffect(() => {
@@ -104,7 +104,7 @@ export default function RouteMap({
   if (!mounted) return null;
 
   return (
-    <div className="relative h-full w-full overflow-hidden border border-border">
+    <div className="border-border relative h-full w-full overflow-hidden border">
       <Map
         ref={mapRef}
         mapLib={maplibregl}
@@ -137,15 +137,52 @@ export default function RouteMap({
           showWaterSources={showWaterSources}
         />
 
-        {popupInfo && <MapPopup popupInfo={popupInfo} onClose={() => setHoveredPointIdx(null)} />}
-        
+        {/* 3D Player Marker (Dynamic Layer) */}
         {isPlayerActive && (
-          <RoutePlayer 
-            points={points} 
-            map={mapRef.current} 
+          <>
+            <Source
+              id="player-position"
+              type="geojson"
+              data={{
+                type: 'Feature',
+                geometry: { type: 'Point', coordinates: [0, 0] },
+                properties: {}
+              }}
+            >
+              <Layer
+                id="player-marker-glow"
+                type="circle"
+                paint={{
+                  'circle-radius': 12,
+                  'circle-color': '#3b82f6',
+                  'circle-opacity': 0.3,
+                  'circle-stroke-width': 2,
+                  'circle-stroke-color': '#ffffff'
+                }}
+              />
+              <Layer
+                id="player-marker-core"
+                type="circle"
+                paint={{
+                  'circle-radius': 6,
+                  'circle-color': '#ffffff',
+                  'circle-stroke-width': 3,
+                  'circle-stroke-color': '#3b82f6'
+                }}
+              />
+            </Source>
+          </>
+        )}
+
+        {popupInfo && <MapPopup popupInfo={popupInfo} onClose={() => setHoveredPointIdx(null)} />}
+
+        {isPlayerActive && (
+          <RoutePlayer
+            points={points}
+            map={mapRef.current}
             onPointUpdate={(idx) => {
               if (onPointSelect) onPointSelect(idx);
-            }} 
+            }}
             onStop={() => {
               setIsPlayerActive(false);
               resetToFullRouteView();
@@ -155,11 +192,11 @@ export default function RouteMap({
       </Map>
 
       {!isPlayerActive && points.length > 0 && (
-        <div className="absolute left-3 bottom-3 z-10">
+        <div className="absolute bottom-3 left-3 z-10">
           <Button
             variant="secondary"
             size="sm"
-            className="h-8 gap-2 bg-card/90 shadow-md backdrop-blur-sm hover:bg-card hover:text-primary transition-all font-bold uppercase text-[10px]"
+            className="bg-card/90 hover:bg-card hover:text-primary h-8 gap-2 text-[10px] font-bold uppercase shadow-md backdrop-blur-sm transition-all"
             onClick={() => setIsPlayerActive(true)}
           >
             <Box className="h-3.5 w-3.5" />
@@ -169,17 +206,15 @@ export default function RouteMap({
       )}
 
       {selectedRange && !isPlayerActive && (
-        <div className="absolute left-3 top-3 z-10 animate-in fade-in slide-in-from-left-2">
+        <div className="animate-in fade-in slide-in-from-left-2 absolute top-3 left-3 z-10">
           <Button
             variant="secondary"
             size="sm"
-            className="h-8 gap-2 bg-card/90 shadow-md backdrop-blur-sm hover:bg-card"
+            className="bg-card/90 hover:bg-card h-8 gap-2 shadow-md backdrop-blur-sm"
             onClick={onClearSelection}
           >
             <RefreshCcw className="h-3.5 w-3.5" />
-            <span className="text-[10px] font-bold uppercase tracking-wider">
-              {t('resetView')}
-            </span>
+            <span className="text-[10px] font-bold tracking-wider uppercase">{t('resetView')}</span>
           </Button>
         </div>
       )}

@@ -98,7 +98,10 @@ export function RouteHazards({
                           {t(seg.type)}
                         </h4>
                         {seg.climbCategory && seg.climbCategory !== 'none' && (
-                          <Badge variant="outline" className="bg-primary/5 border-primary/20 text-primary h-4 px-1 text-[8px] font-bold">
+                          <Badge
+                            variant="outline"
+                            className="bg-primary/5 border-primary/20 text-primary h-4 px-1 text-[8px] font-bold"
+                          >
                             CAT {seg.climbCategory}
                           </Badge>
                         )}

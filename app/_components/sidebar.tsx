@@ -10,12 +10,7 @@ import { ActivityConfigSection } from './activity-config-section';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface SidebarProps {
   gpxData: GPXData | null;
@@ -83,10 +78,12 @@ export function Sidebar({
   };
 
   return (
-    <aside className={cn(
-      "sticky top-[57px] h-[calc(100vh-57px)] shrink-0 border-b border-border bg-card lg:border-b-0 lg:border-r",
-      className
-    )}>
+    <aside
+      className={cn(
+        'border-border bg-card sticky top-[57px] h-[calc(100vh-57px)] shrink-0 border-b lg:border-r lg:border-b-0',
+        className,
+      )}
+    >
       <div className="flex h-full flex-col overflow-hidden p-4">
         <div className="flex h-full min-h-0 flex-col gap-6">
           <ActivityConfigSection
@@ -103,49 +100,58 @@ export function Sidebar({
           {gpxData && (
             <div className="flex flex-col gap-3">
               <div className="mb-2 flex items-center justify-between">
-                <Label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <Label className="text-muted-foreground block text-xs font-semibold tracking-wider uppercase">
                   {t('routeSummary')}
                 </Label>
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-7 gap-1.5 px-2 text-[10px] text-muted-foreground hover:text-primary"
+                  className="text-muted-foreground hover:text-primary h-7 gap-1.5 px-2 text-[10px]"
                   onClick={onReverseRoute}
                 >
-                  <span className="rotate-90"><RotateCcw /></span> {t('reverseRoute')}
+                  <span className="rotate-90">
+                    <RotateCcw />
+                  </span>{' '}
+                  {t('reverseRoute')}
                 </Button>
               </div>
               <div className="grid grid-cols-3 gap-2">
-                <div className="rounded-lg bg-secondary p-3 text-center">
-                  <p className="font-mono text-lg font-bold text-foreground">
+                <div className="bg-secondary rounded-lg p-3 text-center">
+                  <p className="text-foreground font-mono text-lg font-bold">
                     {formatDistance(recalculatedTotalDistance, unitSystem).split(' ')[0]}
                   </p>
-                  <p className="text-xs text-muted-foreground">{formatDistance(recalculatedTotalDistance, unitSystem).split(' ')[1]}</p>
+                  <p className="text-muted-foreground text-xs">
+                    {formatDistance(recalculatedTotalDistance, unitSystem).split(' ')[1]}
+                  </p>
                 </div>
-                <div className="rounded-lg bg-secondary p-3 text-center">
-                  <p className="font-mono text-lg font-bold text-primary">
+                <div className="bg-secondary rounded-lg p-3 text-center">
+                  <p className="text-primary font-mono text-lg font-bold">
                     +{formatElevation(recalculatedElevationGain, unitSystem).split(' ')[0]}
                   </p>
-                  <p className="text-xs text-muted-foreground">{formatElevation(recalculatedElevationGain, unitSystem).split(' ')[1]}</p>
+                  <p className="text-muted-foreground text-xs">
+                    {formatElevation(recalculatedElevationGain, unitSystem).split(' ')[1]}
+                  </p>
                 </div>
-                <div className="rounded-lg bg-secondary p-3 text-center">
-                  <p className="font-mono text-lg font-bold text-destructive">
+                <div className="bg-secondary rounded-lg p-3 text-center">
+                  <p className="text-destructive font-mono text-lg font-bold">
                     -{formatElevation(recalculatedElevationLoss, unitSystem).split(' ')[0]}
                   </p>
-                  <p className="text-xs text-muted-foreground">{formatElevation(recalculatedElevationLoss, unitSystem).split(' ')[1]}</p>
+                  <p className="text-muted-foreground text-xs">
+                    {formatElevation(recalculatedElevationLoss, unitSystem).split(' ')[1]}
+                  </p>
                 </div>
               </div>
-              
+
               <div className="mt-2 flex flex-col gap-1.5">
                 <div className="flex items-center gap-2">
-                  <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  <Label className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
                     {tibp('title')}
                   </Label>
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button variant="ghost" size="icon" className="h-4 w-4">
-                          <Info className="h-3 w-3 text-muted-foreground" />
+                          <Info className="text-muted-foreground h-3 w-3" />
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent className="max-w-xs text-xs">
@@ -155,8 +161,11 @@ export function Sidebar({
                   </TooltipProvider>
                 </div>
                 <div className="flex items-baseline gap-2">
-                  <p className="text-2xl font-bold text-primary">{ibpIndex}</p>
-                  <Badge variant={getDifficultyBadgeVariant(difficulty)} className="text-sm font-medium">
+                  <p className="text-primary text-2xl font-bold">{ibpIndex}</p>
+                  <Badge
+                    variant={getDifficultyBadgeVariant(difficulty)}
+                    className="text-sm font-medium"
+                  >
                     {tibp(`difficulty.${difficulty}`)}
                   </Badge>
                 </div>
@@ -164,14 +173,11 @@ export function Sidebar({
             </div>
           )}
 
-
-          
-          <div className="custom-scrollbar flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto pr-1">
-          </div>
+          <div className="custom-scrollbar flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto pr-1"></div>
 
           {error && (
-            <div className="mt-auto shrink-0 rounded-lg border border-destructive/30 bg-destructive/10 p-3">
-              <p className="text-xs text-destructive">{error}</p>
+            <div className="border-destructive/30 bg-destructive/10 mt-auto shrink-0 rounded-lg border p-3">
+              <p className="text-destructive text-xs">{error}</p>
             </div>
           )}
         </div>
