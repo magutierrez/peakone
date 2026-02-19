@@ -41,12 +41,12 @@ export function MapOverlayControls({
         </div>
       )}
 
-      {selectedRange && onClearSelection && (
-        <div className="animate-in fade-in slide-in-from-left-2 absolute top-3 left-3 z-10">
+      {(selectedRange || activeFilter) && onClearSelection && (
+        <div className="animate-in fade-in slide-in-from-top-2 absolute top-4 left-1/2 z-10 -translate-x-1/2">
           <Button
             variant="secondary"
             size="sm"
-            className="bg-card/90 hover:bg-card h-8 gap-2 shadow-md backdrop-blur-sm"
+            className="bg-card/90 hover:bg-card hover:text-primary border-primary/20 h-9 gap-2 rounded-full border px-4 text-[11px] font-bold uppercase shadow-lg backdrop-blur-sm transition-all"
             onClick={onClearSelection}
           >
             <RefreshCcw className="h-3.5 w-3.5" />

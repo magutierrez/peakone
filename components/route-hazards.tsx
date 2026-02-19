@@ -14,10 +14,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { analyzeRouteSegments } from '@/lib/utils';
-import { AreaChart, Area, ResponsiveContainer, YAxis, ReferenceLine } from 'recharts';
+import { AreaChart, Area, ResponsiveContainer, YAxis, ReferenceLine, Tooltip } from 'recharts';
+import { useMemo } from 'react';
 
 interface RouteHazardsProps {
   weatherPoints: RouteWeatherPoint[];
+  allPoints?: any[];
   onSelectSegment?: (range: { start: number; end: number } | null) => void;
   setActiveFilter?: (filter: { key: 'pathType' | 'surface' | 'hazard'; value: string } | null) => void;
   onClearSelection?: () => void;
@@ -47,6 +49,7 @@ const getSlopeColorHex = (slope: number) => {
 
 export function RouteHazards({
   weatherPoints,
+  allPoints = [],
   onSelectSegment,
   setActiveFilter,
   onClearSelection,
@@ -92,32 +95,36 @@ export function RouteHazards({
       </div>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {sortedSegments.map((seg, idx) => {
-          const chartData = seg.points.map((p: any, pIdx: number) => {
+          // Optimization: Get high-resolution points for the chart from allPoints
+          const densePoints = allPoints.length > 0 
+            ? allPoints.filter(p => p.distanceFromStart >= seg.startDist && p.distanceFromStart <= seg.endDist)
+            : seg.points.map(wp => wp.point);
+
+          const chartData = densePoints.map((p: any, pIdx: number) => {
             let slope = 0;
             if (pIdx > 0) {
-              const prev = seg.points[pIdx - 1];
-              const distDiff = (p.point.distanceFromStart - prev.point.distanceFromStart) * 1000;
-              const eleDiff = (p.point.ele || 0) - (prev.point.ele || 0);
+              const prev = densePoints[pIdx - 1];
+              const distDiff = (p.distanceFromStart - prev.distanceFromStart) * 1000;
+              const eleDiff = (p.ele || 0) - (prev.ele || 0);
               if (distDiff > 0.1) {
                 slope = (eleDiff / distDiff) * 100;
               }
             }
             return {
-              dist: p.point.distanceFromStart,
-              ele: p.point.ele || 0,
+              dist: p.distanceFromStart,
+              ele: p.ele || 0,
               slope: Math.abs(slope),
               color: getSlopeColorHex(slope)
             };
           });
 
-          const elevations = chartData.map(d => d.ele);
-          const minEle = Math.min(...elevations);
-          const maxEle = Math.max(...elevations);
+          const minEle = Math.min(...chartData.map(d => d.ele));
+          const maxEle = Math.max(...chartData.map(d => d.ele));
           const distance = seg.endDist - seg.startDist;
 
-          const maxSlopeDist = chartData.reduce((prev, current) => 
-            (current.slope > prev.slope) ? current : prev
-          ).dist;
+          const maxSlopePoint = chartData.reduce((prev, current) => 
+            (current.slope > prev.slope) ? current : prev, chartData[0]
+          );
 
           return (
             <Card
@@ -161,12 +168,12 @@ export function RouteHazards({
                   </div>
                 </div>
 
-                <div className="bg-secondary/5 h-28 w-full relative group">
+                <div className="bg-secondary/5 h-28 w-full relative group cursor-crosshair">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={chartData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
                       <defs>
                         <linearGradient id={`grad-${idx}`} x1="0" y1="0" x2="1" y2="0">
-                          {chartData.map((d, i) => (
+                          {chartData.length > 1 && chartData.map((d, i) => (
                             <stop 
                               key={i} 
                               offset={`${(i / (chartData.length - 1)) * 100}%`} 
@@ -179,6 +186,25 @@ export function RouteHazards({
                           <stop offset="95%" stopColor={seg.dangerLevel === 'high' ? '#ef4444' : '#f59e0b'} stopOpacity={0} />
                         </linearGradient>
                       </defs>
+                      <Tooltip
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length) {
+                            const data = payload[0].payload;
+                            return (
+                              <div className="rounded-lg border border-border bg-background/95 backdrop-blur-sm p-2 shadow-xl animate-in fade-in zoom-in duration-200">
+                                <div className="flex flex-col gap-0.5 min-w-[60px]">
+                                  <span className="text-[10px] font-black font-mono text-foreground flex items-center justify-between">
+                                    {Math.round(data.ele)}m
+                                    <span className="ml-2 px-1 rounded bg-secondary text-primary">{Math.round(data.slope)}%</span>
+                                  </span>
+                                </div>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
+                        cursor={{ stroke: 'currentColor', strokeWidth: 1, strokeOpacity: 0.2, strokeDasharray: '3 3' }}
+                      />
                       <Area
                         type="linear"
                         dataKey="ele"
@@ -189,12 +215,12 @@ export function RouteHazards({
                         connectNulls
                       />
                       <ReferenceLine 
-                        x={maxSlopeDist} 
+                        x={maxSlopePoint.dist} 
                         stroke="#991b1b" 
                         strokeDasharray="3 3" 
                         strokeWidth={1}
                         label={{ 
-                          value: 'MAX %', 
+                          value: 'MAX', 
                           position: 'top', 
                           fill: '#991b1b', 
                           fontSize: 8, 

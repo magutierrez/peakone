@@ -20,6 +20,7 @@ import type { RouteWeatherPoint } from '@/lib/types';
 interface AnalysisResultsProps {
   weatherPoints: RouteWeatherPoint[];
   routeInfoData: any[];
+  allPoints?: any[];
   elevationData: { distance: number; elevation: number }[];
   activeFilter: { key: 'pathType' | 'surface' | 'hazard'; value: string } | null;
   setActiveFilter: (filter: { key: 'pathType' | 'surface' | 'hazard'; value: string } | null) => void;
@@ -41,6 +42,7 @@ interface AnalysisResultsProps {
 export function AnalysisResults({
   weatherPoints,
   routeInfoData,
+  allPoints = [],
   elevationData,
   activeFilter,
   setActiveFilter,
@@ -109,7 +111,7 @@ export function AnalysisResults({
   return (
     <div id="analysis-results-container">
       <Tabs value={tab} onValueChange={setTab}>
-        <TabsList className="bg-secondary/50 p- mb-8 grid w-full grid-cols-3">
+        <TabsList className="bg-secondary/50 mb-8 grid w-full grid-cols-3">
           <TabsTrigger value="weather">{t('sections.weatherAnalysis')}</TabsTrigger>
           <TabsTrigger value="advice">{t('sections.advice')}</TabsTrigger>
           <TabsTrigger value="hazards">{t('sections.hazards')}</TabsTrigger>
@@ -157,11 +159,15 @@ export function AnalysisResults({
         <TabsContent value="hazards" className="mt-6 flex flex-col gap-6">
           <RouteHazards
             weatherPoints={weatherPoints}
+            allPoints={allPoints}
             onSelectSegment={(segment) =>
               segment && onRangeSelect({ start: segment?.start, end: segment?.end })
             }
             setActiveFilter={setActiveFilter}
-            onClearSelection={() => onRangeSelect(null)}
+            onClearSelection={() => {
+              onRangeSelect(null);
+              setActiveFilter(null);
+            }}
           />
 
           {totalSegments > 0 && (

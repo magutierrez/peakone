@@ -277,6 +277,7 @@ export default function HomePageClient({ session }: HomePageClientProps) {
                   <AnalysisResults
                     weatherPoints={weatherPoints}
                     routeInfoData={routeInfoData}
+                    allPoints={gpxData?.points || []}
                     elevationData={elevationData}
                     activeFilter={activeFilter}
                     setActiveFilter={setActiveFilter}
@@ -320,7 +321,10 @@ export default function HomePageClient({ session }: HomePageClientProps) {
               activeFilter={activeFilter}
               selectedRange={selectedRange}
               activityType={activityType}
-              onClearSelection={() => setSelectedRange(null)}
+              onClearSelection={() => {
+                setSelectedRange(null);
+                setActiveFilter(null);
+              }}
               showWaterSources={showWaterSources}
               onResetToFullRouteView={(func) => (mapResetViewRef.current = func)}
               focusPoint={focusPoint}
