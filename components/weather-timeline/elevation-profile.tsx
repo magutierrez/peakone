@@ -23,8 +23,8 @@ interface AnalysisChartProps {
   weatherPoints: RouteWeatherPoint[];
   allPoints: any[];
   elevationData: { distance: number; elevation: number }[];
-  selectedIndex: number | null;
-  onSelect: (index: number | null) => void;
+  selectedPoint: any | null; // Changed from index to full point object
+  onSelect: (point: any | null) => void;
   onRangeSelect?: (range: { start: number; end: number } | null) => void;
   activeFilter?: any;
 }
@@ -33,7 +33,7 @@ export function AnalysisChart({
   weatherPoints,
   allPoints = [],
   elevationData,
-  selectedIndex,
+  selectedPoint,
   onSelect,
   onRangeSelect,
 }: AnalysisChartProps) {
@@ -130,24 +130,36 @@ export function AnalysisChart({
 
   const handleMouseMove = (e: any) => {
     if (e && e.activePayload && e.activePayload[0]) {
-      const activePoint = e.activePayload[0].payload;
+      const activeDistance = e.activePayload[0].payload.distance;
       const now = Date.now();
 
-      if (now - lastUpdateRef.current > 16 && allPoints.length > 0) {
-        let closestIdx = 0;
-        let minDiff = Infinity;
-
-        for (let i = 0; i < allPoints.length; i++) {
-          const diff = Math.abs(allPoints[i].distanceFromStart - activePoint.distance);
-          if (diff < minDiff) {
-            minDiff = diff;
-            closestIdx = i;
-          } else if (diff > minDiff) {
+      if (now - lastUpdateRef.current > 16 && allPoints.length > 1) {
+        // Linear Interpolation for total fluidity (Komoot style)
+        let p1 = allPoints[0];
+        let p2 = allPoints[1];
+        
+        // Find the segment [p1, p2] that contains activeDistance
+        // Since allPoints is sorted by distance, we can use binary search or a fast loop
+        for (let i = 0; i < allPoints.length - 1; i++) {
+          if (activeDistance >= allPoints[i].distanceFromStart && activeDistance <= allPoints[i+1].distanceFromStart) {
+            p1 = allPoints[i];
+            p2 = allPoints[i+1];
             break;
           }
         }
 
-        onSelect(closestIdx);
+        const segmentDist = p2.distanceFromStart - p1.distanceFromStart;
+        const ratio = segmentDist > 0 ? (activeDistance - p1.distanceFromStart) / segmentDist : 0;
+
+        // Interpolate Lat, Lon, and Ele
+        const interpolatedPoint = {
+          lat: p1.lat + (p2.lat - p1.lat) * ratio,
+          lon: p1.lon + (p2.lon - p1.lon) * ratio,
+          ele: (p1.ele || 0) + ((p2.ele || 0) - (p1.ele || 0)) * ratio,
+          distanceFromStart: activeDistance
+        };
+
+        onSelect(interpolatedPoint);
         lastUpdateRef.current = now;
       }
     }
@@ -189,11 +201,6 @@ export function AnalysisChart({
     onRangeSelect?.(null);
   };
 
-  const selectedDataInChart =
-    selectedIndex !== null && allPoints[selectedIndex]
-      ? { distance: allPoints[selectedIndex].distanceFromStart }
-      : null;
-
   return (
     <div className="rounded-xl border border-border bg-card p-6 select-none shadow-sm">
       <div className="mb-6 flex items-center justify-between">
@@ -219,13 +226,11 @@ export function AnalysisChart({
             </Button>
           )}
         </div>
-        {selectedIndex !== null && allPoints[selectedIndex] && (
+        {selectedPoint && (
           <div className="bg-secondary/50 px-3 py-1.5 rounded-full border border-border/50 flex items-center gap-2 shadow-inner">
-            <div
-              className="h-2 w-2 rounded-full shadow-sm bg-primary animate-pulse"
-            />
+            <div className="h-2 w-2 rounded-full shadow-sm bg-primary animate-pulse" />
             <span className="text-xs font-black font-mono text-foreground">
-              {formatElevation(allPoints[selectedIndex].ele || 0, unitSystem)}
+              {formatElevation(selectedPoint.ele || 0, unitSystem)}
             </span>
           </div>
         )}
@@ -278,14 +283,21 @@ export function AnalysisChart({
               content={({ active, payload }) => {
                 if (active && payload && payload.length) {
                   const data = payload[0].payload;
+                  const currentDist = data.distance;
+                  
+                  // Use interpolated elevation for tooltip if available and close
+                  const displayEle = (selectedPoint && Math.abs(selectedPoint.distanceFromStart - currentDist) < 0.05) 
+                    ? selectedPoint.ele 
+                    : data.elevation;
+
                   return (
                     <div className="rounded-xl border border-border bg-background/95 backdrop-blur-sm p-3 shadow-xl flex items-center gap-4 animate-in fade-in zoom-in duration-200">
                       <div className="flex flex-col gap-0.5">
                         <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">
-                          {formatDistance(data.distance, unitSystem)}
+                          {formatDistance(currentDist, unitSystem)}
                         </p>
                         <span className="text-sm font-black text-foreground">
-                          {formatElevation(data.elevation, unitSystem)}
+                          {formatElevation(displayEle, unitSystem)}
                         </span>
                       </div>
                       <div className="flex flex-col items-center border-l border-border pl-4 gap-1">
@@ -312,9 +324,9 @@ export function AnalysisChart({
               connectNulls
             />
 
-            {selectedDataInChart && (
+            {selectedPoint && (
               <ReferenceLine
-                x={selectedDataInChart.distance}
+                x={selectedPoint.distanceFromStart}
                 stroke="hsl(var(--primary))"
                 strokeWidth={2}
                 strokeDasharray="4 4"
@@ -340,7 +352,7 @@ export function AnalysisChart({
           </div>
           <div>
             <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest leading-none mb-1">
-              {t('chart.highestPoint')}
+              {t('highestPoint')}
             </p>
             <p className="text-sm font-black text-foreground leading-none">
               {formatElevation(stats.max, unitSystem)}
@@ -353,7 +365,7 @@ export function AnalysisChart({
           </div>
           <div>
             <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest leading-none mb-1">
-              {t('chart.lowestPoint')}
+              {t('lowestPoint')}
             </p>
             <p className="text-sm font-black text-foreground leading-none">
               {formatElevation(stats.min, unitSystem)}

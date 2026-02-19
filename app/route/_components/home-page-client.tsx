@@ -92,7 +92,7 @@ export default function HomePageClient({ session }: HomePageClientProps) {
     value: string;
   } | null>(null);
   const [selectedRange, setSelectedRange] = useState<{ start: number; end: number } | null>(null);
-  const [fullSelectedPointIndex, setFullSelectedPointIndex] = useState<number | null>(null);
+  const [exactSelectedPoint, setExactSelectedPoint] = useState<any | null>(null);
   const [showWaterSources, setShowWaterSources] = useState(false);
   const tHomePage = useTranslations('HomePage');
   const twt = useTranslations('WeatherTimeline');
@@ -247,8 +247,8 @@ export default function HomePageClient({ session }: HomePageClientProps) {
                       elevationData={elevationData}
                       weatherPoints={weatherPoints}
                       allPoints={gpxData?.points || []}
-                      selectedIndex={fullSelectedPointIndex}
-                      onSelect={setFullSelectedPointIndex}
+                      selectedPoint={exactSelectedPoint}
+                      onSelect={setExactSelectedPoint}
                       onRangeSelect={setSelectedRange}
                       selectedRange={selectedRange}
                       activeFilter={activeFilter}
@@ -304,7 +304,7 @@ export default function HomePageClient({ session }: HomePageClientProps) {
               points={gpxData?.points || []}
               weatherPoints={weatherPoints.length > 0 ? weatherPoints : undefined}
               selectedPointIndex={selectedPointIndex}
-              fullSelectedPointIndex={fullSelectedPointIndex}
+              exactSelectedPoint={exactSelectedPoint}
               onPointSelect={setSelectedPointIndex}
               activeFilter={activeFilter}
               selectedRange={selectedRange}

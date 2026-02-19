@@ -10,7 +10,8 @@ interface MapMarkersProps {
   points: RoutePoint[];
   weatherPoints?: RouteWeatherPoint[];
   selectedPointIndex: number | null;
-  fullSelectedPointIndex?: number | null; // New prop for precise tracking
+  fullSelectedPointIndex?: number | null;
+  exactSelectedPoint?: any | null; // New prop for ultra-precise sync
   activeFilter?: { key: 'pathType' | 'surface'; value: string } | null;
   onPointSelect?: (index: number) => void;
   onHoverPoint: (index: number | null) => void;
@@ -23,6 +24,7 @@ export function MapMarkers({
   weatherPoints,
   selectedPointIndex,
   fullSelectedPointIndex = null,
+  exactSelectedPoint = null,
   activeFilter,
   onPointSelect,
   onHoverPoint,
@@ -33,7 +35,7 @@ export function MapMarkers({
   const startPoint = points[0];
   const endPoint = points[points.length - 1];
 
-  const currentTrackPoint = fullSelectedPointIndex !== null ? points[fullSelectedPointIndex] : null;
+  const currentTrackPoint = exactSelectedPoint || (fullSelectedPointIndex !== null ? points[fullSelectedPointIndex] : null);
 
   // Unique escape points to avoid clutter
   const escapePoints = activityType === 'walking' 

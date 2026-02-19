@@ -23,7 +23,8 @@ interface RouteMapProps {
   points: RoutePoint[];
   weatherPoints?: RouteWeatherPoint[];
   selectedPointIndex?: number | null;
-  fullSelectedPointIndex?: number | null; // New prop for precise sync
+  fullSelectedPointIndex?: number | null;
+  exactSelectedPoint?: any | null; // New prop for ultra-precise sync
   onPointSelect?: (index: number) => void;
   activeFilter?: { key: 'pathType' | 'surface'; value: string } | null;
   selectedRange?: { start: number; end: number } | null;
@@ -38,6 +39,7 @@ export default function RouteMap({
   weatherPoints,
   selectedPointIndex = null,
   fullSelectedPointIndex = null,
+  exactSelectedPoint = null,
   onPointSelect,
   activeFilter = null,
   selectedRange = null,
@@ -123,6 +125,7 @@ export default function RouteMap({
           weatherPoints={weatherPoints}
           selectedPointIndex={selectedPointIndex}
           fullSelectedPointIndex={fullSelectedPointIndex}
+          exactSelectedPoint={exactSelectedPoint}
           activeFilter={activeFilter}
           onPointSelect={onPointSelect}
           onHoverPoint={setHoveredPointIdx}

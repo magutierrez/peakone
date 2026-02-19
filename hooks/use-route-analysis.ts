@@ -98,7 +98,7 @@ export function useRouteAnalysis(
   // Effect to update initial elevation data when gpxData changes
   useEffect(() => {
     if (gpxData) {
-      const dense = sampleRoutePoints(gpxData.points, 1000);
+      const dense = sampleRoutePoints(gpxData.points, 3000);
       const initialElevation = dense.map((p) => ({
         distance: p.distanceFromStart,
         elevation: p.ele || 0,
