@@ -11,7 +11,7 @@ interface WindArrowProps {
 
 export function WindArrow({ direction, effect, size = 40 }: WindArrowProps) {
   const t = useTranslations('WeatherTimeline');
-  const color = effect === 'tailwind' ? '#22c55e' : effect === 'headwind' ? '#ef4444' : '#f59e0b';
+  const color = effect === 'tailwind' ? '#10b981' : effect === 'headwind' ? '#ef4444' : '#f59e0b';
 
   return (
     <svg

@@ -48,13 +48,13 @@ function getSolarIntensityColor(intensity: string) {
 function getWindEffectIcon(effect: string) {
   switch (effect) {
     case 'tailwind':
-      return <ArrowDown className="text-primary h-3.5 w-3.5" />;
+      return <ArrowDown className="h-3.5 w-3.5 text-emerald-500" />;
     case 'headwind':
-      return <ArrowUp className="text-destructive h-3.5 w-3.5" />;
+      return <ArrowUp className="h-3.5 w-3.5 text-red-500" />;
     case 'crosswind-left':
-      return <ArrowLeft className="text-accent h-3.5 w-3.5" />;
+      return <ArrowLeft className="h-3.5 w-3.5 text-amber-500" />;
     case 'crosswind-right':
-      return <ArrowRight className="text-accent h-3.5 w-3.5" />;
+      return <ArrowRight className="h-3.5 w-3.5 text-amber-500" />;
     default:
       return null;
   }
@@ -134,10 +134,10 @@ export function WeatherList({ weatherPoints, selectedIndex, onSelect }: WeatherL
                   <span
                     className={`text-[10px] font-medium ${
                       wp.windEffect === 'tailwind'
-                        ? 'text-primary'
+                        ? 'text-emerald-500'
                         : wp.windEffect === 'headwind'
-                          ? 'text-destructive'
-                          : 'text-accent'
+                          ? 'text-red-500'
+                          : 'text-amber-500'
                     }`}
                   >
                     {t(`windEffect.${wp.windEffect}` as any)}

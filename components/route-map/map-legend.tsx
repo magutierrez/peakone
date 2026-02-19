@@ -10,7 +10,7 @@ export function MapLegend() {
       <p className="text-foreground mb-2 text-xs font-semibold">{t('legend.title')}</p>
       <div className="flex flex-col gap-1.5">
         <div className="flex items-center gap-2">
-          <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: '#22c55e' }} />
+          <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: '#10b981' }} />
           <span className="text-muted-foreground text-xs">{t('legend.tailwind')}</span>
         </div>
         <div className="flex items-center gap-2">
