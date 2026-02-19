@@ -70,6 +70,19 @@ export default function RouteMap({
 
   const { resetToFullRouteView } = useMapView(mapRef, points, selectedRange);
 
+  const handleStopPlayer = useCallback(() => {
+    setIsPlayerActive(false);
+    const map = mapRef.current?.getMap();
+    if (map) {
+      map.setTerrain(null);
+      map.jumpTo({
+        pitch: 0,
+        bearing: 0,
+      });
+    }
+    resetToFullRouteView();
+  }, [resetToFullRouteView]);
+
   useEffect(() => {
     if (onResetToFullRouteView) {
       onResetToFullRouteView(resetToFullRouteView);
@@ -175,10 +188,7 @@ export default function RouteMap({
           <RoutePlayer
             points={points}
             map={mapRef.current}
-            onStop={() => {
-              setIsPlayerActive(false);
-              resetToFullRouteView();
-            }}
+            onStop={handleStopPlayer}
           />
         )}
       </Map>
