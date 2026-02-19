@@ -18,6 +18,8 @@ import { RouteLayers } from './route-map/route-layers';
 import { LayerControl } from './route-map/layer-control';
 import { useMapStyle, MapLayerType } from './route-map/use-map-style';
 import { useMapView } from './route-map/use-map-view';
+import { RoutePlayer } from './route-map/route-player';
+import { Box } from 'lucide-react';
 
 interface RouteMapProps {
   points: RoutePoint[];
@@ -55,8 +57,10 @@ export default function RouteMap({
   const [hoveredPointIdx, setHoveredPointIdx] = useState<number | null>(null);
   const [mounted, setMounted] = useState(false);
   const [mapType, setMapType] = useState<MapLayerType>('standard');
+  const [isPlayerActive, setIsPlayerActive] = useState(false);
 
   const mapStyle = useMapStyle(mapType, resolvedTheme);
+
   const { routeData, highlightedData, rangeHighlightData } = useMapLayers(
     points,
     weatherPoints,
@@ -134,9 +138,37 @@ export default function RouteMap({
         />
 
         {popupInfo && <MapPopup popupInfo={popupInfo} onClose={() => setHoveredPointIdx(null)} />}
+        
+        {isPlayerActive && (
+          <RoutePlayer 
+            points={points} 
+            map={mapRef.current} 
+            onPointUpdate={(idx) => {
+              if (onPointSelect) onPointSelect(idx);
+            }} 
+            onStop={() => {
+              setIsPlayerActive(false);
+              resetToFullRouteView();
+            }}
+          />
+        )}
       </Map>
 
-      {selectedRange && (
+      {!isPlayerActive && points.length > 0 && (
+        <div className="absolute left-3 bottom-3 z-10">
+          <Button
+            variant="secondary"
+            size="sm"
+            className="h-8 gap-2 bg-card/90 shadow-md backdrop-blur-sm hover:bg-card hover:text-primary transition-all font-bold uppercase text-[10px]"
+            onClick={() => setIsPlayerActive(true)}
+          >
+            <Box className="h-3.5 w-3.5" />
+            {t('player.title')}
+          </Button>
+        </div>
+      )}
+
+      {selectedRange && !isPlayerActive && (
         <div className="absolute left-3 top-3 z-10 animate-in fade-in slide-in-from-left-2">
           <Button
             variant="secondary"

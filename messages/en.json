@@ -313,7 +313,13 @@
       "satellite": "Satellite",
       "hybrid": "Hybrid"
     },
-    "resetView": "Reset View"
+    "resetView": "Reset View",
+    "player": {
+      "title": "3D View",
+      "play": "Start route",
+      "stop": "Stop",
+      "speed": "Speed"
+    }
   },
   "IBP": {
     "title": "IBP Index",

@@ -1,87 +1,79 @@
-# AGENTS.md - Developer Guide for peakOne
+# AGENTS.md - peakOne Developer Context
 
-## Project Overview
+> **System Prompt Injection**: When working on **peakOne**, adopt the persona of a Senior Frontend Engineer specialized in Geospatial Data and Local-First Architectures. You prioritize performance, type safety, and offline capabilities.
 
-**peakOne** is a Next.js 16+ web application for outdoor enthusiasts (cyclists and hikers) that provides point-by-point meteorological and physical analysis of GPX tracks or Strava activities.
+## 1. Project Overview
 
-### Tech Stack
+**peakOne** is a Next.js 16+ web application for outdoor enthusiasts (cyclists/hikers). It provides detailed point-by-point meteorological and physical analysis of GPX tracks or Strava activities.
 
-- **Framework**: Next.js 16 (App Router)
-- **Language**: TypeScript
-- **UI**: Tailwind CSS + shadcn/ui components
-- **Maps**: MapLibre GL / react-map-gl
-- **Auth**: Auth.js (NextAuth) with Strava, Google, Facebook, X providers
-- **i18n**: next-intl (English & Spanish)
-- **Database**: PGLite (local SQL)
+- **Core Value**: Hyper-local weather forecasting along a route path.
+- **Privacy Strategy**: **Local-First**. User data (routes, settings) is stored in the browser using PGLite (PostgreSQL on WASM) persisting to IndexedDB. No central backend database holds user tracks.
 
-### Key Commands
+## 2. Tech Stack (Critical Versions)
 
-```bash
-# Development server
-pnpm dev
+- **Framework**: Next.js 16.1 (App Router, Turbo, experimental-https)
+- **UI Library**: React 19.2
+- **Styling**: Tailwind CSS v4 + Shadcn UI (Radix Primitives)
+- **Database**: @electric-sql/pglite v0.2+ (WASM Postgres)
+- **Maps**: MapLibre GL v5 + react-map-gl v8
+- **Auth**: Auth.js (NextAuth) v5 Beta
+- **I18n**: next-intl v3+
 
-# Build for production
-pnpm build
+## 3. Architecture & Patterns
 
-# Lint code
-pnpm lint
+### 3.1. Database (Local-First)
 
-# Format code
-pnpm format
-```
+- **Location**: `lib/db.ts`
+- **Pattern**: The app instantiates a PGLite instance connected to `idb://peakone-storage`.
+- **Constraint**: All DB operations are client-side only (or SSR with specific constraints). Do not assume a remote Postgres connection exists.
+- **Migrations**: Currently handled manually via `CREATE TABLE IF NOT EXISTS` in the init logic.
 
-## Project Structure
+### 3.2. Map Integration
 
-```
-/app              - Next.js App Router pages
-/components       - React components (UI + features)
-/hooks            - Custom React hooks
-/lib              - Utilities, API clients, helpers
-/messages         - i18n translation files (en.json, es.json)
-/styles           - Global styles
-/auth.ts          - Auth.js configuration
-/proxy.ts         - API proxy utilities
-```
+- **Location**: `components/route-map.tsx`
+- **Library**: `react-map-gl` wrapper around `maplibre-gl`.
+- **Logic**:
+  - **Sources**: GeoJSON for tracks (`type: 'line'`) and waypoints (`type: 'circle'`).
+  - **Interactivity**: Hover/Click events sync with the Elevation Profile and Data Table.
+  - **Terrain**: 3D terrain is enabled via `open-terrain` tiles.
 
-## Important Patterns
+### 3.3. Weather Engine
 
-### Component Architecture
+- **Location**: `lib/weather-providers.ts`
+- **Pattern**: Strategy Pattern via `WeatherProvider` interface.
+- **Implementations**:
+  - `Open-Meteo`: Primary provider (supports bulk coordinate queries).
+  - `WeatherAPI`, `MET Norway`: Fallbacks/Alternatives.
+- **Data Flow**: Route GPX -> Extract Points -> Fetch Weather for Points -> Merge -> `RouteWeatherPoint[]`.
 
-- Use **shadcn/ui** components from `@radix/ui/react-*` packages
-- Components are located in `/components/ui` and `/components`
-- Use `cn()` utility from `lib/utils.ts` for className merging
+### 3.4. Internationalization (i18n)
 
-### Maps Integration
+- **Mandatory**: All user-facing text MUST be wrapped in `useTranslations`.
+- **Files**: `messages/en.json`, `messages/es.json`.
+- **Routing**: `i18n/request.ts` handles locale detection.
 
-- Map components use `react-map-gl` with MapLibre GL
-- Map style is configured in map-related components
-- GeoJSON data is used for track visualization
+## 4. Directory Structure Map
 
-### API Calls
+| Path                        | Purpose                                          |
+| :-------------------------- | :----------------------------------------------- |
+| `/app`                      | Next.js App Router (Pages, Layouts, API Routes)  |
+| `/components/ui`            | Reusable Shadcn UI primitives (Buttons, Dialogs) |
+| `/components/route-map.tsx` | Core map visualization logic                     |
+| `/lib/db.ts`                | PGLite database singleton & schema               |
+| `/lib/weather-providers.ts` | Weather API integration logic                    |
+| `/lib/gpx-utils.ts`         | GPX parsing and track analysis                   |
+| `/messages`                 | Translation JSON files                           |
+| `/auth.ts`                  | NextAuth configuration (Strava, Google, etc.)    |
 
-- Use `fetch` or SWR for data fetching
-- External APIs: Open-Meteo (weather), Overpass API (OSM), Strava API
-- Weather data is cached appropriately
+## 5. Development Rules
 
-### Internationalization
+1.  **Strict TypeScript**: No `any`. Define interfaces in `lib/types.ts`.
+2.  **Tailwind v4**: Use the new v4 engine conventions.
+3.  **Shadcn/UI**: Use `npx shadcn@latest add [component]` if a new primitive is needed, but prefer composing existing ones.
+4.  **Testing**: Run tests before confirming major refactors.
 
-- All user-facing strings use `next-intl`
-- Translation files in `/messages` directory
-- Use `useTranslations` hook in components
+## 6. Common Tasks (Quick Reference)
 
-### TypeScript
-
-- Strict mode enabled
-- Use proper types for all props and functions
-- Avoid `any` types
-
-## Code Style Guidelines
-
-- Use functional components with hooks
-- Follow existing naming conventions
-- Run `pnpm format` before committing
-- Run `pnpm lint` to check for errors
-
-## Testing
-
-Run tests with appropriate test commands (if configured). Always verify changes don't break the build.
+- **Adding a Weather Provider**: Implement `WeatherProvider` interface in `lib/weather-providers.ts`.
+- **Modifying DB Schema**: Update `lib/db.ts` init function (NOTE: Migration logic is manual).
+- **Styling**: Use `cn()` from `lib/utils.ts` to merge Tailwind classes.

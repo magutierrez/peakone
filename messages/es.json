@@ -313,7 +313,13 @@
       "hybrid": "Híbrido",
       "topography": "Topográfico"
     },
-    "resetView": "Ver ruta completa"
+    "resetView": "Ver ruta completa",
+    "player": {
+      "title": "Vista 3D",
+      "play": "Iniciar ruta",
+      "stop": "Detener",
+      "speed": "Velocidad"
+    }
   },
   "IBP": {
     "title": "Índice IBP",
