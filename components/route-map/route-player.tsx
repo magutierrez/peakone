@@ -16,12 +16,11 @@ import type { RoutePoint } from '@/lib/types';
 
 interface RoutePlayerProps {
   points: RoutePoint[];
-  onPointUpdate: (index: number) => void;
   onStop: () => void;
   map: any;
 }
 
-export function RoutePlayer({ points, onPointUpdate, onStop, map }: RoutePlayerProps) {
+export function RoutePlayer({ points, onStop, map }: RoutePlayerProps) {
   const t = useTranslations('RouteMap.player');
   const [isPlaying, setIsPlaying] = useState(false);
   const [speed, setSpeed] = useState(1);
@@ -89,11 +88,10 @@ export function RoutePlayer({ points, onPointUpdate, onStop, map }: RoutePlayerP
     const now = Date.now();
     // Only update heavy React state at ~15fps
     if (forceUiUpdate || now - lastUiUpdateRef.current > 66) {
-      onPointUpdate(idx);
       setProgress((idx / (points.length - 1)) * 100);
       lastUiUpdateRef.current = now;
     }
-  }, [map, points, onPointUpdate, speed]);
+  }, [map, points, speed]);
 
   const animate = useCallback((time: number) => {
     if (!lastTimeRef.current) lastTimeRef.current = time;

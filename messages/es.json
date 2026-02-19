@@ -232,7 +232,8 @@
       "unknown": "Otros",
       "construction": "Construcción",
       "motorway_link": "Enlace autovía",
-      "trunk_link": "Enlace carretera nacional"
+      "trunk_link": "Enlace carretera nacional",
+      "steps": "Escaleras"
     },
     "surfaces": {
       "title": "Superficies",

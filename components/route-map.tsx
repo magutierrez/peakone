@@ -61,31 +61,6 @@ export default function RouteMap({
 
   const mapStyle = useMapStyle(mapType, resolvedTheme);
 
-  const onMapLoad = useCallback((event: any) => {
-    const map = event.target;
-    
-    const applyTerrain = () => {
-      if (!map.getSource('open-terrain')) {
-        map.addSource('open-terrain', {
-          type: 'raster-dem',
-          tiles: ['https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png'],
-          encoding: 'terrarium',
-          tileSize: 256,
-          maxzoom: 14
-        });
-      }
-      if (!map.getTerrain()) {
-        map.setTerrain({ source: 'open-terrain', exaggeration: 1.5 });
-      }
-    };
-
-    applyTerrain();
-    
-    map.on('styledata', () => {
-      applyTerrain();
-    });
-  }, []);
-
   const { routeData, highlightedData, rangeHighlightData } = useMapLayers(
     points,
     weatherPoints,
@@ -132,7 +107,6 @@ export default function RouteMap({
         style={{ width: '100%', height: '100%' }}
         mapStyle={mapStyle as any}
         onClick={onMapClick}
-        onLoad={onMapLoad}
       >
         <NavigationControl position="bottom-right" />
 
@@ -201,9 +175,6 @@ export default function RouteMap({
           <RoutePlayer
             points={points}
             map={mapRef.current}
-            onPointUpdate={(idx) => {
-              if (onPointSelect) onPointSelect(idx);
-            }}
             onStop={() => {
               setIsPlayerActive(false);
               resetToFullRouteView();

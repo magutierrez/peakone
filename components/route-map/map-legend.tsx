@@ -6,7 +6,7 @@ export function MapLegend() {
   const t = useTranslations('RouteMap');
 
   return (
-    <div className="border-border bg-card/95 absolute bottom-6 left-3 z-10 rounded-lg border p-3 shadow-xl backdrop-blur-sm">
+    <div className="border-border bg-card/95 absolute top-6 left-3 z-10 rounded-lg border p-3 shadow-xl backdrop-blur-sm">
       <p className="text-foreground mb-2 text-xs font-semibold">{t('legend.title')}</p>
       <div className="flex flex-col gap-1.5">
         <div className="flex items-center gap-2">

@@ -232,7 +232,8 @@
       "unknown": "Other",
       "construction": "Construction",
       "motorway_link": "Motorway link",
-      "trunk_link": "Trunk road link"
+      "trunk_link": "Trunk road link",
+      "steps": "Steps"
     },
     "surfaces": {
       "title": "Surfaces",

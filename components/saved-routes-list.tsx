@@ -116,7 +116,7 @@ export function SavedRoutesList({ onLoadRoute }: SavedRoutesListProps) {
                     <p className="text-foreground text-sm leading-tight font-semibold break-words whitespace-normal">
                       {stripExtension(route.name)}
                     </p>
-                    <div className="text-muted-foreground mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px]">
+                    <div className="text-muted-foreground mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
                       <span className="flex shrink-0 items-center gap-1">
                         <MapPin className="h-3 w-3" />
                         {Number(route.distance).toFixed(1)} km
