@@ -144,7 +144,7 @@ export function RouteAdvice({
         <Card className="border-primary/20 bg-primary/5">
           <CardContent className="flex items-center gap-4 p-4">
             <div className="bg-primary/10 rounded-full p-2">
-              <Zap className="text-primary h-5 w-5" />
+              <Zap className="h-5 w-5 text-orange-500" />
             </div>
             <div>
               <p className="text-muted-foreground text-[10px] font-bold tracking-wider uppercase">
@@ -161,10 +161,10 @@ export function RouteAdvice({
           </CardContent>
         </Card>
 
-        <Card className="border-accent/20 bg-accent/5">
+        <Card className="border-primary/20 bg-primary/5">
           <CardContent className="flex items-center gap-4 p-4">
-            <div className="bg-accent/10 rounded-full p-2">
-              <Droplets className="text-accent h-5 w-5" />
+            <div className="bg-primary/10 rounded-full p-2">
+              <Droplets className="h-5 w-5 text-cyan-600" />
             </div>
             <div>
               <p className="text-muted-foreground text-[10px] font-bold tracking-wider uppercase">

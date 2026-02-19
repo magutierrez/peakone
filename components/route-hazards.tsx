@@ -5,14 +5,15 @@ import {
   Flame,
   Zap,
   Activity,
-  RefreshCcw, // New import
+  RefreshCcw,
+  AlertTriangle, // New import
 } from 'lucide-react';
 import type { RouteWeatherPoint } from '@/lib/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button'; // New import
+import { Button } from '@/components/ui/button';
 import { analyzeRouteSegments } from '@/lib/utils';
-import { AreaChart, Area, ResponsiveContainer, YAxis } from 'recharts';
+import { AreaChart, Area, ResponsiveContainer, YAxis, ReferenceLine } from 'recharts';
 
 interface RouteHazardsProps {
   weatherPoints: RouteWeatherPoint[];
@@ -104,6 +105,11 @@ export function RouteHazards({
           const maxEle = Math.max(...elevations);
           const distance = seg.endDist - seg.startDist;
 
+          // Find distance of max slope for marking
+          const maxSlopeDist = chartData.reduce((prev, current) => 
+            (current.slope > prev.slope) ? current : prev
+          ).dist;
+
           return (
             <Card
               key={idx}
@@ -173,7 +179,20 @@ export function RouteHazards({
                         isAnimationActive={false}
                         connectNulls
                       />
-                      <YAxis hide domain={[minEle - 5, maxEle + 5]} />
+                      <ReferenceLine 
+                        x={maxSlopeDist} 
+                        stroke="#991b1b" 
+                        strokeDasharray="3 3" 
+                        strokeWidth={1}
+                        label={{ 
+                          value: 'MAX %', 
+                          position: 'top', 
+                          fill: '#991b1b', 
+                          fontSize: 8, 
+                          fontWeight: 'black' 
+                        }}
+                      />
+                      <YAxis hide domain={[minEle - 1, maxEle + 1]} />
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
