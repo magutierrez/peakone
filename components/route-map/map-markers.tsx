@@ -10,6 +10,7 @@ interface MapMarkersProps {
   points: RoutePoint[];
   weatherPoints?: RouteWeatherPoint[];
   selectedPointIndex: number | null;
+  fullSelectedPointIndex?: number | null; // New prop for precise tracking
   activeFilter?: { key: 'pathType' | 'surface'; value: string } | null;
   onPointSelect?: (index: number) => void;
   onHoverPoint: (index: number | null) => void;
@@ -21,6 +22,7 @@ export function MapMarkers({
   points,
   weatherPoints,
   selectedPointIndex,
+  fullSelectedPointIndex = null,
   activeFilter,
   onPointSelect,
   onHoverPoint,
@@ -30,6 +32,8 @@ export function MapMarkers({
   const t = useTranslations('WeatherTimeline');
   const startPoint = points[0];
   const endPoint = points[points.length - 1];
+
+  const currentTrackPoint = fullSelectedPointIndex !== null ? points[fullSelectedPointIndex] : null;
 
   // Unique escape points to avoid clutter
   const escapePoints = activityType === 'walking' 
@@ -91,6 +95,18 @@ export function MapMarkers({
           <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-red-600 font-bold text-white shadow-lg transition-transform hover:scale-110">
             B
           </div>
+        </Marker>
+      )}
+
+      {/* Dynamic Cursor Point (Komoot style) */}
+      {currentTrackPoint && (
+        <Marker 
+          longitude={currentTrackPoint.lon} 
+          latitude={currentTrackPoint.lat} 
+          anchor="center"
+          z-index={100}
+        >
+          <div className="h-4 w-4 bg-white border-2 border-blue-500 rounded-full shadow-md animate-in fade-in zoom-in duration-150" />
         </Marker>
       )}
 

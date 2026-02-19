@@ -17,19 +17,21 @@ import {
 import type { RouteWeatherPoint } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { useSettings } from '@/hooks/use-settings';
-import { formatElevation, formatDistance, cn } from '@/lib/utils';
+import { formatElevation, formatDistance } from '@/lib/utils';
 
 interface AnalysisChartProps {
   weatherPoints: RouteWeatherPoint[];
+  allPoints: any[];
   elevationData: { distance: number; elevation: number }[];
   selectedIndex: number | null;
-  onSelect: (index: number) => void;
+  onSelect: (index: number | null) => void;
   onRangeSelect?: (range: { start: number; end: number } | null) => void;
   activeFilter?: any;
 }
 
 export function AnalysisChart({
   weatherPoints,
+  allPoints = [],
   elevationData,
   selectedIndex,
   onSelect,
@@ -43,8 +45,6 @@ export function AnalysisChart({
   const [refAreaRight, setRefAreaRight] = useState<any>(null);
   const [left, setLeft] = useState<any>('dataMin');
   const [right, setRight] = useState<any>('dataMax');
-  const [top, setTop] = useState<any>('dataMax');
-  const [bottom, setBottom] = useState<any>('dataMin');
 
   const displayData = useMemo(() => {
     const rawData =
@@ -72,10 +72,10 @@ export function AnalysisChart({
 
   const getSlopeColorHex = (slope: number) => {
     const absSlope = Math.abs(slope);
-    if (absSlope <= 1) return '#10b981'; // Flat - Emerald
-    if (absSlope < 5) return '#f59e0b';  // Moderate - Amber
-    if (absSlope < 10) return '#ef4444'; // Steep - Red
-    return '#991b1b';                    // Very Steep - Dark Red
+    if (absSlope <= 1) return '#10b981';
+    if (absSlope < 5) return '#f59e0b';
+    if (absSlope < 10) return '#ef4444';
+    return '#991b1b';
   };
 
   const { chartData } = useMemo(() => {
@@ -133,23 +133,31 @@ export function AnalysisChart({
       const activePoint = e.activePayload[0].payload;
       const now = Date.now();
 
-      if (now - lastUpdateRef.current > 32 && weatherPoints.length > 0) {
+      if (now - lastUpdateRef.current > 16 && allPoints.length > 0) {
         let closestIdx = 0;
         let minDiff = Infinity;
 
-        weatherPoints.forEach((wp, idx) => {
-          const diff = Math.abs(wp.point.distanceFromStart - activePoint.distance);
+        for (let i = 0; i < allPoints.length; i++) {
+          const diff = Math.abs(allPoints[i].distanceFromStart - activePoint.distance);
           if (diff < minDiff) {
             minDiff = diff;
-            closestIdx = idx;
+            closestIdx = i;
+          } else if (diff > minDiff) {
+            break;
           }
-        });
+        }
 
         onSelect(closestIdx);
         lastUpdateRef.current = now;
       }
     }
     if (refAreaLeft !== null && e) setRefAreaRight(e.activeLabel);
+  };
+
+  const handleMouseLeave = () => {
+    onSelect(null);
+    setRefAreaLeft(null);
+    setRefAreaRight(null);
   };
 
   const zoom = () => {
@@ -164,11 +172,8 @@ export function AnalysisChart({
 
     const filteredData = chartData.filter((d) => d.distance >= start && d.distance <= end);
     if (filteredData.length > 0) {
-      const elevations = filteredData.map((d) => d.elevation);
       setLeft(start);
       setRight(end);
-      setBottom(Math.min(...elevations) - 10);
-      setTop(Math.max(...elevations) + 10);
       onRangeSelect?.({ start, end });
     }
 
@@ -179,16 +184,14 @@ export function AnalysisChart({
   const resetZoom = () => {
     setLeft('dataMin');
     setRight('dataMax');
-    setTop('dataMax');
-    setBottom('dataMin');
     setRefAreaLeft(null);
     setRefAreaRight(null);
     onRangeSelect?.(null);
   };
 
   const selectedDataInChart =
-    selectedIndex !== null && weatherPoints[selectedIndex]
-      ? { distance: weatherPoints[selectedIndex].point.distanceFromStart }
+    selectedIndex !== null && allPoints[selectedIndex]
+      ? { distance: allPoints[selectedIndex].distanceFromStart }
       : null;
 
   return (
@@ -216,21 +219,13 @@ export function AnalysisChart({
             </Button>
           )}
         </div>
-        {selectedIndex !== null && weatherPoints[selectedIndex] && (
+        {selectedIndex !== null && allPoints[selectedIndex] && (
           <div className="bg-secondary/50 px-3 py-1.5 rounded-full border border-border/50 flex items-center gap-2 shadow-inner">
             <div
-              className="h-2 w-2 rounded-full shadow-sm"
-              style={{
-                backgroundColor:
-                  chartData.find(
-                    (d) =>
-                      Math.abs(d.distance - weatherPoints[selectedIndex].point.distanceFromStart) <
-                      0.1,
-                  )?.color || '#10b981',
-              }}
+              className="h-2 w-2 rounded-full shadow-sm bg-primary animate-pulse"
             />
             <span className="text-xs font-black font-mono text-foreground">
-              {formatElevation(weatherPoints[selectedIndex].point.ele || 0, unitSystem)}
+              {formatElevation(allPoints[selectedIndex].ele || 0, unitSystem)}
             </span>
           </div>
         )}
@@ -242,6 +237,7 @@ export function AnalysisChart({
             data={chartData}
             onMouseDown={(e) => e && setRefAreaLeft(e.activeLabel)}
             onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
             onMouseUp={zoom}
             onDoubleClick={resetZoom}
             margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
