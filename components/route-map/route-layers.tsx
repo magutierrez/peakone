@@ -51,12 +51,16 @@ export function RouteLayers({
           <Layer
             id="highlight-line"
             type="line"
-            paint={{ 'line-color': '#3ecf8e', 'line-width': 4, 'line-opacity': 1 }}
+            paint={{ 
+              'line-color': ['coalesce', ['get', 'color'], '#3ecf8e'], 
+              'line-width': 6, 
+              'line-opacity': 1 
+            }}
           />
         </Source>
       )}
 
-      {rangeHighlightData && (
+      {rangeHighlightData && !activeFilter && (
         <Source id="range-source" type="geojson" data={rangeHighlightData}>
           <Layer
             id="range-glow"

@@ -21,8 +21,8 @@ interface AnalysisResultsProps {
   weatherPoints: RouteWeatherPoint[];
   routeInfoData: any[];
   elevationData: { distance: number; elevation: number }[];
-  activeFilter: { key: 'pathType' | 'surface'; value: string } | null;
-  setActiveFilter: (filter: { key: 'pathType' | 'surface'; value: string } | null) => void;
+  activeFilter: { key: 'pathType' | 'surface' | 'hazard'; value: string } | null;
+  setActiveFilter: (filter: { key: 'pathType' | 'surface' | 'hazard'; value: string } | null) => void;
   selectedPointIndex: number | null;
   setSelectedPointIndex: (index: number | null) => void;
   onRangeSelect: (range: { start: number; end: number } | null) => void;
@@ -160,6 +160,7 @@ export function AnalysisResults({
             onSelectSegment={(segment) =>
               segment && onRangeSelect({ start: segment?.start, end: segment?.end })
             }
+            setActiveFilter={setActiveFilter}
             onClearSelection={() => onRangeSelect(null)}
           />
 

@@ -1,3 +1,5 @@
+'use client';
+
 import { useTranslations } from 'next-intl';
 import {
   TrendingUp,
@@ -6,7 +8,6 @@ import {
   Zap,
   Activity,
   RefreshCcw,
-  AlertTriangle, // New import
 } from 'lucide-react';
 import type { RouteWeatherPoint } from '@/lib/types';
 import { Card, CardContent } from '@/components/ui/card';
@@ -18,6 +19,7 @@ import { AreaChart, Area, ResponsiveContainer, YAxis, ReferenceLine } from 'rech
 interface RouteHazardsProps {
   weatherPoints: RouteWeatherPoint[];
   onSelectSegment?: (range: { start: number; end: number } | null) => void;
+  setActiveFilter?: (filter: { key: 'pathType' | 'surface' | 'hazard'; value: string } | null) => void;
   onClearSelection?: () => void;
 }
 
@@ -46,6 +48,7 @@ const getSlopeColorHex = (slope: number) => {
 export function RouteHazards({
   weatherPoints,
   onSelectSegment,
+  setActiveFilter,
   onClearSelection,
 }: RouteHazardsProps) {
   const t = useTranslations('Hazards');
@@ -55,7 +58,6 @@ export function RouteHazards({
 
   const segments = analyzeRouteSegments(weatherPoints);
 
-  // Take the most relevant segments (highest danger first, up to 8)
   const sortedSegments = [...segments]
     .sort((a, b) => {
       const levels = ['low', 'medium', 'high'];
@@ -65,6 +67,11 @@ export function RouteHazards({
     })
     .slice(0, 8);
 
+  const handleCardClick = (seg: any) => {
+    onSelectSegment?.({ start: seg.startDist, end: seg.endDist });
+    setActiveFilter?.({ key: 'hazard', value: `${seg.startDist}-${seg.endDist}` });
+  };
+
   return (
     <div className="flex flex-col gap-6">
       <div className="mb-4 flex justify-end">
@@ -72,7 +79,10 @@ export function RouteHazards({
           variant="secondary"
           size="sm"
           className="bg-card/90 hover:bg-card h-8 gap-2 shadow-md"
-          onClick={onClearSelection}
+          onClick={() => {
+            onClearSelection?.();
+            setActiveFilter?.(null);
+          }}
         >
           <RefreshCcw className="h-3.5 w-3.5" />
           <span className="text-[10px] font-bold tracking-wider uppercase">
@@ -105,7 +115,6 @@ export function RouteHazards({
           const maxEle = Math.max(...elevations);
           const distance = seg.endDist - seg.startDist;
 
-          // Find distance of max slope for marking
           const maxSlopeDist = chartData.reduce((prev, current) => 
             (current.slope > prev.slope) ? current : prev
           ).dist;
@@ -114,7 +123,7 @@ export function RouteHazards({
             <Card
               key={idx}
               className="border-border/50 bg-card hover:border-primary/50 cursor-pointer overflow-hidden transition-all hover:shadow-md active:scale-[0.98]"
-              onClick={() => onSelectSegment?.({ start: seg.startDist, end: seg.endDist })}
+              onClick={() => handleCardClick(seg)}
             >
               <CardContent className="p-0">
                 <div className="border-border/50 bg-muted/30 flex items-start justify-between border-b p-4">

@@ -88,7 +88,7 @@ export default function HomePageClient({ session }: HomePageClientProps) {
   const activityType = fetchedActivityType;
 
   const [activeFilter, setActiveFilter] = useState<{
-    key: 'pathType' | 'surface';
+    key: 'pathType' | 'surface' | 'hazard';
     value: string;
   } | null>(null);
   const [selectedRange, setSelectedRange] = useState<{ start: number; end: number } | null>(null);

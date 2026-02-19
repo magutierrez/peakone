@@ -2,6 +2,43 @@ import { useMemo } from 'react';
 import type { RoutePoint, RouteWeatherPoint } from '@/lib/types';
 import type { Feature, FeatureCollection, LineString, MultiLineString, Point } from 'geojson';
 
+const PATH_TYPE_COLORS: Record<string, string> = {
+  cycleway: '#3ecf8e',
+  path: '#10b981',
+  footway: '#059669',
+  pedestrian: '#059669',
+  track: '#8b5cf6',
+  residential: '#6b7280',
+  living_street: '#9ca3af',
+  primary: '#ef4444',
+  primary_link: '#ef4444',
+  trunk: '#b91c1c',
+  secondary: '#f59e0b',
+  secondary_link: '#f59e0b',
+  tertiary: '#fbbf24',
+  tertiary_link: '#fbbf24',
+  service: '#d1d5db',
+  unclassified: '#9ca3af',
+  raceway: '#1e1b4b',
+  unknown: '#e5e7eb',
+};
+
+const SURFACE_COLORS: Record<string, string> = {
+  asphalt: '#4b5563',
+  paved: '#6b7280',
+  paving_stones: '#9ca3af',
+  concrete: '#d1d5db',
+  gravel: '#d97706',
+  fine_gravel: '#f59e0b',
+  unpaved: '#b45309',
+  ground: '#78350f',
+  compacted: '#92400e',
+  dirt: '#a16207',
+  sand: '#fcd34d',
+  grass: '#10b981',
+  unknown: '#e5e7eb',
+};
+
 export function useMapLayers(
   points: RoutePoint[],
   weatherPoints?: RouteWeatherPoint[],
@@ -26,47 +63,86 @@ export function useMapLayers(
     };
   }, [points]);
 
-  const highlightedData = useMemo<Feature<MultiLineString> | null>(() => {
+  const highlightedData = useMemo<FeatureCollection<LineString> | null>(() => {
     if (!activeFilter || !weatherPoints || weatherPoints.length < 2 || points.length < 2) return null;
     
-    const segments: number[][][] = [];
-    let currentSegment: number[][] = [];
+    // Helper for slope colors (same as charts)
+    const getSlopeColorHex = (slope: number) => {
+      const absSlope = Math.abs(slope);
+      if (absSlope <= 1) return '#10b981';
+      if (absSlope < 5) return '#f59e0b';
+      if (absSlope < 10) return '#ef4444';
+      return '#991b1b';
+    };
 
-    // 1. Assign filter metadata to every high-res point by proximity to weather points
-    // This ensures the highlight follows the exact road curves of 'points'
-    points.forEach((p, i) => {
-      // Find the segment this point belongs to
-      // A point belongs to wp[j] if its distance is between wp[j-1] and wp[j]
-      let matchingWp = weatherPoints[0];
-      for (let j = 0; j < weatherPoints.length; j++) {
-        if (p.distanceFromStart <= weatherPoints[j].point.distanceFromStart) {
-          matchingWp = weatherPoints[j];
-          break;
-        }
-        if (j === weatherPoints.length - 1) matchingWp = weatherPoints[j];
-      }
+    const features: Feature<LineString>[] = [];
 
-      const matches = (matchingWp[activeFilter.key] || 'unknown') === activeFilter.value;
+    if (activeFilter.key === 'hazard') {
+      const [start, end] = activeFilter.value.split('-').map(Number);
       
-      if (matches) {
-        currentSegment.push([p.lon, p.lat]);
-      } else {
-        if (currentSegment.length > 1) {
-          segments.push(currentSegment);
+      // For hazards, we create many small segments each with its own color based on slope
+      for (let i = 0; i < points.length - 1; i++) {
+        const p1 = points[i];
+        const p2 = points[i+1];
+        
+        if (p1.distanceFromStart >= start && p2.distanceFromStart <= end) {
+          const distDiffM = (p2.distanceFromStart - p1.distanceFromStart) * 1000;
+          const eleDiffM = (p2.ele || 0) - (p1.ele || 0);
+          const slope = distDiffM > 0.1 ? (eleDiffM / distDiffM) * 100 : 0;
+          
+          features.push({
+            type: 'Feature',
+            geometry: {
+              type: 'LineString',
+              coordinates: [[p1.lon, p1.lat], [p2.lon, p2.lat]]
+            },
+            properties: {
+              color: getSlopeColorHex(slope)
+            }
+          });
         }
-        currentSegment = [];
       }
-    });
-
-    if (currentSegment.length > 1) segments.push(currentSegment);
-
-    return segments.length > 0
-      ? {
-          type: 'Feature',
-          properties: {},
-          geometry: { type: 'MultiLineString', coordinates: segments },
+    } else {
+      // Logic for pathType and surface (Solid color)
+      let currentSegment: number[][] = [];
+      points.forEach((p, i) => {
+        let matchingWp = weatherPoints[0];
+        for (let j = 0; j < weatherPoints.length; j++) {
+          if (p.distanceFromStart <= weatherPoints[j].point.distanceFromStart) {
+            matchingWp = weatherPoints[j];
+            break;
+          }
+          if (j === weatherPoints.length - 1) matchingWp = weatherPoints[j];
         }
-      : null;
+
+        const currentFilterValue = matchingWp[activeFilter.key as 'pathType' | 'surface'] || 'unknown';
+        const colorMap = activeFilter.key === 'pathType' ? PATH_TYPE_COLORS : SURFACE_COLORS;
+        const color = colorMap[currentFilterValue] || colorMap.unknown;
+
+        if (currentFilterValue === activeFilter.value) {
+          currentSegment.push([p.lon, p.lat]);
+        } else {
+          if (currentSegment.length > 1) {
+            features.push({
+              type: 'Feature',
+              geometry: { type: 'LineString', coordinates: currentSegment },
+              properties: { color }
+            });
+          }
+          currentSegment = [];
+        }
+      });
+      if (currentSegment.length > 1) {
+        const colorMap = activeFilter.key === 'pathType' ? PATH_TYPE_COLORS : SURFACE_COLORS;
+        features.push({
+          type: 'Feature',
+          geometry: { type: 'LineString', coordinates: currentSegment },
+          properties: { color: colorMap[activeFilter.value] || colorMap.unknown }
+        });
+      }
+    }
+
+    return features.length > 0 ? { type: 'FeatureCollection', features } : null;
   }, [activeFilter, weatherPoints, points]);
 
   const rangeHighlightData = useMemo<Feature<LineString> | null>(() => {
