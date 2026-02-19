@@ -284,6 +284,7 @@ export default function HomePageClient({ session }: HomePageClientProps) {
                     selectedPointIndex={selectedPointIndex}
                     setSelectedPointIndex={setSelectedPointIndex}
                     onRangeSelect={setSelectedRange}
+                    onSelectPoint={setExactSelectedPoint}
                     selectedRange={selectedRange}
                     activityType={activityType}
                     showWaterSources={showWaterSources}

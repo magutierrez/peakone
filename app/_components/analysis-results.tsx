@@ -27,6 +27,7 @@ interface AnalysisResultsProps {
   selectedPointIndex: number | null;
   setSelectedPointIndex: (index: number | null) => void;
   onRangeSelect: (range: { start: number; end: number } | null) => void;
+  onSelectPoint?: (point: any | null) => void; // New prop
   selectedRange: { start: number; end: number } | null;
   activityType: 'cycling' | 'walking';
   showWaterSources: boolean;
@@ -49,6 +50,7 @@ export function AnalysisResults({
   selectedPointIndex,
   setSelectedPointIndex,
   onRangeSelect,
+  onSelectPoint, // New prop
   selectedRange,
   activityType,
   showWaterSources,
@@ -163,6 +165,7 @@ export function AnalysisResults({
             onSelectSegment={(segment) =>
               segment && onRangeSelect({ start: segment?.start, end: segment?.end })
             }
+            onSelectPoint={onSelectPoint}
             setActiveFilter={setActiveFilter}
             onClearSelection={() => {
               onRangeSelect(null);

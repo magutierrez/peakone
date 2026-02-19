@@ -15,12 +15,13 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { analyzeRouteSegments } from '@/lib/utils';
 import { AreaChart, Area, ResponsiveContainer, YAxis, ReferenceLine, Tooltip } from 'recharts';
-import { useMemo } from 'react';
+import { useRef } from 'react';
 
 interface RouteHazardsProps {
   weatherPoints: RouteWeatherPoint[];
   allPoints?: any[];
   onSelectSegment?: (range: { start: number; end: number } | null) => void;
+  onSelectPoint?: (point: any | null) => void;
   setActiveFilter?: (filter: { key: 'pathType' | 'surface' | 'hazard'; value: string } | null) => void;
   onClearSelection?: () => void;
 }
@@ -41,21 +42,23 @@ const segmentColors: Record<string, string> = {
 
 const getSlopeColorHex = (slope: number) => {
   const absSlope = Math.abs(slope);
-  if (absSlope <= 1) return '#10b981'; // Flat - Emerald
-  if (absSlope < 5) return '#f59e0b';  // Moderate - Amber
-  if (absSlope < 10) return '#ef4444'; // Steep - Red
-  return '#991b1b';                    // Very Steep - Dark Red
+  if (absSlope <= 1) return '#10b981'; 
+  if (absSlope < 5) return '#f59e0b';  
+  if (absSlope < 10) return '#ef4444'; 
+  return '#991b1b';                    
 };
 
 export function RouteHazards({
   weatherPoints,
   allPoints = [],
   onSelectSegment,
+  onSelectPoint,
   setActiveFilter,
   onClearSelection,
 }: RouteHazardsProps) {
   const t = useTranslations('Hazards');
   const tRouteMap = useTranslations('RouteMap');
+  const lastUpdateRef = useRef<number>(0);
 
   if (weatherPoints.length === 0) return null;
 
@@ -75,6 +78,40 @@ export function RouteHazards({
     setActiveFilter?.({ key: 'hazard', value: `${seg.startDist}-${seg.endDist}` });
   };
 
+  const handleMouseMove = (e: any, segmentPoints: any[]) => {
+    if (e && e.activePayload && e.activePayload[0] && onSelectPoint) {
+      const activeDist = e.activePayload[0].payload.dist;
+      const now = Date.now();
+
+      if (now - lastUpdateRef.current > 16) {
+        // Find the precise point in the dense list
+        let p1 = segmentPoints[0];
+        let p2 = segmentPoints[1];
+        
+        for (let i = 0; i < segmentPoints.length - 1; i++) {
+          if (activeDist >= segmentPoints[i].distanceFromStart && activeDist <= segmentPoints[i+1].distanceFromStart) {
+            p1 = segmentPoints[i];
+            p2 = segmentPoints[i+1];
+            break;
+          }
+        }
+
+        if (p1 && p2) {
+          const segmentDist = p2.distanceFromStart - p1.distanceFromStart;
+          const ratio = segmentDist > 0 ? (activeDist - p1.distanceFromStart) / segmentDist : 0;
+
+          onSelectPoint({
+            lat: p1.lat + (p2.lat - p1.lat) * ratio,
+            lon: p1.lon + (p2.lon - p1.lon) * ratio,
+            ele: (p1.ele || 0) + ((p2.ele || 0) - (p1.ele || 0)) * ratio,
+            distanceFromStart: activeDist
+          });
+        }
+        lastUpdateRef.current = now;
+      }
+    }
+  };
+
   return (
     <div className="flex flex-col gap-6">
       <div className="mb-4 flex justify-end">
@@ -85,6 +122,7 @@ export function RouteHazards({
           onClick={() => {
             onClearSelection?.();
             setActiveFilter?.(null);
+            onSelectPoint?.(null);
           }}
         >
           <RefreshCcw className="h-3.5 w-3.5" />
@@ -95,7 +133,6 @@ export function RouteHazards({
       </div>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {sortedSegments.map((seg, idx) => {
-          // Optimization: Get high-resolution points for the chart from allPoints
           const densePoints = allPoints.length > 0 
             ? allPoints.filter(p => p.distanceFromStart >= seg.startDist && p.distanceFromStart <= seg.endDist)
             : seg.points.map(wp => wp.point);
@@ -170,7 +207,12 @@ export function RouteHazards({
 
                 <div className="bg-secondary/5 h-28 w-full relative group cursor-crosshair">
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={chartData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
+                    <AreaChart 
+                      data={chartData} 
+                      margin={{ top: 10, right: 0, left: 0, bottom: 0 }}
+                      onMouseMove={(e) => handleMouseMove(e, densePoints)}
+                      onMouseLeave={() => onSelectPoint?.(null)}
+                    >
                       <defs>
                         <linearGradient id={`grad-${idx}`} x1="0" y1="0" x2="1" y2="0">
                           {chartData.length > 1 && chartData.map((d, i) => (

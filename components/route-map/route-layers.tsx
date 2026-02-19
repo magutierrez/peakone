@@ -33,6 +33,30 @@ export function RouteLayers({
             }}
             layout={{ 'line-cap': 'round', 'line-join': 'round' }}
           />
+          <Layer
+            id="route-direction-arrows"
+            type="symbol"
+            layout={{
+              'symbol-placement': 'line',
+              'symbol-spacing': 80, // More frequent arrows
+              'text-field': '>', 
+              'text-size': [
+                'interpolate', ['linear'], ['zoom'],
+                10, 12,
+                18, 24
+              ],
+              'text-keep-upright': false,
+              'text-allow-overlap': true,
+              'text-rotate': 0, // In line-placement, 0 is along the line
+              'text-font': ['Open Sans Regular', 'Arial Unicode MS Regular'],
+            }}
+            paint={{
+              'text-color': mapType === 'standard' ? '#065f46' : '#ffffff',
+              'text-opacity': activeFilter || selectedRange ? 0.4 : 1,
+              'text-halo-color': mapType === 'standard' ? '#ffffff' : '#000000',
+              'text-halo-width': 2,
+            }}
+          />
         </Source>
       )}
 
