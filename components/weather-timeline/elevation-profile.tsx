@@ -352,7 +352,7 @@ export function AnalysisChart({
           </div>
           <div>
             <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest leading-none mb-1">
-              {t('highestPoint')}
+              {t('chart.highestPoint')}
             </p>
             <p className="text-sm font-black text-foreground leading-none">
               {formatElevation(stats.max, unitSystem)}
@@ -365,7 +365,7 @@ export function AnalysisChart({
           </div>
           <div>
             <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest leading-none mb-1">
-              {t('lowestPoint')}
+              {t('chart.lowestPoint')}
             </p>
             <p className="text-sm font-black text-foreground leading-none">
               {formatElevation(stats.min, unitSystem)}
