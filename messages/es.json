@@ -152,7 +152,8 @@
       "escapeDesc": "Pueblo o carretera principal a {dist}km",
       "noCoverage": "Zona sin cobertura",
       "lowCoverage": "Cobertura débil",
-      "evacuation": "Punto de evacuación"
+      "evacuation": "Punto de evacuación",
+      "viewOnMap": "Ver en el mapa"
     },
     "timelineTitle": "Timeline por punto",
     "elevationTitle": "Perfil de elevacion",

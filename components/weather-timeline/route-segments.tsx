@@ -7,7 +7,7 @@ import type { RouteWeatherPoint } from '@/lib/types';
 interface RouteSegmentsProps {
   weatherPoints: RouteWeatherPoint[];
   activeFilter?: { key: 'pathType' | 'surface'; value: string } | null;
-  onFilterChange?: (filter: { key: 'pathType' | 'surface'; value: string } | null) => void;
+  setActiveFilter?: (filter: { key: 'pathType' | 'surface'; value: string } | null) => void;
 }
 
 const PATH_TYPE_COLORS: Record<string, string> = {
@@ -47,7 +47,11 @@ const SURFACE_COLORS: Record<string, string> = {
   unknown: '#e5e7eb',
 };
 
-export function RouteSegments({ weatherPoints, activeFilter, onFilterChange }: RouteSegmentsProps) {
+export function RouteSegments({
+  weatherPoints,
+  activeFilter,
+  setActiveFilter,
+}: RouteSegmentsProps) {
   const t = useTranslations('WeatherTimeline');
 
   const totalPoints = weatherPoints.length;
@@ -71,9 +75,9 @@ export function RouteSegments({ weatherPoints, activeFilter, onFilterChange }: R
 
   const handleSegmentClick = (key: 'pathType' | 'surface', value: string) => {
     if (activeFilter?.key === key && activeFilter.value === value) {
-      onFilterChange?.(null);
+      setActiveFilter?.(null);
     } else {
-      onFilterChange?.({ key, value });
+      setActiveFilter?.({ key, value });
     }
   };
 

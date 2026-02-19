@@ -13,6 +13,7 @@ import {
   Cloud,
   PhoneOff,
   Signpost,
+  MapPin,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { WeatherIcon } from '@/components/weather-icon';
@@ -21,10 +22,12 @@ import { WEATHER_CODES } from '@/lib/types';
 import type { RouteWeatherPoint } from '@/lib/types';
 import { useSettings } from '@/hooks/use-settings';
 import { formatTemperature, formatWindSpeed, formatDistance, formatElevation } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 interface WeatherPointDetailProps {
   weatherPoint: RouteWeatherPoint;
   activityType: 'cycling' | 'walking';
+  onShowOnMap?: (lat: number, lon: number, name?: string) => void;
 }
 
 function getCoverageIconLabel(coverage: string | undefined, t: any) {
@@ -93,7 +96,11 @@ function getWindEffectIcon(effect: string) {
   }
 }
 
-export function WeatherPointDetail({ weatherPoint, activityType }: WeatherPointDetailProps) {
+export function WeatherPointDetail({
+  weatherPoint,
+  activityType,
+  onShowOnMap,
+}: WeatherPointDetailProps) {
   const t = useTranslations('WeatherTimeline');
   const tw = useTranslations('WeatherCodes');
   const { unitSystem, windUnit } = useSettings();
@@ -110,7 +117,7 @@ export function WeatherPointDetail({ weatherPoint, activityType }: WeatherPointD
     day: 'numeric',
     month: 'short',
   });
-
+  console.log(weatherPoint.escapePoint);
   const hasTranslation = !!tw.raw(weatherPoint.weather.weatherCode.toString());
   const weatherDescription = hasTranslation
     ? tw(weatherPoint.weather.weatherCode.toString() as any)
@@ -233,17 +240,36 @@ export function WeatherPointDetail({ weatherPoint, activityType }: WeatherPointD
         (weatherPoint.mobileCoverage && weatherPoint.mobileCoverage !== 'full')) && (
         <div className="mt-3 flex flex-wrap gap-3 rounded-lg border border-indigo-500/20 bg-indigo-500/5 p-3">
           {weatherPoint.escapePoint && (
-            <div className="flex flex-1 items-start gap-3">
-              <Signpost className="mt-0.5 h-4 w-4 shrink-0 text-indigo-500" />
-              <div>
-                <p className="text-foreground text-xs font-bold">{t('safety.evacuation')}</p>
-                <p className="text-muted-foreground text-[11px]">
-                  {t('safety.escapeDesc', { dist: weatherPoint.escapePoint.distanceFromRoute })}:
-                  <span className="ml-1 font-semibold text-indigo-600 dark:text-indigo-400">
-                    {weatherPoint.escapePoint.name}
-                  </span>
-                </p>
+            <div className="flex flex-1 items-start justify-between gap-3">
+              <div className="flex items-start gap-3">
+                <Signpost className="mt-0.5 h-4 w-4 shrink-0 text-indigo-500" />
+                <div>
+                  <p className="text-foreground text-xs font-bold">{t('safety.evacuation')}</p>
+                  <p className="text-muted-foreground text-[11px]">
+                    {t('safety.escapeDesc', { dist: weatherPoint.escapePoint.distanceFromRoute })}:
+                    <span className="ml-1 font-semibold text-indigo-600 dark:text-indigo-400">
+                      {weatherPoint.escapePoint.name}
+                    </span>
+                  </p>
+                </div>
               </div>
+              {onShowOnMap && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 gap-1 px-2 text-[10px] font-bold text-indigo-600 uppercase hover:bg-indigo-500/10 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
+                  onClick={() =>
+                    onShowOnMap(
+                      weatherPoint.escapePoint!.lat,
+                      weatherPoint.escapePoint!.lon,
+                      weatherPoint.escapePoint!.name,
+                    )
+                  }
+                >
+                  <MapPin className="h-3 w-3" />
+                  {t('safety.viewOnMap')}
+                </Button>
+              )}
             </div>
           )}
           {weatherPoint.mobileCoverage && weatherPoint.mobileCoverage !== 'full' && (

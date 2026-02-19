@@ -2,7 +2,7 @@
 
 import { Marker } from 'react-map-gl/maplibre';
 import { WindArrow } from '@/components/wind-arrow';
-import { MapPin, Droplets } from 'lucide-react';
+import { MapPin, Droplets, Signpost } from 'lucide-react';
 import type { RoutePoint, RouteWeatherPoint } from '@/lib/types';
 import { useTranslations } from 'next-intl';
 
@@ -17,6 +17,7 @@ interface MapMarkersProps {
   onHoverPoint: (index: number | null) => void;
   activityType?: 'cycling' | 'walking';
   showWaterSources?: boolean;
+  focusPoint?: { lat: number; lon: number; name?: string } | null;
 }
 
 export function MapMarkers({
@@ -30,6 +31,7 @@ export function MapMarkers({
   onHoverPoint,
   activityType,
   showWaterSources,
+  focusPoint,
 }: MapMarkersProps) {
   const t = useTranslations('WeatherTimeline');
   const startPoint = points[0];
@@ -165,6 +167,23 @@ export function MapMarkers({
           </Marker>
         );
       })}
+      {/* Focus Point (Highlighted Evacuation) */}
+      {focusPoint && (
+        <Marker longitude={focusPoint.lon} latitude={focusPoint.lat} anchor="bottom" z-index={200}>
+          <div className="animate-in fade-in slide-in-from-bottom-2 flex flex-col items-center">
+            <div className="rounded-lg bg-indigo-600 px-2.5 py-1.5 text-[10px] font-black tracking-wider text-white uppercase shadow-xl ring-2 ring-white">
+              {focusPoint.name || 'Evacuación'}
+            </div>
+            <div className="relative mt-1">
+              <div className="absolute inset-0 animate-ping rounded-full bg-indigo-500 opacity-40" />
+              <div className="relative flex h-10 w-10 items-center justify-center rounded-full border-4 border-white bg-indigo-600 shadow-2xl">
+                <Signpost className="h-5 w-5 text-white" />
+              </div>
+            </div>
+            <div className="h-3 w-1.5 rounded-full bg-indigo-600" />
+          </div>
+        </Marker>
+      )}
     </>
   );
 }

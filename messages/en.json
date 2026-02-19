@@ -152,7 +152,8 @@
       "escapeDesc": "Town or main road at {dist}km",
       "noCoverage": "No coverage",
       "lowCoverage": "Low coverage",
-      "evacuation": "Evacuation point"
+      "evacuation": "Evacuation point",
+      "viewOnMap": "See on map"
     },
     "timelineTitle": "Point-by-point timeline",
     "elevationTitle": "Elevation profile",

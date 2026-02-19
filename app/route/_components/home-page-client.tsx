@@ -93,6 +93,9 @@ export default function HomePageClient({ session }: HomePageClientProps) {
   } | null>(null);
   const [selectedRange, setSelectedRange] = useState<{ start: number; end: number } | null>(null);
   const [exactSelectedPoint, setExactSelectedPoint] = useState<any | null>(null);
+  const [focusPoint, setFocusPoint] = useState<{ lat: number; lon: number; name?: string } | null>(
+    null,
+  );
   const [showWaterSources, setShowWaterSources] = useState(false);
   const tHomePage = useTranslations('HomePage');
   const twt = useTranslations('WeatherTimeline');
@@ -288,6 +291,7 @@ export default function HomePageClient({ session }: HomePageClientProps) {
                     onFindBestWindow={handleFindBestWindow}
                     onSelectBestWindow={handleSelectBestWindow}
                     onAnalyzeBestWindow={handleSelectAndAnalyze}
+                    onShowOnMap={(lat, lon, name) => setFocusPoint({ lat, lon, name })}
                   />
                 ) : (
                   <div className="border-border bg-card/50 text-muted-foreground flex h-60 flex-col items-center justify-center rounded-lg border border-dashed p-6 text-center">
@@ -318,6 +322,7 @@ export default function HomePageClient({ session }: HomePageClientProps) {
               onClearSelection={() => setSelectedRange(null)}
               showWaterSources={showWaterSources}
               onResetToFullRouteView={(func) => (mapResetViewRef.current = func)}
+              focusPoint={focusPoint}
             />
           </div>
         </main>

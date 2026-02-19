@@ -26,6 +26,7 @@ interface AnalysisChartProps {
   selectedPoint: any | null; // Changed from index to full point object
   onSelect: (point: any | null) => void;
   onRangeSelect?: (range: { start: number; end: number } | null) => void;
+  selectedRange?: { start: number; end: number } | null;
   activeFilter?: any;
 }
 

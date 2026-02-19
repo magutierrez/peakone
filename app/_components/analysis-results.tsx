@@ -35,6 +35,7 @@ interface AnalysisResultsProps {
   onFindBestWindow?: () => void;
   onSelectBestWindow?: (time: string) => void;
   onAnalyzeBestWindow?: (time: string) => void;
+  onShowOnMap?: (lat: number, lon: number, name?: string) => void;
 }
 
 export function AnalysisResults({
@@ -55,6 +56,7 @@ export function AnalysisResults({
   onFindBestWindow = () => {},
   onSelectBestWindow = () => {},
   onAnalyzeBestWindow = () => {},
+  onShowOnMap,
 }: AnalysisResultsProps) {
   const t = useTranslations('HomePage');
   const tp = useTranslations('physiology');
@@ -128,6 +130,7 @@ export function AnalysisResults({
                   <WeatherPointDetail
                     weatherPoint={selectedWeatherPoint}
                     activityType={activityType}
+                    onShowOnMap={onShowOnMap}
                   />
                 );
               }

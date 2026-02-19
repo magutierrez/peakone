@@ -32,6 +32,7 @@ interface RouteMapProps {
   onClearSelection?: () => void;
   showWaterSources?: boolean;
   onResetToFullRouteView?: (func: () => void) => void;
+  focusPoint?: { lat: number; lon: number; name?: string } | null;
 }
 
 export default function RouteMap({
@@ -47,6 +48,7 @@ export default function RouteMap({
   onClearSelection,
   showWaterSources = false,
   onResetToFullRouteView,
+  focusPoint = null,
 }: RouteMapProps) {
   const { resolvedTheme } = useTheme();
   const mapRef = useRef<MapRef>(null);
@@ -111,6 +113,19 @@ export default function RouteMap({
     return null;
   }, [hoveredPointIdx, selectedPointIndex, weatherPoints]);
 
+  useEffect(() => {
+    if (focusPoint) {
+      const map = mapRef.current?.getMap();
+      if (map) {
+        map.flyTo({
+          center: [focusPoint.lon, focusPoint.lat],
+          zoom: 14,
+          duration: 2000,
+        });
+      }
+    }
+  }, [focusPoint]);
+
   if (!mounted) return null;
 
   return (
@@ -148,6 +163,7 @@ export default function RouteMap({
           onHoverPoint={setHoveredPointIdx}
           activityType={activityType}
           showWaterSources={showWaterSources}
+          focusPoint={focusPoint}
         />
 
         {popupInfo && <MapPopup popupInfo={popupInfo} onClose={() => setHoveredPointIdx(null)} />}
