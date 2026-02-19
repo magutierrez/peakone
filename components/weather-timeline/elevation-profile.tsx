@@ -1,6 +1,6 @@
 'use client';
 
-import { TrendingUp, RefreshCcw } from 'lucide-react';
+import { TrendingUp, RefreshCcw, ArrowUp, ArrowDown } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useMemo, useRef, useState } from 'react';
 import {
@@ -16,6 +16,8 @@ import {
 } from 'recharts';
 import type { RouteWeatherPoint } from '@/lib/types';
 import { Button } from '@/components/ui/button';
+import { useSettings } from '@/hooks/use-settings';
+import { formatElevation, formatDistance, cn } from '@/lib/utils';
 
 interface AnalysisChartProps {
   weatherPoints: RouteWeatherPoint[];
@@ -23,6 +25,7 @@ interface AnalysisChartProps {
   selectedIndex: number | null;
   onSelect: (index: number) => void;
   onRangeSelect?: (range: { start: number; end: number } | null) => void;
+  activeFilter?: any;
 }
 
 export function AnalysisChart({
@@ -33,6 +36,7 @@ export function AnalysisChart({
   onRangeSelect,
 }: AnalysisChartProps) {
   const t = useTranslations('WeatherTimeline');
+  const { unitSystem } = useSettings();
   const lastUpdateRef = useRef<number>(0);
 
   const [refAreaLeft, setRefAreaLeft] = useState<any>(null);
@@ -57,11 +61,21 @@ export function AnalysisChart({
     }));
   }, [elevationData, weatherPoints]);
 
+  const stats = useMemo(() => {
+    if (!displayData.length) return { min: 0, max: 0 };
+    const elevations = displayData.map(d => d.elevation);
+    return {
+      min: Math.min(...elevations),
+      max: Math.max(...elevations)
+    };
+  }, [displayData]);
+
   const getSlopeColorHex = (slope: number) => {
-    if (slope <= 1) return '#3ecf8e';
-    if (slope < 5) return '#f59e0b';
-    if (slope < 10) return '#ef4444';
-    return '#991b1b';
+    const absSlope = Math.abs(slope);
+    if (absSlope <= 1) return '#10b981'; // Flat - Emerald
+    if (absSlope < 5) return '#f59e0b';  // Moderate - Amber
+    if (absSlope < 10) return '#ef4444'; // Steep - Red
+    return '#991b1b';                    // Very Steep - Dark Red
   };
 
   const { chartData } = useMemo(() => {
@@ -71,20 +85,16 @@ export function AnalysisChart({
         const prev = displayData[idx - 1];
         const distDiff = (d.distance - prev.distance) * 1000;
         const eleDiff = d.elevation - prev.elevation;
-        if (distDiff > 0.1) { // Only calc slope if distance is relevant
+        if (distDiff > 0.1) {
           slope = (eleDiff / distDiff) * 100;
         }
       }
 
-      // Ensure no NaN values
-      const safeSlope = isNaN(slope) ? 0 : slope;
-      const safeEle = isNaN(d.elevation) ? 0 : d.elevation;
-
       return {
         ...d,
-        elevation: safeEle,
-        slope: Math.round(safeSlope * 10) / 10,
-        color: getSlopeColorHex(safeSlope),
+        elevation: isNaN(d.elevation) ? 0 : d.elevation,
+        slope: Math.round(slope * 10) / 10,
+        color: getSlopeColorHex(slope),
       };
     });
     return { chartData: data };
@@ -97,35 +107,25 @@ export function AnalysisChart({
     
     const actualMin = chartData[0].distance;
     const actualMax = chartData[chartData.length - 1].distance;
-    
     const domainMin = left === 'dataMin' ? actualMin : left;
     const domainMax = right === 'dataMax' ? actualMax : right;
     const domainRange = domainMax - domainMin;
 
     const stops: { offset: string; color: string }[] = [];
-
     const firstIndex = chartData.findIndex(d => d.distance >= domainMin);
     const lastIndex = [...chartData].reverse().findIndex(d => d.distance <= domainMax);
     const actualLastIndex = chartData.length - 1 - lastIndex;
 
-    const startIndex = Math.max(0, firstIndex - 1);
-    const endIndex = Math.min(chartData.length - 1, actualLastIndex + 1);
-
-    for (let i = startIndex; i <= endIndex; i++) {
+    for (let i = Math.max(0, firstIndex - 1); i <= Math.min(chartData.length - 1, actualLastIndex + 1); i++) {
       const d = chartData[i];
-      const distanceValue = d.distance;
-      const percentage = domainRange > 0 ? ((distanceValue - domainMin) / domainRange) * 100 : 0;
+      const percentage = domainRange > 0 ? ((d.distance - domainMin) / domainRange) * 100 : 0;
       stops.push({
         offset: `${Math.max(0, Math.min(100, percentage))}%`,
-        color: d.color || '#3ecf8e',
+        color: d.color || '#10b981',
       });
     }
 
-    if (stops.length === 0) {
-      return [{ offset: '0%', color: '#3ecf8e' }, { offset: '100%', color: '#3ecf8e' }];
-    }
-
-    return stops;
+    return stops.length ? stops : [{ offset: '0%', color: '#10b981' }, { offset: '100%', color: '#10b981' }];
   }, [chartData, left, right]);
 
   const handleMouseMove = (e: any) => {
@@ -149,13 +149,11 @@ export function AnalysisChart({
         lastUpdateRef.current = now;
       }
     }
-    if (refAreaLeft !== null && e) {
-      setRefAreaRight(e.activeLabel);
-    }
+    if (refAreaLeft !== null && e) setRefAreaRight(e.activeLabel);
   };
 
   const zoom = () => {
-    if (refAreaLeft === refAreaRight || refAreaRight === null || refAreaLeft === null) {
+    if (refAreaLeft === refAreaRight || !refAreaRight || !refAreaLeft) {
       setRefAreaLeft(null);
       setRefAreaRight(null);
       return;
@@ -194,17 +192,24 @@ export function AnalysisChart({
       : null;
 
   return (
-    <div className="rounded-xl border border-border bg-card p-4 select-none">
-      <div className="mb-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <TrendingUp className="h-4 w-4 text-primary" />
-          <h3 className="text-sm font-semibold text-foreground">{t('elevationTitle')}</h3>
+    <div className="rounded-xl border border-border bg-card p-6 select-none shadow-sm">
+      <div className="mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-primary/10 rounded-lg">
+            <TrendingUp className="h-4 w-4 text-primary" />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-foreground leading-none">{t('elevationTitle')}</h3>
+            <p className="text-[10px] text-muted-foreground mt-1 uppercase font-semibold tracking-wider">
+              {formatDistance(chartData[chartData.length-1]?.distance || 0, unitSystem)}
+            </p>
+          </div>
           {(left !== 'dataMin' || right !== 'dataMax') && (
             <Button
-              variant="ghost"
+              variant="secondary"
               size="sm"
               onClick={resetZoom}
-              className="h-6 gap-1 px-2 text-[10px] text-muted-foreground hover:text-foreground bg-secondary/50"
+              className="h-7 gap-1.5 px-2 text-[10px] font-bold uppercase tracking-tight"
             >
               <RefreshCcw className="h-3 w-3" />
               {t('chart.resetZoom')}
@@ -212,26 +217,26 @@ export function AnalysisChart({
           )}
         </div>
         {selectedIndex !== null && weatherPoints[selectedIndex] && (
-          <div className="flex items-center gap-2">
+          <div className="bg-secondary/50 px-3 py-1.5 rounded-full border border-border/50 flex items-center gap-2 shadow-inner">
             <div
-              className="h-2.5 w-2.5 rounded-full animate-pulse"
+              className="h-2 w-2 rounded-full shadow-sm"
               style={{
                 backgroundColor:
                   chartData.find(
                     (d) =>
                       Math.abs(d.distance - weatherPoints[selectedIndex].point.distanceFromStart) <
                       0.1,
-                  )?.color || '#3ecf8e',
+                  )?.color || '#10b981',
               }}
             />
-            <span className="text-xs font-bold font-mono text-foreground">
-              {Math.round(weatherPoints[selectedIndex].point.ele || 0)}m
+            <span className="text-xs font-black font-mono text-foreground">
+              {formatElevation(weatherPoints[selectedIndex].point.ele || 0, unitSystem)}
             </span>
           </div>
         )}
       </div>
 
-      <div className="h-48 w-full cursor-crosshair">
+      <div className="h-56 w-full cursor-crosshair mb-6">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
             data={chartData}
@@ -239,6 +244,7 @@ export function AnalysisChart({
             onMouseMove={handleMouseMove}
             onMouseUp={zoom}
             onDoubleClick={resetZoom}
+            margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
           >
             <defs>
               <linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="0">
@@ -246,53 +252,52 @@ export function AnalysisChart({
                   <stop key={`line-${i}`} offset={stop.offset} stopColor={stop.color} />
                 ))}
               </linearGradient>
-              <linearGradient id={`${gradientId}-fill`} x1="0" y1="0" x2="1" y2="0">
-                {gradientStops.map((stop, i) => (
-                  <stop key={`fill-${i}`} offset={stop.offset} stopColor={stop.color} stopOpacity={0.2} />
-                ))}
+              <linearGradient id={`${gradientId}-fill`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.15} />
+                <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0.01} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" opacity={0.1} />
             <XAxis
               dataKey="distance"
               type="number"
               domain={[left, right]}
-              tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
-              axisLine={{ stroke: 'hsl(var(--border))' }}
-              tickFormatter={(val) => `${val.toFixed(1)} km`}
-              minTickGap={30}
+              tick={{ fontSize: 10, fill: 'currentColor', opacity: 0.6, fontWeight: 500 }}
+              axisLine={{ stroke: 'currentColor', opacity: 0.1 }}
+              tickLine={false}
+              tickFormatter={(val) => formatDistance(val, unitSystem)}
+              minTickGap={40}
               allowDataOverflow
             />
             <YAxis
               type="number"
               domain={['auto', 'auto']}
-              padding={{ top: 20, bottom: 20 }}
-              tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
-              axisLine={{ stroke: 'hsl(var(--border))' }}
-              tickFormatter={(val) => `${Math.round(val)}m`}
+              tick={{ fontSize: 10, fill: 'currentColor', opacity: 0.6, fontWeight: 500 }}
+              axisLine={false}
+              tickLine={false}
+              tickFormatter={(val) => formatElevation(val, unitSystem)}
               allowDataOverflow
-              label={{ value: 'm', position: 'insideTopLeft', offset: -10, fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
             />
             <Tooltip
               content={({ active, payload }) => {
                 if (active && payload && payload.length) {
                   const data = payload[0].payload;
                   return (
-                    <div className="rounded-lg border border-border bg-background p-2 shadow-md flex items-center gap-3">
-                      <div className="flex flex-col">
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase">
-                          km {data.distance.toFixed(1)}
+                    <div className="rounded-xl border border-border bg-background/95 backdrop-blur-sm p-3 shadow-xl flex items-center gap-4 animate-in fade-in zoom-in duration-200">
+                      <div className="flex flex-col gap-0.5">
+                        <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">
+                          {formatDistance(data.distance, unitSystem)}
                         </p>
-                        <span className="text-sm font-bold text-foreground">{data.elevation}m</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 border-l border-border pl-3">
-                        <div
-                          className="h-2 w-2 rounded-full"
-                          style={{ backgroundColor: data.color }}
-                        />
-                        <span className="text-xs font-bold font-mono text-foreground">
-                          {data.slope}%
+                        <span className="text-sm font-black text-foreground">
+                          {formatElevation(data.elevation, unitSystem)}
                         </span>
+                      </div>
+                      <div className="flex flex-col items-center border-l border-border pl-4 gap-1">
+                        <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-tighter">{t('slope')}</span>
+                        <div className="flex items-center gap-1.5">
+                          <div className="h-2 w-2 rounded-full shadow-sm" style={{ backgroundColor: data.color }} />
+                          <span className="text-xs font-black font-mono text-foreground">{data.slope}%</span>
+                        </div>
                       </div>
                     </div>
                   );
@@ -303,10 +308,10 @@ export function AnalysisChart({
             <Area
               type="linear"
               dataKey="elevation"
-              stroke={gradientStops.length > 0 ? `url(#${gradientId})` : '#3ecf8e'}
-              strokeWidth={2}
+              stroke={gradientStops.length > 0 ? `url(#${gradientId})` : '#10b981'}
+              strokeWidth={3}
               fillOpacity={1}
-              fill={gradientStops.length > 0 ? `url(#${gradientId}-fill)` : '#3ecf8e'}
+              fill={`url(#${gradientId}-fill)`}
               isAnimationActive={false}
               connectNulls
             />
@@ -314,8 +319,9 @@ export function AnalysisChart({
             {selectedDataInChart && (
               <ReferenceLine
                 x={selectedDataInChart.distance}
-                stroke="hsl(var(--foreground))"
-                strokeDasharray="3 3"
+                stroke="hsl(var(--primary))"
+                strokeWidth={2}
+                strokeDasharray="4 4"
               />
             )}
 
@@ -323,13 +329,41 @@ export function AnalysisChart({
               <ReferenceArea
                 x1={refAreaLeft}
                 x2={refAreaRight}
-                strokeOpacity={0.3}
                 fill="hsl(var(--primary))"
-                fillOpacity={0.1}
+                fillOpacity={0.05}
               />
             )}
           </AreaChart>
         </ResponsiveContainer>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 border-t border-border/50 pt-4 mt-2">
+        <div className="flex items-center gap-3 px-2 py-1.5 rounded-lg bg-secondary/20 border border-border/30">
+          <div className="p-1.5 bg-emerald-500/10 rounded-md">
+            <ArrowUp className="h-3.5 w-3.5 text-emerald-600" />
+          </div>
+          <div>
+            <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest leading-none mb-1">
+              {t('chart.highestPoint')}
+            </p>
+            <p className="text-sm font-black text-foreground leading-none">
+              {formatElevation(stats.max, unitSystem)}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3 px-2 py-1.5 rounded-lg bg-secondary/20 border border-border/30">
+          <div className="p-1.5 bg-rose-500/10 rounded-md">
+            <ArrowDown className="h-3.5 w-3.5 text-rose-600" />
+          </div>
+          <div>
+            <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest leading-none mb-1">
+              {t('chart.lowestPoint')}
+            </p>
+            <p className="text-sm font-black text-foreground leading-none">
+              {formatElevation(stats.min, unitSystem)}
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );

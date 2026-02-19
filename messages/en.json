@@ -164,7 +164,9 @@
       "slopeEasy": "Easy",
       "slopeModerate": "Moderate",
       "slopeHard": "Hard",
-      "resetZoom": "Reset zoom"
+      "resetZoom": "Reset zoom",
+      "highestPoint": "Highest point",
+      "lowestPoint": "Lowest point"
     },
     "windEffect": {
       "tailwind": "Tailwind",
