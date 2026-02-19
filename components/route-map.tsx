@@ -26,7 +26,7 @@ interface RouteMapProps {
   weatherPoints?: RouteWeatherPoint[];
   selectedPointIndex?: number | null;
   fullSelectedPointIndex?: number | null;
-  exactSelectedPoint?: any | null; // New prop for ultra-precise sync
+  exactSelectedPoint?: any | null; 
   onPointSelect?: (index: number) => void;
   activeFilter?: { key: 'pathType' | 'surface'; value: string } | null;
   selectedRange?: { start: number; end: number } | null;
@@ -70,11 +70,31 @@ export default function RouteMap({
 
   const { resetToFullRouteView } = useMapView(mapRef, points, selectedRange);
 
+  // Helper to ensure terrain is applied globally
+  const syncTerrain = useCallback(() => {
+    const map = mapRef.current?.getMap();
+    if (!map || !map.isStyleLoaded()) return;
+
+    if (!map.getSource('open-terrain')) {
+      map.addSource('open-terrain', {
+        type: 'raster-dem',
+        tiles: ['https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png'],
+        encoding: 'terrarium',
+        tileSize: 256,
+        maxzoom: 14
+      });
+    }
+
+    // Terrain is ALWAYS enabled
+    if (!map.getTerrain()) {
+      map.setTerrain({ source: 'open-terrain', exaggeration: 1.5 });
+    }
+  }, []);
+
   const handleStopPlayer = useCallback(() => {
     setIsPlayerActive(false);
     const map = mapRef.current?.getMap();
     if (map) {
-      map.setTerrain(null);
       map.jumpTo({
         pitch: 0,
         bearing: 0,
@@ -82,6 +102,16 @@ export default function RouteMap({
     }
     resetToFullRouteView();
   }, [resetToFullRouteView]);
+
+  const onMapLoad = useCallback((event: any) => {
+    syncTerrain();
+    // Re-apply on any style change (layer switch)
+    event.target.on('styledata', syncTerrain);
+  }, [syncTerrain]);
+
+  useEffect(() => {
+    syncTerrain();
+  }, [mapStyle, syncTerrain]);
 
   useEffect(() => {
     if (onResetToFullRouteView) {
@@ -120,6 +150,9 @@ export default function RouteMap({
         style={{ width: '100%', height: '100%' }}
         mapStyle={mapStyle as any}
         onClick={onMapClick}
+        onLoad={onMapLoad}
+        dragRotate={true}
+        touchZoomRotate={true}
       >
         <NavigationControl position="bottom-right" />
 
@@ -145,7 +178,6 @@ export default function RouteMap({
           showWaterSources={showWaterSources}
         />
 
-        {/* 3D Player Marker (Dynamic Layer) */}
         {isPlayerActive && (
           <>
             <Source
