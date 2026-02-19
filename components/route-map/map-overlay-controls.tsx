@@ -8,6 +8,7 @@ interface MapOverlayControlsProps {
   isPlayerActive: boolean;
   pointsCount: number;
   selectedRange: any;
+  activeFilter?: any; // New prop
   onStartPlayer: () => void;
   onClearSelection: (() => void) | undefined;
 }
@@ -16,6 +17,7 @@ export function MapOverlayControls({
   isPlayerActive,
   pointsCount,
   selectedRange,
+  activeFilter,
   onStartPlayer,
   onClearSelection,
 }: MapOverlayControlsProps) {
@@ -39,7 +41,7 @@ export function MapOverlayControls({
         </div>
       )}
 
-      {selectedRange && onClearSelection && (
+      {(selectedRange || activeFilter) && onClearSelection && (
         <div className="animate-in fade-in slide-in-from-left-2 absolute top-3 left-3 z-10">
           <Button
             variant="secondary"

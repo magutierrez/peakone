@@ -8,6 +8,7 @@ interface RouteSegmentsProps {
   weatherPoints: RouteWeatherPoint[];
   activeFilter?: { key: 'pathType' | 'surface'; value: string } | null;
   setActiveFilter?: (filter: { key: 'pathType' | 'surface'; value: string } | null) => void;
+  onRangeSelect?: (range: { start: number; end: number } | null) => void;
 }
 
 const PATH_TYPE_COLORS: Record<string, string> = {
@@ -51,6 +52,7 @@ export function RouteSegments({
   weatherPoints,
   activeFilter,
   setActiveFilter,
+  onRangeSelect,
 }: RouteSegmentsProps) {
   const t = useTranslations('WeatherTimeline');
 
@@ -76,8 +78,17 @@ export function RouteSegments({
   const handleSegmentClick = (key: 'pathType' | 'surface', value: string) => {
     if (activeFilter?.key === key && activeFilter.value === value) {
       setActiveFilter?.(null);
+      onRangeSelect?.(null);
     } else {
       setActiveFilter?.({ key, value });
+
+      // Find the distance range for this filter
+      const matchingPoints = weatherPoints.filter((wp) => (wp[key] || 'unknown') === value);
+      if (matchingPoints.length > 0) {
+        const startDist = Math.min(...matchingPoints.map((p) => p.point.distanceFromStart));
+        const endDist = Math.max(...matchingPoints.map((p) => p.point.distanceFromStart));
+        onRangeSelect?.({ start: startDist, end: endDist });
+      }
     }
   };
 

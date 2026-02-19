@@ -265,9 +265,10 @@ export default function HomePageClient({ session }: HomePageClientProps) {
                   </TabsContent>
                   <TabsContent value="terrain" className="mt-0">
                     <RouteSegments
-                      weatherPoints={routeInfoData}
+                      weatherPoints={weatherPoints}
                       activeFilter={activeFilter}
                       setActiveFilter={setActiveFilter}
+                      onRangeSelect={setSelectedRange}
                     />
                   </TabsContent>
                 </Tabs>

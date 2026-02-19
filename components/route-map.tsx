@@ -177,6 +177,7 @@ export default function RouteMap({
         isPlayerActive={isPlayerActive}
         pointsCount={points.length}
         selectedRange={selectedRange}
+        activeFilter={activeFilter}
         onStartPlayer={() => setIsPlayerActive(true)}
         onClearSelection={onClearSelection}
       />
