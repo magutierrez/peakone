@@ -27,20 +27,16 @@ export function useSavedRoutes() {
   } = useSWR(userEmail ? [ROUTES_CACHE_KEY, userEmail] : null, async ([, email]) => {
     const db = await getDb();
     if (!db) {
-      console.log('DB instance is null, returning empty routes.');
       return [];
     }
 
     try {
-      console.log(`Fetching saved routes for user: ${email}`);
       const result = await db.query<SavedRoute>(
         `SELECT * FROM saved_routes WHERE user_email = $1 ORDER BY created_at DESC`,
         [email],
       );
-      console.log('Fetched routes:', result.rows);
       return result.rows;
     } catch (e) {
-      console.error('Error fetching saved routes:', e);
       return [];
     }
   });
@@ -60,7 +56,6 @@ export function useSavedRoutes() {
       );
 
       if (existing.rows.length > 0) {
-        console.log('Route already exists, returning existing ID:', existing.rows[0].id);
         return existing.rows[0].id;
       }
 
@@ -68,7 +63,6 @@ export function useSavedRoutes() {
       try {
         routeId = crypto.randomUUID();
       } catch (e) {
-        console.error('crypto.randomUUID() failed or is not available in useSavedRoutes, falling back to Math.random UUID:', e);
         routeId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
           const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
           return v.toString(16);
@@ -76,7 +70,6 @@ export function useSavedRoutes() {
       }
 
       if (!routeId) {
-        console.error('Failed to generate a routeId in useSavedRoutes.');
         throw new Error('Failed to generate unique ID for route.');
       }
 
@@ -89,7 +82,6 @@ export function useSavedRoutes() {
       await mutate([ROUTES_CACHE_KEY, userEmail]);
       return routeId;
     } catch (e) {
-      console.error('Failed to save route', e);
       throw e;
     }
   };
@@ -103,7 +95,7 @@ export function useSavedRoutes() {
       await db.query(`DELETE FROM saved_routes WHERE id = $1`, [id]);
       mutate([ROUTES_CACHE_KEY, userEmail]);
     } catch (e) {
-      console.error('Failed to delete route', e);
+      // Ignore
     }
   };
 
@@ -116,7 +108,7 @@ export function useSavedRoutes() {
       await db.query(`UPDATE saved_routes SET name = $1 WHERE id = $2`, [newName, id]);
       mutate([ROUTES_CACHE_KEY, userEmail]);
     } catch (e) {
-      console.error('Failed to update route name', e);
+      // Ignore
     }
   };
 

@@ -90,7 +90,6 @@ export function useRouteAnalysis(
         setError(null);
         setIsWeatherAnalyzed(false); // Reset weather analysis status
       } catch (err) {
-        console.error('Error parsing initial GPX content:', err);
         setError(t('errors.readError'));
       }
     }
@@ -140,7 +139,6 @@ export function useRouteAnalysis(
       setRecalculatedElevationLoss(totalElevationLoss);
       const calculatedDistance = elevationData[elevationData.length - 1].distance;
       setRecalculatedTotalDistance(calculatedDistance);
-      console.log('useRouteAnalysis: recalculatedTotalDistance set to', calculatedDistance);
     }
   }, [elevationData]);
 
@@ -180,7 +178,6 @@ export function useRouteAnalysis(
         setRouteInfoData(data.pathData || []);
       }
     } catch (e) {
-      console.error('Failed to fetch route info', e);
       setError(t('errors.unknownError'));
     } finally {
       setIsRouteInfoLoading(false);
@@ -244,7 +241,6 @@ export function useRouteAnalysis(
 
     try {
       const sampled = sampleRoutePoints(gpxData.points, 48);
-      console.log(analysisConfig);
       const startTime = new Date(`${analysisConfig.date}T${analysisConfig.time}:00`);
 
       if (isNaN(startTime.getTime())) {
@@ -417,7 +413,7 @@ export function useRouteAnalysis(
         setBestWindows(data.windows || []);
       }
     } catch (e) {
-      console.error('Failed to find best window', e);
+      // Ignore
     } finally {
       setIsFindingWindow(false);
     }

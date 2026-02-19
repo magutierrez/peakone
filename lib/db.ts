@@ -63,7 +63,6 @@ export async function saveRouteToDb(
   try {
     routeId = crypto.randomUUID();
   } catch (e) {
-    console.error('crypto.randomUUID() failed or is not available, falling back to Math.random UUID:', e);
     // Fallback if crypto.randomUUID is not available (e.g., in some non-secure contexts)
     routeId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
       const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
@@ -72,12 +71,9 @@ export async function saveRouteToDb(
   }
 
   if (!routeId) {
-    console.error('Failed to generate a routeId.');
     return null;
   }
   
-  console.log('Generated routeId:', routeId); // Debugging: log the generated ID
-
   try {
     await db.query(
       `INSERT INTO saved_routes (id, user_email, name, gpx_content, activity_type, distance, elevation_gain, elevation_loss)
@@ -86,7 +82,6 @@ export async function saveRouteToDb(
     );
     return routeId;
   } catch (error) {
-    console.error('Error saving route to DB:', error);
     return null;
   }
 }
@@ -124,7 +119,6 @@ export async function getRouteFromDb(
     }
     return null;
   } catch (error) {
-    console.error('Error getting route from DB:', error);
     return null;
   }
 }
