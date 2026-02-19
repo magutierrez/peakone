@@ -118,6 +118,9 @@
     "averageSpeed": "Average speed (km/h)",
     "estimatedDuration": "Estimated duration",
     "durationFormat": "{hours}h {minutes}min",
+    "hours": "Hours",
+    "minutes": "Minutes",
+    "adjustDurationDesc": "Adjust the duration to automatically recalculate the average speed.",
     "analyze": "Analyze route",
     "analyzing": "Analyzing..."
   },

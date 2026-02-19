@@ -118,6 +118,9 @@
     "averageSpeed": "Velocidad media",
     "estimatedDuration": "Duracion estimada",
     "durationFormat": "{hours}h {minutes}min",
+    "hours": "Horas",
+    "minutes": "Minutos",
+    "adjustDurationDesc": "Ajusta la duración para recalcular la velocidad media automáticamente.",
     "analyze": "Analizar ruta",
     "analyzing": "Analizando..."
   },

@@ -107,7 +107,7 @@ export function ActivityConfigSection({
                     
                     <div className="grid grid-cols-2 gap-4">
                       <div className="flex flex-col gap-2">
-                        <Label className="text-[10px] text-muted-foreground font-bold uppercase">Horas</Label>
+                        <Label className="text-[10px] text-muted-foreground font-bold uppercase">{t('hours')}</Label>
                         <Input 
                           type="number" 
                           min={0} 
@@ -118,7 +118,7 @@ export function ActivityConfigSection({
                         />
                       </div>
                       <div className="flex flex-col gap-2">
-                        <Label className="text-[10px] text-muted-foreground font-bold uppercase">Minutos</Label>
+                        <Label className="text-[10px] text-muted-foreground font-bold uppercase">{t('minutes')}</Label>
                         <Input 
                           type="number" 
                           min={0} 
@@ -144,7 +144,7 @@ export function ActivityConfigSection({
                         className="w-full accent-primary h-1.5 bg-secondary rounded-lg appearance-none cursor-pointer"
                       />
                       <p className="text-[10px] text-center text-muted-foreground italic leading-tight">
-                        Ajusta la duración para recalcular la velocidad media automáticamente.
+                        {t('adjustDurationDesc')}
                       </p>
                     </div>
                   </div>
