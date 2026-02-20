@@ -73,7 +73,7 @@ export function SavedRoutesList({ onLoadRoute }: SavedRoutesListProps) {
         </h3>
       </div>
 
-      <ScrollArea className="h-[350px] w-full pr-4">
+      <ScrollArea className="max-h-[350px] min-h-[130px] w-full pr-4">
         <div className="flex w-full flex-col gap-2">
           {routes.map((route) => (
             <div
