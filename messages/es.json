@@ -37,6 +37,8 @@
   },
   "SetupPage": {
     "title": "Planifica tu Ruta",
+    "uploadGPX": "Subir GPX",
+    "strava": "Strava",
     "selectRouteSource": "Selecciona Origen de Ruta",
     "savedRoutes": "Mis Rutas Guardadas",
     "analyzeRoute": "Analizar Ruta",

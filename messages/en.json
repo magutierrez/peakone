@@ -37,6 +37,8 @@
   },
   "SetupPage": {
     "title": "Plan Your Route",
+    "uploadGPX": "Upload GPX",
+    "strava": "Strava",
     "selectRouteSource": "Select Route Source",
     "savedRoutes": "My Saved Routes",
     "analyzeRoute": "Analyze Route",

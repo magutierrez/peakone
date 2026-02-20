@@ -15,10 +15,11 @@ import { StravaConnector } from '../../_components/strava-connector';
 import { StravaActivitiesList } from '@/components/strava-activities-list';
 import { SavedRoutesList } from '@/components/saved-routes-list';
 import { Button } from '@/components/ui/button';
-import { Bike, Footprints, ArrowRight } from 'lucide-react';
+import { Bike, Footprints, ArrowRight, FileUp, History, Activity } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { LocaleSwitcher } from '@/app/_components/locale-switcher';
 import { UserMenu } from '@/app/_components/user-menu';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface SetupPageClientProps {
   session: Session | null;
@@ -125,68 +126,91 @@ export function SetupPageClient({ session }: SetupPageClientProps) {
       <div className="border-border bg-card w-full max-w-2xl rounded-xl border p-6 shadow-xl">
         <h1 className="text-foreground mb-6 text-center text-2xl font-bold">{t('title')}</h1>
 
-        <div className="mb-8 flex flex-col gap-6">
-          <div className="flex flex-col gap-3">
-            <Label className="text-muted-foreground text-sm font-semibold">
-              {t('selectRouteSource')}
-            </Label>
-            <GPXUpload
-              onFileLoaded={handleGPXLoaded}
-              fileName={selectedGpxFileName}
-              onClear={handleClearGPX}
-            />
-          </div>
+        <Tabs defaultValue="gpx" className="mb-8 w-full">
+          <TabsList className="mb-6 grid w-full grid-cols-3">
+            <TabsTrigger value="gpx" className="gap-2">
+              <FileUp className="h-4 w-4" />
+              <span className="hidden sm:inline">{t('uploadGPX')}</span>
+              <span className="sm:hidden">GPX</span>
+            </TabsTrigger>
+            <TabsTrigger value="strava" className="gap-2">
+              <Activity className="h-4 w-4" />
+              <span>{t('strava')}</span>
+            </TabsTrigger>
+            <TabsTrigger value="saved" className="gap-2">
+              <History className="h-4 w-4" />
+              <span className="hidden sm:inline">{t('savedRoutes')}</span>
+              <span className="sm:hidden">{t('savedRoutes').split(' ')[0]}</span>
+            </TabsTrigger>
+          </TabsList>
 
-          <div className="flex flex-col gap-3">
-            <StravaConnector />
-            {session?.provider === 'strava' && (
-              <StravaActivitiesList onLoadGPX={handleStravaActivityLoaded} />
-            )}
-          </div>
+          <TabsContent value="gpx" className="flex flex-col gap-4">
+            <div className="flex flex-col gap-3">
+              <Label className="text-muted-foreground text-sm font-semibold">
+                {t('selectRouteSource')}
+              </Label>
+              <GPXUpload
+                onFileLoaded={handleGPXLoaded}
+                fileName={selectedGpxFileName}
+                onClear={handleClearGPX}
+              />
+            </div>
+          </TabsContent>
 
-          <div className="flex flex-col gap-3">
-            <Label className="text-muted-foreground text-sm font-semibold">
-              {t('savedRoutes')}
-            </Label>
-            <SavedRoutesList onLoadRoute={handleGPXLoaded} />
-          </div>
+          <TabsContent value="strava" className="flex flex-col gap-4">
+            <div className="flex flex-col gap-3">
+              <StravaConnector />
+              {session?.provider === 'strava' && (
+                <StravaActivitiesList onLoadGPX={handleStravaActivityLoaded} />
+              )}
+            </div>
+          </TabsContent>
 
+          <TabsContent value="saved" className="flex flex-col gap-4">
+            <div className="flex flex-col gap-3">
+              <Label className="text-muted-foreground text-sm font-semibold">
+                {t('savedRoutes')}
+              </Label>
+              <SavedRoutesList onLoadRoute={handleGPXLoaded} />
+            </div>
+          </TabsContent>
+        </Tabs>
+
+        <div className="mb-8">
           {selectedGpxData && (
-            <>
-              <div className="grid grid-cols-1 gap-4">
-                <div className="flex flex-col gap-3">
-                  <Label className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
-                    {tRouteConfig('activity')}
-                  </Label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      onClick={() => setActivityType('cycling')}
-                      className={cn(
-                        'flex items-center justify-center gap-2 rounded-lg border p-3 text-sm font-medium transition-all',
-                        activityType === 'cycling'
-                          ? 'border-primary bg-primary/10 text-primary'
-                          : 'border-border bg-secondary text-muted-foreground hover:border-primary/30',
-                      )}
-                    >
-                      <Bike className="h-4 w-4" />
-                      {tRouteConfig('cycling')}
-                    </button>
-                    <button
-                      onClick={() => setActivityType('walking')}
-                      className={cn(
-                        'flex items-center justify-center gap-2 rounded-lg border p-3 text-sm font-medium transition-all',
-                        activityType === 'walking'
-                          ? 'border-primary bg-primary/10 text-primary'
-                          : 'border-border bg-secondary text-muted-foreground hover:border-primary/30',
-                      )}
-                    >
-                      <Footprints className="h-4 w-4" />
-                      {tRouteConfig('walking')}
-                    </button>
-                  </div>
+            <div className="grid grid-cols-1 gap-4">
+              <div className="flex flex-col gap-3">
+                <Label className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
+                  {tRouteConfig('activity')}
+                </Label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => setActivityType('cycling')}
+                    className={cn(
+                      'flex items-center justify-center gap-2 rounded-lg border p-3 text-sm font-medium transition-all',
+                      activityType === 'cycling'
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'border-border bg-secondary text-muted-foreground hover:border-primary/30',
+                    )}
+                  >
+                    <Bike className="h-4 w-4" />
+                    {tRouteConfig('cycling')}
+                  </button>
+                  <button
+                    onClick={() => setActivityType('walking')}
+                    className={cn(
+                      'flex items-center justify-center gap-2 rounded-lg border p-3 text-sm font-medium transition-all',
+                      activityType === 'walking'
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'border-border bg-secondary text-muted-foreground hover:border-primary/30',
+                    )}
+                  >
+                    <Footprints className="h-4 w-4" />
+                    {tRouteConfig('walking')}
+                  </button>
                 </div>
               </div>
-            </>
+            </div>
           )}
         </div>
 
