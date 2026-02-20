@@ -105,6 +105,10 @@ export function RouteSegments({
   const pathBreakdown = getBreakdown('pathType', PATH_TYPE_COLORS);
   const surfaceBreakdown = getBreakdown('surface', SURFACE_COLORS);
 
+  const hasMeaningfulData = (data: any[]) => {
+    return data.length > 0 && !(data.length === 1 && data[0].name === 'unknown');
+  };
+
   const SegmentBar = ({
     title,
     data,
@@ -120,49 +124,60 @@ export function RouteSegments({
       <div className="flex items-center justify-between">
         <span className="text-muted-foreground text-xs font-medium">{title}</span>
       </div>
-      <div className="bg-secondary ring-border flex h-3 w-full overflow-hidden rounded-full ring-1">
-        {data.map((item, idx) => {
-          const isActive = activeFilter?.key === typeKey && activeFilter.value === item.name;
-          const isFilteringOther =
-            activeFilter && (activeFilter.key !== typeKey || activeFilter.value !== item.name);
 
-          return (
-            <button
-              key={idx}
-              onClick={() => handleSegmentClick(typeKey, item.name)}
-              style={{
-                width: `${item.percent}%`,
-                backgroundColor: item.color,
-                opacity: isFilteringOther ? 0.3 : 1,
-              }}
-              className={`h-full transition-all hover:brightness-110 ${isActive ? 'ring-2 ring-white ring-inset' : ''}`}
-              title={`${item.name}: ${item.percent.toFixed(0)}%`}
-            />
-          );
-        })}
-      </div>
-      <div className="flex flex-wrap gap-x-4 gap-y-1">
-        {data.map((item, idx) => {
-          const isActive = activeFilter?.key === typeKey && activeFilter.value === item.name;
-          return (
-            <button
-              key={idx}
-              onClick={() => handleSegmentClick(typeKey, item.name)}
-              className={`flex items-center gap-1.5 rounded border px-1.5 py-0.5 transition-all ${
-                isActive
-                  ? 'border-primary bg-primary/10 text-primary'
-                  : 'bg-secondary/50 text-foreground hover:border-border border-transparent'
-              }`}
-            >
-              <div className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color }} />
-              <span className="text-[10px] font-medium">
-                {t(`${translationNamespace}.${item.name}` as any)}
-              </span>
-              <span className="text-muted-foreground text-[10px]">{item.percent.toFixed(0)}%</span>
-            </button>
-          );
-        })}
-      </div>
+      {!hasMeaningfulData(data) ? (
+        <div className="bg-secondary/30 flex h-20 items-center justify-center rounded-lg border border-dashed">
+          <span className="text-muted-foreground text-xs">{t('noData')}</span>
+        </div>
+      ) : (
+        <>
+          <div className="bg-secondary ring-border flex h-3 w-full overflow-hidden rounded-full ring-1">
+            {data.map((item, idx) => {
+              const isActive = activeFilter?.key === typeKey && activeFilter.value === item.name;
+              const isFilteringOther =
+                activeFilter && (activeFilter.key !== typeKey || activeFilter.value !== item.name);
+
+              return (
+                <button
+                  key={idx}
+                  onClick={() => handleSegmentClick(typeKey, item.name)}
+                  style={{
+                    width: `${item.percent}%`,
+                    backgroundColor: item.color,
+                    opacity: isFilteringOther ? 0.3 : 1,
+                  }}
+                  className={`h-full transition-all hover:brightness-110 ${isActive ? 'ring-2 ring-white ring-inset' : ''}`}
+                  title={`${item.name}: ${item.percent.toFixed(0)}%`}
+                />
+              );
+            })}
+          </div>
+          <div className="flex flex-wrap gap-x-4 gap-y-1">
+            {data.map((item, idx) => {
+              const isActive = activeFilter?.key === typeKey && activeFilter.value === item.name;
+              return (
+                <button
+                  key={idx}
+                  onClick={() => handleSegmentClick(typeKey, item.name)}
+                  className={`flex items-center gap-1.5 rounded border px-1.5 py-0.5 transition-all ${
+                    isActive
+                      ? 'border-primary bg-primary/10 text-primary'
+                      : 'bg-secondary/50 text-foreground hover:border-border border-transparent'
+                  }`}
+                >
+                  <div className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color }} />
+                  <span className="text-[10px] font-medium">
+                    {t(`${translationNamespace}.${item.name}` as any)}
+                  </span>
+                  <span className="text-muted-foreground text-[10px]">
+                    {item.percent.toFixed(0)}%
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </>
+      )}
     </div>
   );
 

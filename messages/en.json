@@ -163,6 +163,7 @@
     "unknownWeather": "Unknown",
     "windFrom": "Wind from {direction} degrees",
     "loading": "Loading...",
+    "noData": "No information available to display at the moment",
     "slope": "Slope",
     "chart": {
       "elevation": "Elevation",
