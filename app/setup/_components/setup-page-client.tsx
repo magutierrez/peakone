@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button';
 import { Bike, Footprints, ArrowRight } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { LocaleSwitcher } from '@/app/_components/locale-switcher';
+import { UserMenu } from '@/app/_components/user-menu';
 
 interface SetupPageClientProps {
   session: Session | null;
@@ -112,8 +113,13 @@ export function SetupPageClient({ session }: SetupPageClientProps) {
 
   return (
     <div className="bg-background flex min-h-screen flex-col items-center justify-center p-4">
-      <div className="absolute top-4 right-4">
+      <div className="absolute top-4 right-4 flex items-center gap-2">
         <LocaleSwitcher />
+        <UserMenu
+          userName={session?.user?.name}
+          userEmail={session?.user?.email}
+          userImage={session?.user?.image}
+        />
       </div>
 
       <div className="border-border bg-card w-full max-w-2xl rounded-xl border p-6 shadow-xl">
