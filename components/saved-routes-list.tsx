@@ -23,7 +23,7 @@ interface SavedRoutesListProps {
 }
 
 export function SavedRoutesList({ onLoadRoute }: SavedRoutesListProps) {
-  const t = useTranslations('SavedRoutes');
+  const t = useTranslations('SetupPage');
   const { routes, isLoading, deleteRoute, updateRouteName } = useSavedRoutes();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
@@ -55,7 +55,14 @@ export function SavedRoutesList({ onLoadRoute }: SavedRoutesListProps) {
         {t('loading')}
       </div>
     );
-  if (routes.length === 0) return null;
+  if (routes.length === 0) {
+    return (
+      <div className="bg-secondary/20 border-border flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
+        <Route className="text-muted-foreground mb-3 h-8 w-8 opacity-20" />
+        <p className="text-muted-foreground text-xs">{t('noSavedRoutes')}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex w-full min-w-0 flex-col gap-3">

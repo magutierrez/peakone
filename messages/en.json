@@ -40,6 +40,7 @@
     "uploadGPX": "Upload GPX",
     "selectRouteSource": "Select Route Source",
     "savedRoutes": "My Saved Routes",
+    "noSavedRoutes": "You don't have any saved routes yet. Upload a GPX file to get started.",
     "analyzeRoute": "Analyze Route",
     "errors": {
       "insufficientPoints": "The GPX file does not contain enough points.",

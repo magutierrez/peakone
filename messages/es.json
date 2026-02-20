@@ -40,6 +40,7 @@
     "uploadGPX": "Subir GPX",
     "selectRouteSource": "Seleccionar origen de la ruta",
     "savedRoutes": "Mis Rutas Guardadas",
+    "noSavedRoutes": "Aún no tienes rutas guardadas. Sube un archivo GPX para empezar.",
     "analyzeRoute": "Analizar Ruta",
     "errors": {
       "insufficientPoints": "El archivo GPX no contiene suficientes puntos.",
