@@ -38,14 +38,14 @@
   "SetupPage": {
     "title": "Plan Your Route",
     "uploadGPX": "Upload GPX",
-    "strava": "Strava",
     "selectRouteSource": "Select Route Source",
     "savedRoutes": "My Saved Routes",
     "analyzeRoute": "Analyze Route",
     "errors": {
       "insufficientPoints": "The GPX file does not contain enough points.",
       "readError": "Error reading GPX file. Check the format.",
-      "noRouteSelected": "Please select or upload a route to analyze."
+      "noRouteSelected": "Please select or upload a route to analyze.",
+      "saveError": "Error saving the route to the local database."
     }
   },
   "Hazards": {
@@ -264,9 +264,6 @@
     "continueFacebook": "Continue with Facebook",
     "continueX": "Continue with X (Twitter)",
     "continueStrava": "Continue with Strava",
-    "connectStrava": "Connect with Strava",
-    "connectStravaButton": "Connect Strava",
-    "stravaDescription": "Sync your routes and activities directly.",
     "terms": "By continuing, you agree to our terms of service and privacy policy.",
     "logout": "Log out",
     "settings": "Settings",
@@ -286,8 +283,6 @@
   "SavedRoutes": {
     "title": "My Saved Routes",
     "loading": "Loading routes...",
-    "stravaTitle": "My Strava Activities",
-    "stravaRoutes": "My Strava Routes",
     "activities": "Activities",
     "routes": "Routes",
     "noData": "No data found",

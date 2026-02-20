@@ -18,13 +18,13 @@ const ROUTES_CACHE_KEY = 'local-saved-routes';
 
 export function useSavedRoutes() {
   const { data: session } = useSession();
-  const userEmail = session?.user?.email;
+  const userIdentifier = session?.user?.email || session?.user?.id;
 
   const {
     data: routes = [],
     isLoading,
     error,
-  } = useSWR(userEmail ? [ROUTES_CACHE_KEY, userEmail] : null, async ([, email]) => {
+  } = useSWR(userIdentifier ? [ROUTES_CACHE_KEY, userIdentifier] : null, async ([, identifier]) => {
     const db = await getDb();
     if (!db) {
       return [];
@@ -33,7 +33,7 @@ export function useSavedRoutes() {
     try {
       const result = await db.query<SavedRoute>(
         `SELECT * FROM saved_routes WHERE user_email = $1 ORDER BY created_at DESC`,
-        [email],
+        [identifier],
       );
       return result.rows;
     } catch (e) {
@@ -49,7 +49,7 @@ export function useSavedRoutes() {
     elevationGain: number,
     elevationLoss: number,
   ) => {
-    if (!userEmail) return null;
+    if (!userIdentifier) return null;
     try {
       const db = await getDb();
       if (!db) return null;
@@ -59,7 +59,7 @@ export function useSavedRoutes() {
         `SELECT id FROM saved_routes 
          WHERE user_email = $1 AND name = $2 AND abs(distance - $3) < 0.01
          LIMIT 1`,
-        [userEmail, name, distance],
+        [userIdentifier, name, distance],
       );
 
       if (existing.rows.length > 0) {
@@ -84,10 +84,19 @@ export function useSavedRoutes() {
       await db.query(
         `INSERT INTO saved_routes (id, user_email, name, gpx_content, activity_type, distance, elevation_gain, elevation_loss) 
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-        [routeId, userEmail, name, content, activityType, distance, elevationGain, elevationLoss],
+        [
+          routeId,
+          userIdentifier,
+          name,
+          content,
+          activityType,
+          distance,
+          elevationGain,
+          elevationLoss,
+        ],
       );
 
-      await mutate([ROUTES_CACHE_KEY, userEmail]);
+      await mutate([ROUTES_CACHE_KEY, userIdentifier]);
       return routeId;
     } catch (e) {
       throw e;
@@ -95,26 +104,26 @@ export function useSavedRoutes() {
   };
 
   const deleteRoute = async (id: string) => {
-    if (!userEmail) return;
+    if (!userIdentifier) return;
     try {
       const db = await getDb();
       if (!db) return;
 
       await db.query(`DELETE FROM saved_routes WHERE id = $1`, [id]);
-      mutate([ROUTES_CACHE_KEY, userEmail]);
+      mutate([ROUTES_CACHE_KEY, userIdentifier]);
     } catch (e) {
       // Ignore
     }
   };
 
   const updateRouteName = async (id: string, newName: string) => {
-    if (!userEmail) return;
+    if (!userIdentifier) return;
     try {
       const db = await getDb();
       if (!db) return;
 
       await db.query(`UPDATE saved_routes SET name = $1 WHERE id = $2`, [newName, id]);
-      mutate([ROUTES_CACHE_KEY, userEmail]);
+      mutate([ROUTES_CACHE_KEY, userIdentifier]);
     } catch (e) {
       // Ignore
     }
@@ -122,11 +131,11 @@ export function useSavedRoutes() {
 
   return {
     routes,
-    isLoading: isLoading && !!userEmail,
+    isLoading: isLoading && !!userIdentifier,
     error,
     saveRoute,
     deleteRoute,
     updateRouteName,
-    refresh: () => mutate([ROUTES_CACHE_KEY, userEmail]),
+    refresh: () => mutate([ROUTES_CACHE_KEY, userIdentifier]),
   };
 }

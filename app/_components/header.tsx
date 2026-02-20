@@ -36,7 +36,7 @@ export function Header({ session, mobileMenuContent }: HeaderProps) {
 
   const userInitial = session?.user?.name
     ? session.user.name.charAt(0).toUpperCase()
-    : session?.user?.email?.charAt(0).toUpperCase() || 'U';
+    : (session?.user?.email || session?.user?.id || 'U').charAt(0).toUpperCase();
 
   return (
     <header className="border-border bg-background sticky top-0 z-40 flex h-14 items-center justify-between border-b px-4 lg:px-6">

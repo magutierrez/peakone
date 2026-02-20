@@ -98,7 +98,7 @@ export async function saveRouteToDb(
 
 export async function getRouteFromDb(
   routeId: string,
-  userEmail: string,
+  userIdentifier: string,
 ): Promise<{
   name: string;
   gpx_content: string;
@@ -113,11 +113,11 @@ export async function getRouteFromDb(
   try {
     const result = await db.query(
       `SELECT name, gpx_content, activity_type, distance, elevation_gain, elevation_loss FROM saved_routes WHERE id = $1 AND user_email = $2`,
-      [routeId, userEmail],
+      [routeId, userIdentifier],
     );
 
     if (result.rows.length > 0) {
-      const row = result.rows[0];
+      const row = result.rows[0] as any;
       return {
         name: row.name,
         gpx_content: row.gpx_content,

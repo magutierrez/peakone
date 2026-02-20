@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import { useTranslations } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { useRouteAnalysis, type UseRouteAnalysisConfig } from '@/hooks/use-route-analysis';
 import type { RouteConfig } from '@/lib/types';
 import { getRouteFromDb } from '@/lib/db';
@@ -43,7 +44,9 @@ interface HomePageClientProps {
   session: Session | null;
 }
 
-export default function HomePageClient({ session }: HomePageClientProps) {
+export default function HomePageClient({ session: serverSession }: HomePageClientProps) {
+  const { data: clientSession } = useSession();
+  const session = clientSession || serverSession;
   const router = useRouter();
   const searchParams = useSearchParams();
   const routeId = searchParams.get('routeId');
@@ -59,9 +62,10 @@ export default function HomePageClient({ session }: HomePageClientProps) {
   const [initialElevationLoss, setInitialElevationLoss] = useState<number>(0);
 
   useEffect(() => {
-    if (routeId && session?.user?.email && !fetchedRawGpxContent) {
+    const userIdentifier = session?.user?.email || session?.user?.id;
+    if (routeId && userIdentifier && !fetchedRawGpxContent) {
       const fetchRoute = async () => {
-        const route = await getRouteFromDb(routeId, session.user!.email!);
+        const route = await getRouteFromDb(routeId, userIdentifier);
         if (route) {
           setFetchedRawGpxContent(route.gpx_content);
           setFetchedGpxFileName(route.name);
@@ -77,7 +81,14 @@ export default function HomePageClient({ session }: HomePageClientProps) {
     } else if (!routeId && !fetchedRawGpxContent) {
       router.replace('/setup');
     }
-  }, [routeId, session?.user?.email, fetchedRawGpxContent, router, initialActivityType]);
+  }, [
+    routeId,
+    session?.user?.email,
+    session?.user?.id,
+    fetchedRawGpxContent,
+    router,
+    initialActivityType,
+  ]);
 
   const [config, setConfig] = useState<RouteConfig>({
     date: getDefaultDate(),

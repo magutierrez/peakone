@@ -8,7 +8,6 @@ import {
   calculateBearing,
   getWindEffect,
   reverseGPXData,
-  stravaToGPXData,
 } from '@/lib/gpx-parser';
 import type { GPXData, RouteConfig, RouteWeatherPoint, WeatherData } from '@/lib/types';
 import {
@@ -65,20 +64,16 @@ export function useRouteAnalysis(
     // Only process if initial content is provided and gpxData hasn't been set yet
     if (initialRawGpxContent && initialGpxFileName && !gpxData) {
       try {
+        const trimmedContent = initialRawGpxContent.trim();
         let data: GPXData;
-        if (initialRawGpxContent.startsWith('{')) {
-          const jsonData = JSON.parse(initialRawGpxContent);
-          if (jsonData.points && jsonData.totalDistance !== undefined) {
-            // It's already in GPXData format
-            data = jsonData;
-          } else {
-            // It's a Strava API response
-            data = stravaToGPXData(jsonData);
-          }
-        } else {
-          // Assume it's GPX XML content
-          data = parseGPX(initialRawGpxContent);
+
+        // Simplified: only support GPX XML content for now
+        // If it starts with '{' it might be old data in DB, we skip it
+        if (trimmedContent.startsWith('{')) {
+          throw new Error('JSON data is currently disabled');
         }
+
+        data = parseGPX(trimmedContent);
 
         if (data.points.length < 2) {
           setError(t('errors.insufficientPoints'));
@@ -89,13 +84,14 @@ export function useRouteAnalysis(
         setRawGPXContent(initialRawGpxContent);
 
         // Use provided initial data or fallback to parsed data
-        setRecalculatedTotalDistance(initialData?.distance || data.totalDistance);
-        setRecalculatedElevationGain(initialData?.elevationGain || data.totalElevationGain);
-        setRecalculatedElevationLoss(initialData?.elevationLoss || data.totalElevationLoss);
+        setRecalculatedTotalDistance(initialData?.distance || data.totalDistance || 0);
+        setRecalculatedElevationGain(initialData?.elevationGain || data.totalElevationGain || 0);
+        setRecalculatedElevationLoss(initialData?.elevationLoss || data.totalElevationLoss || 0);
 
         setError(null);
         setIsWeatherAnalyzed(false); // Reset weather analysis status
       } catch (err) {
+        console.error('Error parsing GPX content:', err);
         setError(t('errors.readError'));
       }
     }

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { Session } from 'next-auth';
+import { useSession } from 'next-auth/react';
 import { useSavedRoutes } from '@/hooks/use-saved-routes';
 import type { GPXData } from '@/lib/types';
 import { parseGPX } from '@/lib/gpx-parser';
@@ -11,11 +12,9 @@ import { cn } from '@/lib/utils';
 
 // UI Components from main app
 import { GPXUpload } from '@/components/gpx-upload';
-import { StravaConnector } from '../../_components/strava-connector';
-import { StravaActivitiesList } from '@/components/strava-activities-list';
 import { SavedRoutesList } from '@/components/saved-routes-list';
 import { Button } from '@/components/ui/button';
-import { Bike, Footprints, ArrowRight, FileUp, History, Activity } from 'lucide-react';
+import { Bike, Footprints, ArrowRight, FileUp, History } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { LocaleSwitcher } from '@/app/_components/locale-switcher';
 import { UserMenu } from '@/app/_components/user-menu';
@@ -25,7 +24,9 @@ interface SetupPageClientProps {
   session: Session | null;
 }
 
-export function SetupPageClient({ session }: SetupPageClientProps) {
+export function SetupPageClient({ session: serverSession }: SetupPageClientProps) {
+  const { data: clientSession } = useSession();
+  const session = clientSession || serverSession;
   const t = useTranslations('SetupPage');
   const tRouteConfig = useTranslations('RouteConfigPanel');
   const router = useRouter();
@@ -44,7 +45,7 @@ export function SetupPageClient({ session }: SetupPageClientProps) {
     refresh();
   }, [refresh]);
 
-  // Handlers for GPX, Strava, Saved Routes
+  // Handlers for GPX and Saved Routes
   const handleGPXLoaded = (content: string, fileName: string) => {
     try {
       const data = parseGPX(content);
@@ -61,13 +62,6 @@ export function SetupPageClient({ session }: SetupPageClientProps) {
     }
   };
 
-  const handleStravaActivityLoaded = (data: GPXData, fileName: string) => {
-    setSelectedGpxData(data);
-    setSelectedGpxFileName(fileName);
-    setRawGpxContent(JSON.stringify(data)); // Store JSON for Strava, main app will handle
-    setError(null);
-  };
-
   const handleClearGPX = () => {
     setSelectedGpxData(null);
     setSelectedGpxFileName(null);
@@ -76,17 +70,41 @@ export function SetupPageClient({ session }: SetupPageClientProps) {
   };
 
   const handleAnalyzeRoute = async () => {
-    if (!selectedGpxData || !rawGpxContent || !session?.user?.email) {
-      setError(t('errors.noRouteSelected')); // Adjust error message if needed
+    // Use a robust identifier that works for all providers
+    const userIdentifier = session?.user?.email || session?.user?.id;
+
+    if (!userIdentifier) {
+      console.error('SetupPage: Analysis blocked - No user identifier in session', {
+        sessionStatus: clientSession ? 'loaded' : 'loading/server',
+        user: session?.user,
+      });
+      setError('Session error: Could not identify user. Please try logging out and in again.');
+      return;
+    }
+
+    if (!selectedGpxData || !rawGpxContent) {
+      console.warn('SetupPage: Analysis blocked - Missing route data', {
+        hasGpxData: !!selectedGpxData,
+        hasRawContent: !!rawGpxContent,
+        fileName: selectedGpxFileName,
+      });
+      setError(t('errors.noRouteSelected'));
       return;
     }
 
     try {
       const distance = selectedGpxData.totalDistance || 0;
       if (distance <= 0) {
-        setError(t('errors.readError')); // Or a more specific error
+        console.error('SetupPage: Invalid route distance', distance);
+        setError(t('errors.readError'));
         return;
       }
+
+      console.log('SetupPage: Saving route for analysis...', {
+        name: selectedGpxFileName,
+        identifier: userIdentifier,
+        activity: activityType,
+      });
 
       const routeId = await saveRoute(
         selectedGpxFileName || 'Unnamed Route',
@@ -104,10 +122,10 @@ export function SetupPageClient({ session }: SetupPageClientProps) {
         params.set('activity', activityType);
         router.push(`/route?${params.toString()}`);
       } else {
-        setError(t('errors.saveError')); // Add a translation key for this
+        setError(t('errors.saveError'));
       }
     } catch (err) {
-      console.error('Error saving route:', err);
+      console.error('SetupPage: Unexpected error during analysis:', err);
       setError(t('errors.unknownError'));
     }
   };
@@ -127,15 +145,11 @@ export function SetupPageClient({ session }: SetupPageClientProps) {
         <h1 className="text-foreground mb-6 text-center text-2xl font-bold">{t('title')}</h1>
 
         <Tabs defaultValue="gpx" className="mb-8 w-full">
-          <TabsList className="mb-6 grid w-full grid-cols-3">
+          <TabsList className="mb-6 grid w-full grid-cols-2">
             <TabsTrigger value="gpx" className="gap-2">
               <FileUp className="h-4 w-4" />
               <span className="hidden sm:inline">{t('uploadGPX')}</span>
               <span className="sm:hidden">GPX</span>
-            </TabsTrigger>
-            <TabsTrigger value="strava" className="gap-2">
-              <Activity className="h-4 w-4" />
-              <span>{t('strava')}</span>
             </TabsTrigger>
             <TabsTrigger value="saved" className="gap-2">
               <History className="h-4 w-4" />
@@ -154,15 +168,6 @@ export function SetupPageClient({ session }: SetupPageClientProps) {
                 fileName={selectedGpxFileName}
                 onClear={handleClearGPX}
               />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="strava" className="flex flex-col gap-4">
-            <div className="flex flex-col gap-3">
-              <StravaConnector />
-              {session?.provider === 'strava' && (
-                <StravaActivitiesList onLoadGPX={handleStravaActivityLoaded} />
-              )}
             </div>
           </TabsContent>
 
