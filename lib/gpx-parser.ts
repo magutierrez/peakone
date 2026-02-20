@@ -210,3 +210,69 @@ export function sampleRoutePoints(points: RoutePoint[], numSamples: number = 20)
   sampled.push(points[points.length - 1]);
   return sampled;
 }
+
+// Decode Wikiloc custom geometry encoding
+export function decodeWikilocGeom(encoded: string): { lat: number; lon: number }[] {
+  const points: { lat: number; lon: number }[] = [];
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+  const charMap: { [key: string]: number } = {};
+  for (let i = 0; i < chars.length; i++) charMap[chars[i]] = i;
+
+  let lat = 0;
+  let lon = 0;
+  let i = 0;
+
+  const readInt = () => {
+    let result = 0;
+    let shift = 0;
+    let b: number;
+    do {
+      if (i >= encoded.length) return null;
+      const char = encoded[i++];
+      b = charMap[char];
+      if (b === undefined) return null;
+      result |= (b & 31) << shift;
+      shift += 5;
+    } while (b >= 32);
+    return result & 1 ? ~(result >> 1) : result >> 1;
+  };
+
+  while (i < encoded.length) {
+    const dLat = readInt();
+    const dLon = readInt();
+    if (dLat === null || dLon === null) break;
+    lat += dLat;
+    lon += dLon;
+    const finalLat = lat / 1e5;
+    const finalLon = lon / 1e5;
+
+    // Safety check for valid coordinates
+    if (finalLat >= -90 && finalLat <= 90 && finalLon >= -180 && finalLon <= 180) {
+      points.push({ lat: finalLat, lon: finalLon });
+    } else {
+      // If we hit crazy values, the decoding is wrong for this format
+      return [];
+    }
+  }
+
+  return points;
+}
+
+export function pointsToGPX(points: { lat: number; lon: number }[], name: string): string {
+  const gpxPoints = points
+    .map((p) => `      <trkpt lat="${p.lat}" lon="${p.lon}"></trkpt>`)
+    .join('\n');
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="peakOne" xmlns="http://www.topografix.com/GPX/1/1">
+  <metadata>
+    <name>${name}</name>
+  </metadata>
+  <trk>
+    <name>${name}</name>
+    <trkseg>
+${gpxPoints}
+    </trkseg>
+  </trk>
+</gpx>`;
+}
