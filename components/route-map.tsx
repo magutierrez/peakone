@@ -93,8 +93,10 @@ export default function RouteMap({
     (event: any) => {
       syncTerrain();
       event.target.on('styledata', syncTerrain);
+      // Fit bounds once the map is loaded to ensure it matches the route
+      resetToFullRouteView();
     },
-    [syncTerrain],
+    [syncTerrain, resetToFullRouteView],
   );
 
   const onMapClick = useCallback(
@@ -126,6 +128,17 @@ export default function RouteMap({
     }
   }, [focusPoint]);
 
+  const initialViewState = useMemo(() => {
+    if (points && points.length > 0) {
+      return {
+        longitude: points[0].lon,
+        latitude: points[0].lat,
+        zoom: 10,
+      };
+    }
+    return { longitude: -3.7038, latitude: 40.4168, zoom: 5 };
+  }, [points]);
+
   if (!mounted) return null;
 
   return (
@@ -133,7 +146,7 @@ export default function RouteMap({
       <Map
         ref={mapRef}
         mapLib={maplibregl}
-        initialViewState={{ longitude: -3.7038, latitude: 40.4168, zoom: 5 }}
+        initialViewState={initialViewState}
         style={{ width: '100%', height: '100%' }}
         mapStyle={mapStyle as any}
         onClick={onMapClick}
