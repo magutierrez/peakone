@@ -12,9 +12,10 @@ import { cn } from '@/lib/utils';
 
 // UI Components from main app
 import { GPXUpload } from '@/components/gpx-upload';
+import { WikilocImport } from '@/components/wikiloc-import';
 import { SavedRoutesList } from '@/components/saved-routes-list';
 import { Button } from '@/components/ui/button';
-import { Bike, Footprints, ArrowRight, FileUp, History } from 'lucide-react';
+import { Bike, Footprints, ArrowRight, FileUp, History, Globe } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { LocaleSwitcher } from '@/app/_components/locale-switcher';
 import { UserMenu } from '@/app/_components/user-menu';
@@ -145,11 +146,15 @@ export function SetupPageClient({ session: serverSession }: SetupPageClientProps
         <h1 className="text-foreground mb-6 text-center text-2xl font-bold">{t('title')}</h1>
 
         <Tabs defaultValue="gpx" className="mb-8 w-full">
-          <TabsList className="mb-6 grid w-full grid-cols-2">
+          <TabsList className="mb-6 grid w-full grid-cols-3">
             <TabsTrigger value="gpx" className="gap-2">
               <FileUp className="h-4 w-4" />
               <span className="hidden sm:inline">{t('uploadGPX')}</span>
               <span className="sm:hidden">GPX</span>
+            </TabsTrigger>
+            <TabsTrigger value="wikiloc" className="gap-2">
+              <Globe className="h-4 w-4" />
+              <span>{t('wikiloc')}</span>
             </TabsTrigger>
             <TabsTrigger value="saved" className="gap-2">
               <History className="h-4 w-4" />
@@ -169,6 +174,10 @@ export function SetupPageClient({ session: serverSession }: SetupPageClientProps
                 onClear={handleClearGPX}
               />
             </div>
+          </TabsContent>
+
+          <TabsContent value="wikiloc" className="flex flex-col gap-4">
+            <WikilocImport onRouteLoaded={handleGPXLoaded} />
           </TabsContent>
 
           <TabsContent value="saved" className="flex flex-col gap-4">

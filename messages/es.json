@@ -38,9 +38,14 @@
   "SetupPage": {
     "title": "Planifica tu Ruta",
     "uploadGPX": "Subir GPX",
+    "wikiloc": "Wikiloc",
     "selectRouteSource": "Seleccionar origen de la ruta",
     "savedRoutes": "Mis Rutas Guardadas",
     "noSavedRoutes": "Aún no tienes rutas guardadas. Sube un archivo GPX para empezar.",
+    "wikilocTitle": "Importar desde Wikiloc",
+    "wikilocDescription": "Pega el enlace de la ruta de Wikiloc para analizarla.",
+    "wikilocPlaceholder": "https://www.wikiloc.com/hiking-trails/...",
+    "importWikiloc": "Importar Ruta",
     "analyzeRoute": "Analizar Ruta",
     "errors": {
       "insufficientPoints": "El archivo GPX no contiene suficientes puntos.",

@@ -1,4 +1,5 @@
 import type { RoutePoint, GPXData } from './types';
+import { decodeTWKB, type Point } from './twkb-parser';
 
 function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371; // km
@@ -211,9 +212,22 @@ export function sampleRoutePoints(points: RoutePoint[], numSamples: number = 20)
   return sampled;
 }
 
-// Decode Wikiloc custom geometry encoding
-export function decodeWikilocGeom(encoded: string): { lat: number; lon: number }[] {
-  const points: { lat: number; lon: number }[] = [];
+// Decode Wikiloc custom geometry encoding (handles both legacy and new TWKB format)
+export function decodeWikilocGeom(encoded: string): Point[] {
+  if (!encoded) return [];
+
+  // Detect if it's TWKB (starts with 'w' is common for Wikiloc TWKB in Base64)
+  // or if it contains characters not in the legacy alphabet
+  if (encoded.startsWith('w') || encoded.length > 1000) {
+    try {
+      return decodeTWKB(encoded);
+    } catch (e) {
+      console.warn('Failed to decode as TWKB, falling back to legacy:', e);
+    }
+  }
+
+  // Legacy Wikiloc custom format
+  const points: Point[] = [];
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
   const charMap: { [key: string]: number } = {};
   for (let i = 0; i < chars.length; i++) charMap[chars[i]] = i;
@@ -227,10 +241,8 @@ export function decodeWikilocGeom(encoded: string): { lat: number; lon: number }
     let shift = 0;
     let b: number;
     do {
-      if (i >= encoded.length) return null;
-      const char = encoded[i++];
-      b = charMap[char];
-      if (b === undefined) return null;
+      b = charMap[encoded[i++]];
+      if (b === undefined) break;
       result |= (b & 31) << shift;
       shift += 5;
     } while (b >= 32);
@@ -240,19 +252,9 @@ export function decodeWikilocGeom(encoded: string): { lat: number; lon: number }
   while (i < encoded.length) {
     const dLat = readInt();
     const dLon = readInt();
-    if (dLat === null || dLon === null) break;
     lat += dLat;
     lon += dLon;
-    const finalLat = lat / 1e5;
-    const finalLon = lon / 1e5;
-
-    // Safety check for valid coordinates
-    if (finalLat >= -90 && finalLat <= 90 && finalLon >= -180 && finalLon <= 180) {
-      points.push({ lat: finalLat, lon: finalLon });
-    } else {
-      // If we hit crazy values, the decoding is wrong for this format
-      return [];
-    }
+    points.push({ lat: lat / 1e5, lon: lon / 1e5 });
   }
 
   return points;

@@ -503,3 +503,13 @@ export function calculateWindowScore(
     reasons,
   };
 }
+
+export function base64ToUint8Array(base64: string): Uint8Array<ArrayBuffer> {
+  return new Uint8Array(
+    atob(base64)
+      .split('')
+      .map(function (c) {
+        return c.charCodeAt(0);
+      }),
+  );
+}
