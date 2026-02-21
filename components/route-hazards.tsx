@@ -1,14 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import {
-  TrendingUp,
-  TrendingDown,
-  Flame,
-  Zap,
-  Activity,
-  RefreshCcw,
-} from 'lucide-react';
+import { TrendingUp, TrendingDown, Flame, Zap, Activity, RefreshCcw, Map } from 'lucide-react';
 import type { RouteWeatherPoint } from '@/lib/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -22,7 +15,9 @@ interface RouteHazardsProps {
   allPoints?: any[];
   onSelectSegment?: (range: { start: number; end: number } | null) => void;
   onSelectPoint?: (point: any | null) => void;
-  setActiveFilter?: (filter: { key: 'pathType' | 'surface' | 'hazard'; value: string } | null) => void;
+  setActiveFilter?: (
+    filter: { key: 'pathType' | 'surface' | 'hazard'; value: string } | null,
+  ) => void;
   onClearSelection?: () => void;
 }
 
@@ -42,10 +37,10 @@ const segmentColors: Record<string, string> = {
 
 const getSlopeColorHex = (slope: number) => {
   const absSlope = Math.abs(slope);
-  if (absSlope <= 1) return '#10b981'; 
-  if (absSlope < 5) return '#f59e0b';  
-  if (absSlope < 10) return '#ef4444'; 
-  return '#991b1b';                    
+  if (absSlope <= 1) return '#10b981';
+  if (absSlope < 5) return '#f59e0b';
+  if (absSlope < 10) return '#ef4444';
+  return '#991b1b';
 };
 
 export function RouteHazards({
@@ -87,11 +82,14 @@ export function RouteHazards({
         // Find the precise point in the dense list
         let p1 = segmentPoints[0];
         let p2 = segmentPoints[1];
-        
+
         for (let i = 0; i < segmentPoints.length - 1; i++) {
-          if (activeDist >= segmentPoints[i].distanceFromStart && activeDist <= segmentPoints[i+1].distanceFromStart) {
+          if (
+            activeDist >= segmentPoints[i].distanceFromStart &&
+            activeDist <= segmentPoints[i + 1].distanceFromStart
+          ) {
             p1 = segmentPoints[i];
-            p2 = segmentPoints[i+1];
+            p2 = segmentPoints[i + 1];
             break;
           }
         }
@@ -104,7 +102,7 @@ export function RouteHazards({
             lat: p1.lat + (p2.lat - p1.lat) * ratio,
             lon: p1.lon + (p2.lon - p1.lon) * ratio,
             ele: (p1.ele || 0) + ((p2.ele || 0) - (p1.ele || 0)) * ratio,
-            distanceFromStart: activeDist
+            distanceFromStart: activeDist,
           });
         }
         lastUpdateRef.current = now;
@@ -133,9 +131,12 @@ export function RouteHazards({
       </div>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {sortedSegments.map((seg, idx) => {
-          const densePoints = allPoints.length > 0 
-            ? allPoints.filter(p => p.distanceFromStart >= seg.startDist && p.distanceFromStart <= seg.endDist)
-            : seg.points.map(wp => wp.point);
+          const densePoints =
+            allPoints.length > 0
+              ? allPoints.filter(
+                  (p) => p.distanceFromStart >= seg.startDist && p.distanceFromStart <= seg.endDist,
+                )
+              : seg.points.map((wp) => wp.point);
 
           const chartData = densePoints.map((p: any, pIdx: number) => {
             let slope = 0;
@@ -151,16 +152,17 @@ export function RouteHazards({
               dist: p.distanceFromStart,
               ele: p.ele || 0,
               slope: Math.abs(slope),
-              color: getSlopeColorHex(slope)
+              color: getSlopeColorHex(slope),
             };
           });
 
-          const minEle = Math.min(...chartData.map(d => d.ele));
-          const maxEle = Math.max(...chartData.map(d => d.ele));
+          const minEle = Math.min(...chartData.map((d) => d.ele));
+          const maxEle = Math.max(...chartData.map((d) => d.ele));
           const distance = seg.endDist - seg.startDist;
 
-          const maxSlopePoint = chartData.reduce((prev, current) => 
-            (current.slope > prev.slope) ? current : prev, chartData[0]
+          const maxSlopePoint = chartData.reduce(
+            (prev, current) => (current.slope > prev.slope ? current : prev),
+            chartData[0],
           );
 
           return (
@@ -195,37 +197,49 @@ export function RouteHazards({
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-1">
-                    <Badge variant="outline" className="gap-1 font-mono text-[10px] bg-background/50">
+                    <Badge
+                      variant="outline"
+                      className="bg-background/50 gap-1 font-mono text-[10px]"
+                    >
                       <Activity className="h-3 w-3" />
                       {Math.round(seg.avgSlope)}% {t('avg')}
                     </Badge>
-                    <span className="text-[9px] font-bold text-muted-foreground tabular-nums">
+                    <span className="text-muted-foreground text-[9px] font-bold tabular-nums">
                       {Math.round(minEle)}m - {Math.round(maxEle)}m
                     </span>
                   </div>
                 </div>
 
-                <div className="bg-secondary/5 h-28 w-full relative group cursor-crosshair">
+                <div className="bg-secondary/5 group relative h-28 w-full cursor-crosshair">
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart 
-                      data={chartData} 
+                    <AreaChart
+                      data={chartData}
                       margin={{ top: 10, right: 0, left: 0, bottom: 0 }}
                       onMouseMove={(e) => handleMouseMove(e, densePoints)}
                       onMouseLeave={() => onSelectPoint?.(null)}
                     >
                       <defs>
                         <linearGradient id={`grad-${idx}`} x1="0" y1="0" x2="1" y2="0">
-                          {chartData.length > 1 && chartData.map((d, i) => (
-                            <stop 
-                              key={i} 
-                              offset={`${(i / (chartData.length - 1)) * 100}%`} 
-                              stopColor={d.color} 
-                            />
-                          ))}
+                          {chartData.length > 1 &&
+                            chartData.map((d, i) => (
+                              <stop
+                                key={i}
+                                offset={`${(i / (chartData.length - 1)) * 100}%`}
+                                stopColor={d.color}
+                              />
+                            ))}
                         </linearGradient>
                         <linearGradient id={`fill-${idx}`} x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor={seg.dangerLevel === 'high' ? '#ef4444' : '#f59e0b'} stopOpacity={0.2} />
-                          <stop offset="95%" stopColor={seg.dangerLevel === 'high' ? '#ef4444' : '#f59e0b'} stopOpacity={0} />
+                          <stop
+                            offset="5%"
+                            stopColor={seg.dangerLevel === 'high' ? '#ef4444' : '#f59e0b'}
+                            stopOpacity={0.2}
+                          />
+                          <stop
+                            offset="95%"
+                            stopColor={seg.dangerLevel === 'high' ? '#ef4444' : '#f59e0b'}
+                            stopOpacity={0}
+                          />
                         </linearGradient>
                       </defs>
                       <Tooltip
@@ -233,11 +247,13 @@ export function RouteHazards({
                           if (active && payload && payload.length) {
                             const data = payload[0].payload;
                             return (
-                              <div className="rounded-lg border border-border bg-background/95 backdrop-blur-sm p-2 shadow-xl animate-in fade-in zoom-in duration-200">
-                                <div className="flex flex-col gap-0.5 min-w-[60px]">
-                                  <span className="text-[10px] font-black font-mono text-foreground flex items-center justify-between">
+                              <div className="border-border bg-background/95 animate-in fade-in zoom-in rounded-lg border p-2 shadow-xl backdrop-blur-sm duration-200">
+                                <div className="flex min-w-[60px] flex-col gap-0.5">
+                                  <span className="text-foreground flex items-center justify-between font-mono text-[10px] font-black">
                                     {Math.round(data.ele)}m
-                                    <span className="ml-2 px-1 rounded bg-secondary text-primary">{Math.round(data.slope)}%</span>
+                                    <span className="bg-secondary text-primary ml-2 rounded px-1">
+                                      {Math.round(data.slope)}%
+                                    </span>
                                   </span>
                                 </div>
                               </div>
@@ -245,7 +261,12 @@ export function RouteHazards({
                           }
                           return null;
                         }}
-                        cursor={{ stroke: 'currentColor', strokeWidth: 1, strokeOpacity: 0.2, strokeDasharray: '3 3' }}
+                        cursor={{
+                          stroke: 'currentColor',
+                          strokeWidth: 1,
+                          strokeOpacity: 0.2,
+                          strokeDasharray: '3 3',
+                        }}
                       />
                       <Area
                         type="linear"
@@ -256,17 +277,17 @@ export function RouteHazards({
                         isAnimationActive={false}
                         connectNulls
                       />
-                      <ReferenceLine 
-                        x={maxSlopePoint.dist} 
-                        stroke="#991b1b" 
-                        strokeDasharray="3 3" 
+                      <ReferenceLine
+                        x={maxSlopePoint.dist}
+                        stroke="#991b1b"
+                        strokeDasharray="3 3"
                         strokeWidth={1}
-                        label={{ 
-                          value: 'MAX', 
-                          position: 'top', 
-                          fill: '#991b1b', 
-                          fontSize: 8, 
-                          fontWeight: 'black' 
+                        label={{
+                          value: 'MAX',
+                          position: 'top',
+                          fill: '#991b1b',
+                          fontSize: 8,
+                          fontWeight: 'black',
                         }}
                       />
                       <YAxis hide domain={[minEle - 1, maxEle + 1]} />
@@ -274,23 +295,37 @@ export function RouteHazards({
                   </ResponsiveContainer>
                 </div>
 
-                <div className="bg-muted/10 flex items-center justify-between px-4 py-2 border-t border-border/30">
-                  <div className="flex flex-col">
-                    <span className="text-muted-foreground text-[9px] font-bold uppercase">
-                      {t('slope')}
-                    </span>
-                    <span className="text-xs font-bold">
-                      {Math.round(seg.maxSlope)}% {t('max')}
-                    </span>
+                <div className="bg-muted/10 border-border/30 flex items-center justify-between border-t px-4 py-2">
+                  <div className="flex gap-4">
+                    <div className="flex flex-col">
+                      <span className="text-muted-foreground text-[9px] font-bold uppercase">
+                        {t('slope')}
+                      </span>
+                      <span className="text-xs font-bold">
+                        {Math.round(seg.maxSlope)}% {t('max')}
+                      </span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-muted-foreground text-[9px] font-bold uppercase">
+                        {t('danger')}
+                      </span>
+                      <span className={`text-xs font-bold uppercase ${seg.dangerColor}`}>
+                        {t(`levels.${seg.dangerLevel}`)}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex flex-col items-end">
-                    <span className="text-muted-foreground text-[9px] font-bold uppercase">
-                      {t('danger')}
-                    </span>
-                    <span className={`text-xs font-bold uppercase ${seg.dangerColor}`}>
-                      {t(`levels.${seg.dangerLevel}`)}
-                    </span>
-                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="hover:bg-primary hover:text-primary-foreground h-7 gap-1.5 px-2 text-[10px] font-bold uppercase transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleCardClick(seg);
+                    }}
+                  >
+                    <Map className="h-3 w-3" />
+                    {t('showOnMap')}
+                  </Button>
                 </div>
               </CardContent>
             </Card>

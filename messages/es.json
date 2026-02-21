@@ -65,6 +65,7 @@
     "slope": "Pendiente",
     "avg": "Media",
     "max": "Máx",
+    "showOnMap": "Ver en el mapa",
     "noSegments": "No se han detectado tramos de riesgo en esta ruta.",
     "levels": {
       "low": "BAJO",
