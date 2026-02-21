@@ -23,7 +23,9 @@ interface AnalysisResultsProps {
   allPoints?: any[];
   elevationData: { distance: number; elevation: number }[];
   activeFilter: { key: 'pathType' | 'surface' | 'hazard'; value: string } | null;
-  setActiveFilter: (filter: { key: 'pathType' | 'surface' | 'hazard'; value: string } | null) => void;
+  setActiveFilter: (
+    filter: { key: 'pathType' | 'surface' | 'hazard'; value: string } | null,
+  ) => void;
   selectedPointIndex: number | null;
   setSelectedPointIndex: (index: number | null) => void;
   onRangeSelect: (range: { start: number; end: number } | null) => void;
@@ -113,10 +115,16 @@ export function AnalysisResults({
   return (
     <div id="analysis-results-container">
       <Tabs value={tab} onValueChange={setTab}>
-        <TabsList className="bg-secondary/50 mb-8 grid w-full grid-cols-3">
-          <TabsTrigger value="weather">{t('sections.weatherAnalysis')}</TabsTrigger>
-          <TabsTrigger value="advice">{t('sections.advice')}</TabsTrigger>
-          <TabsTrigger value="hazards">{t('sections.hazards')}</TabsTrigger>
+        <TabsList className="custom-scrollbar bg-secondary/50 mb-8 flex w-full items-center justify-start overflow-x-auto overflow-y-hidden md:grid md:grid-cols-3 md:justify-center">
+          <TabsTrigger value="weather" className="min-w-fit md:w-full">
+            {t('sections.weatherAnalysis')}
+          </TabsTrigger>
+          <TabsTrigger value="advice" className="min-w-fit md:w-full">
+            {t('sections.advice')}
+          </TabsTrigger>
+          <TabsTrigger value="hazards" className="min-w-fit md:w-full">
+            {t('sections.hazards')}
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="weather" className="mt-6 flex flex-col gap-6">

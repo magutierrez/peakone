@@ -258,9 +258,13 @@ export default function HomePageClient({ session: serverSession }: HomePageClien
             ) : (
               <div className="flex flex-col gap-10">
                 <Tabs defaultValue="elevation" className="w-full">
-                  <TabsList className="bg-secondary/50 mb-4 grid w-full grid-cols-2">
-                    <TabsTrigger value="elevation">{twt('elevationTitle')}</TabsTrigger>
-                    <TabsTrigger value="terrain">{twt('segmentsTitle')}</TabsTrigger>
+                  <TabsList className="custom-scrollbar bg-secondary/50 mb-4 flex w-full items-center justify-start overflow-x-auto overflow-y-hidden md:grid md:grid-cols-2 md:justify-center">
+                    <TabsTrigger value="elevation" className="min-w-fit md:w-full">
+                      {twt('elevationTitle')}
+                    </TabsTrigger>
+                    <TabsTrigger value="terrain" className="min-w-fit md:w-full">
+                      {twt('segmentsTitle')}
+                    </TabsTrigger>
                   </TabsList>
                   <TabsContent value="elevation" className="mt-0">
                     <AnalysisChart

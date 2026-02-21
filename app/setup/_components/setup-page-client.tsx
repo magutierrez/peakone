@@ -149,20 +149,18 @@ export function SetupPageClient({ session: serverSession }: SetupPageClientProps
         <h1 className="text-foreground mb-6 text-center text-2xl font-bold">{t('title')}</h1>
 
         <Tabs defaultValue="gpx" className="mb-8 w-full">
-          <TabsList className="mb-6 grid w-full grid-cols-3">
-            <TabsTrigger value="gpx" className="gap-2">
+          <TabsList className="custom-scrollbar mb-6 flex w-full items-center justify-start overflow-x-auto overflow-y-hidden md:grid md:grid-cols-3 md:justify-center">
+            <TabsTrigger value="gpx" className="min-w-fit gap-2 md:w-full">
               <FileUp className="h-4 w-4" />
-              <span className="hidden sm:inline">{t('uploadGPX')}</span>
-              <span className="sm:hidden">GPX</span>
+              <span>{t('uploadGPX')}</span>
             </TabsTrigger>
-            <TabsTrigger value="wikiloc" className="gap-2">
+            <TabsTrigger value="saved" className="min-w-fit gap-2 md:w-full">
+              <History className="h-4 w-4" />
+              <span>{t('savedRoutes')}</span>
+            </TabsTrigger>
+            <TabsTrigger value="wikiloc" className="min-w-fit gap-2 md:w-full">
               <Globe className="h-4 w-4" />
               <span>{t('wikiloc')}</span>
-            </TabsTrigger>
-            <TabsTrigger value="saved" className="gap-2">
-              <History className="h-4 w-4" />
-              <span className="hidden sm:inline">{t('savedRoutes')}</span>
-              <span className="sm:hidden">{t('savedRoutes').split(' ')[0]}</span>
             </TabsTrigger>
           </TabsList>
 
