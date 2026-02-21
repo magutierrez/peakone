@@ -5,7 +5,6 @@ import dynamic from 'next/dynamic';
 import { useTranslations } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { Info, RotateCcw } from 'lucide-react';
 import { useRouteAnalysis, type UseRouteAnalysisConfig } from '@/hooks/use-route-analysis';
 import type { RouteConfig } from '@/lib/types';
 import { getRouteFromDb } from '@/lib/db';

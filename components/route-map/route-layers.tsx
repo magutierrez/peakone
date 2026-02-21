@@ -32,19 +32,6 @@ export function RouteLayers({
             }}
             layout={{ 'line-cap': 'round', 'line-join': 'round' }}
           />
-          {/*map.addLayer({
-    'id': 'route-casing',
-    'type': 'line',
-    'source': 'tu_fuente_gpx',
-    'layout': {
-        'line-join': 'round',
-        'line-cap': 'round'
-    },
-    'paint': {
-        'line-color': '#FFFFFF', // Borde blanco (Komoot usa blanco o azul muy oscuro)
-        'line-width': 8 // Más ancha que la línea principal
-    }
-});*/}
           <Layer
             id="route-casing"
             type="line"
