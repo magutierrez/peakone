@@ -5,22 +5,28 @@ import dynamic from 'next/dynamic';
 import { useTranslations } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import { Info, RotateCcw } from 'lucide-react';
 import { useRouteAnalysis, type UseRouteAnalysisConfig } from '@/hooks/use-route-analysis';
 import type { RouteConfig } from '@/lib/types';
 import { getRouteFromDb } from '@/lib/db';
+import { cn, calculateIBP, getIBPDifficulty, formatDistance, formatElevation } from '@/lib/utils';
+import { useSettings } from '@/hooks/use-settings';
 
 import { Header } from '../../_components/header';
 import { EmptyState } from '../../_components/empty-state';
-import { Sidebar } from '../../_components/sidebar';
+import { ActivityConfigSection } from '../../_components/activity-config-section';
 import { Session } from 'next-auth';
 
 import { RouteLoadingOverlay } from '../../_components/route-loading-overlay';
 import { AnalysisResults } from '../../_components/analysis-results';
 import { AnalysisSkeleton } from '../../_components/analysis-skeleton';
-import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AnalysisChart } from '@/components/weather-timeline/elevation-profile';
 import { RouteSegments } from '@/components/weather-timeline/route-segments';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const RouteMap = dynamic(() => import('@/components/route-map'), {
   ssr: false,
@@ -110,6 +116,9 @@ export default function HomePageClient({ session: serverSession }: HomePageClien
   const [showWaterSources, setShowWaterSources] = useState(false);
   const tHomePage = useTranslations('HomePage');
   const twt = useTranslations('WeatherTimeline');
+  const t = useTranslations('RouteConfigPanel');
+  const tibp = useTranslations('IBP');
+  const { unitSystem } = useSettings();
 
   const mapResetViewRef = useRef<(() => void) | null>(null);
   const handleResetMapView = useCallback(() => {
@@ -197,66 +206,59 @@ export default function HomePageClient({ session: serverSession }: HomePageClien
     [config, handleAnalyze, activityType],
   );
 
-  const sidebarContent = (
-    <Sidebar
-      gpxData={gpxData}
-      gpxFileName={gpxFileName}
-      onClearGPX={onClearGPXWithRange}
-      onReverseRoute={onReverseWithRange}
-      error={error}
-      provider={session?.provider}
-      activityType={activityType}
-      className="sticky-none h-full w-full border-none"
-      recalculatedElevationGain={recalculatedElevationGain}
-      recalculatedElevationLoss={recalculatedElevationLoss}
-      recalculatedTotalDistance={recalculatedTotalDistance}
-      config={config}
-      setConfig={setConfig}
-      onAnalyze={handleAnalyze}
-      isLoading={isLoading}
-      hasGpxData={!!gpxData}
-    />
-  );
+  // IBP calculation for route summary
+  const ibpIndex = gpxData
+    ? calculateIBP(recalculatedTotalDistance, recalculatedElevationGain, activityType)
+    : 0;
+  const difficulty = getIBPDifficulty(ibpIndex, activityType);
+
+  const getDifficultyBadgeVariant = (
+    difficultyLevel: 'veryEasy' | 'easy' | 'moderate' | 'hard' | 'veryHard' | 'extreme',
+  ) => {
+    switch (difficultyLevel) {
+      case 'veryEasy':
+      case 'easy':
+        return 'outline';
+      case 'moderate':
+        return 'secondary';
+      case 'hard':
+        return 'destructive';
+      case 'veryHard':
+      case 'extreme':
+        return 'default';
+      default:
+        return 'outline';
+    }
+  };
 
   return (
     <div className="bg-background flex min-h-screen flex-col">
-      <Header session={session} mobileMenuContent={sidebarContent} />
+      <Header session={session} />
 
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
-        <Sidebar
-          gpxData={gpxData}
-          gpxFileName={gpxFileName}
-          onClearGPX={onClearGPXWithRange}
-          onReverseRoute={onReverseWithRange}
-          error={error}
-          provider={session?.provider}
-          activityType={activityType}
-          className="hidden lg:flex"
-          recalculatedElevationGain={recalculatedElevationGain}
-          recalculatedElevationLoss={recalculatedElevationLoss}
-          recalculatedTotalDistance={recalculatedTotalDistance}
-          config={config}
-          setConfig={setConfig}
-          onAnalyze={handleAnalyze}
-          isLoading={isLoading}
-          hasGpxData={!!gpxData}
-        />
-
         <main className="relative flex min-w-0 flex-1 flex-col lg:flex-row lg:overflow-hidden">
           <div className="custom-scrollbar flex w-full flex-col gap-10 p-4 md:p-8 lg:h-[calc(100vh-57px)] lg:w-[60%] lg:overflow-y-auto">
             {isLoading && !gpxData ? (
               <AnalysisSkeleton />
             ) : !gpxData ? (
-              <div className="flex flex-col gap-8">
-                <div className="lg:hidden">{sidebarContent}</div>
-                <div className="hidden lg:block">
-                  <EmptyState />
-                </div>
-              </div>
+              <EmptyState />
             ) : isRouteInfoLoading ? (
               <AnalysisSkeleton />
             ) : (
               <div className="flex flex-col gap-10">
+                {/* Activity Config Section — arriba */}
+                <ActivityConfigSection
+                  config={config}
+                  setConfig={setConfig}
+                  onAnalyze={handleAnalyze}
+                  isLoading={isLoading}
+                  hasGpxData={!!gpxData}
+                  totalDistance={recalculatedTotalDistance}
+                  recalculatedElevationGain={recalculatedElevationGain}
+                  recalculatedElevationLoss={recalculatedElevationLoss}
+                />
+
+                {/* Elevation Profile + Terrain Tabs */}
                 <Tabs defaultValue="elevation" className="w-full">
                   <TabsList className="custom-scrollbar bg-secondary/50 mb-4 flex w-full items-center justify-start overflow-x-auto overflow-y-hidden md:grid md:grid-cols-2 md:justify-center">
                     <TabsTrigger value="elevation" className="min-w-fit md:w-full">
@@ -287,6 +289,88 @@ export default function HomePageClient({ session: serverSession }: HomePageClien
                     />
                   </TabsContent>
                 </Tabs>
+
+                {/* Route Summary — debajo del perfil de elevación */}
+                <div className="border-border bg-card rounded-lg border p-4">
+                  <div className="mb-3 flex items-center justify-between">
+                    <Label className="text-muted-foreground block text-xs font-semibold tracking-wider uppercase">
+                      {t('routeSummary')}
+                    </Label>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-muted-foreground hover:text-primary h-7 gap-1.5 px-2 text-[10px]"
+                      onClick={onReverseWithRange}
+                    >
+                      <span className="rotate-90">
+                        <RotateCcw />
+                      </span>{' '}
+                      {t('reverseRoute')}
+                    </Button>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="bg-secondary rounded-lg p-3 text-center">
+                      <p className="text-foreground font-mono text-lg font-bold">
+                        {formatDistance(recalculatedTotalDistance, unitSystem).split(' ')[0]}
+                      </p>
+                      <p className="text-muted-foreground text-xs">
+                        {formatDistance(recalculatedTotalDistance, unitSystem).split(' ')[1]}
+                      </p>
+                    </div>
+                    <div className="bg-secondary rounded-lg p-3 text-center">
+                      <p className="text-primary font-mono text-lg font-bold">
+                        +{formatElevation(recalculatedElevationGain, unitSystem).split(' ')[0]}
+                      </p>
+                      <p className="text-muted-foreground text-xs">
+                        {formatElevation(recalculatedElevationGain, unitSystem).split(' ')[1]}
+                      </p>
+                    </div>
+                    <div className="bg-secondary rounded-lg p-3 text-center">
+                      <p className="text-destructive font-mono text-lg font-bold">
+                        -{formatElevation(recalculatedElevationLoss, unitSystem).split(' ')[0]}
+                      </p>
+                      <p className="text-muted-foreground text-xs">
+                        {formatElevation(recalculatedElevationLoss, unitSystem).split(' ')[1]}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 flex flex-col gap-1.5">
+                    <div className="flex items-center gap-2">
+                      <Label className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
+                        {tibp('title')}
+                      </Label>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-4 w-4">
+                              <Info className="text-muted-foreground h-3 w-3" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs text-xs">
+                            {tibp('description')}
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                    <div className="flex items-baseline gap-2">
+                      <p className="text-primary text-2xl font-bold">{ibpIndex}</p>
+                      <Badge
+                        variant={getDifficultyBadgeVariant(difficulty)}
+                        className="text-sm font-medium"
+                      >
+                        {tibp(`difficulty.${difficulty}`)}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  {error && (
+                    <div className="border-destructive/30 bg-destructive/10 mt-4 rounded-lg border p-3">
+                      <p className="text-destructive text-xs">{error}</p>
+                    </div>
+                  )}
+                </div>
 
                 {isWeatherAnalyzed ? (
                   <AnalysisResults
@@ -348,6 +432,22 @@ export default function HomePageClient({ session: serverSession }: HomePageClien
           </div>
         </main>
       </div>
+
+      <style jsx>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: hsl(var(--border));
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: hsl(var(--muted-foreground));
+        }
+      `}</style>
     </div>
   );
 }

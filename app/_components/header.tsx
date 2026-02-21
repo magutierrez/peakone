@@ -24,7 +24,7 @@ import Link from 'next/link';
 
 interface HeaderProps {
   session: Session | null;
-  mobileMenuContent: React.ReactNode;
+  mobileMenuContent?: React.ReactNode;
 }
 
 export function Header({ session, mobileMenuContent }: HeaderProps) {
