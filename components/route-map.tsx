@@ -116,8 +116,17 @@ export default function RouteMap({
       const map = mapRef.current?.getMap();
       if (!map || !onHoverRoutePoint) return;
 
+      const activeLayers = ['route-hover-target', 'highlight-line', 'range-line'].filter((id) =>
+        map.getLayer(id),
+      );
+
+      if (activeLayers.length === 0) {
+        onHoverRoutePoint(null);
+        return;
+      }
+
       const features = map.queryRenderedFeatures(e.point, {
-        layers: ['route-hover-target', 'highlight-line', 'range-line'],
+        layers: activeLayers,
       });
 
       if (features.length > 0) {
