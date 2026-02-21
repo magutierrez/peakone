@@ -86,9 +86,8 @@ export function ActivityConfigSection({
         )}
       </div>
 
-      <div className="flex flex-col gap-3">
-        {/* Row 1: Speed + Duration */}
-        <div className="grid grid-cols-2 gap-3">
+      <div className="flex flex-row items-end gap-8">
+        <div className="flex flex-row gap-8">
           {/* Speed */}
           <div className="flex flex-col gap-1.5">
             <Label
@@ -190,10 +189,8 @@ export function ActivityConfigSection({
               </PopoverContent>
             </Popover>
           </div>
-        </div>
 
-        {/* Row 2: Date + Time */}
-        <div className="grid grid-cols-2 gap-3">
+          {/* Row 2: Date + Time */}
           <div className="flex flex-col gap-1.5">
             <Label
               htmlFor="date"
@@ -233,7 +230,7 @@ export function ActivityConfigSection({
         <Button
           onClick={onAnalyze}
           disabled={!hasGpxData || isLoading}
-          className="bg-primary text-primary-foreground hover:bg-primary/90 mt-1 w-full font-semibold"
+          className="bg-primary text-primary-foreground hover:bg-primary/90 h-12 flex-1 font-semibold"
           size="lg"
         >
           {isLoading ? (

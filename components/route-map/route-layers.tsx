@@ -32,15 +32,58 @@ export function RouteLayers({
             }}
             layout={{ 'line-cap': 'round', 'line-join': 'round' }}
           />
+          {/*map.addLayer({
+    'id': 'route-casing',
+    'type': 'line',
+    'source': 'tu_fuente_gpx',
+    'layout': {
+        'line-join': 'round',
+        'line-cap': 'round'
+    },
+    'paint': {
+        'line-color': '#FFFFFF', // Borde blanco (Komoot usa blanco o azul muy oscuro)
+        'line-width': 8 // Más ancha que la línea principal
+    }
+});*/}
+          <Layer
+            id="route-casing"
+            type="line"
+            paint={{
+              'line-color': '#FFFFFF',
+              'line-width': 8,
+            }}
+            layout={{ 'line-cap': 'round', 'line-join': 'round' }}
+          />
           <Layer
             id="route-base"
             type="line"
             paint={{
-              'line-color': mapType === 'standard' ? '#3ecf8e' : '#ffffff',
-              'line-width': 4,
+              'line-color': mapType === 'standard' ? '#1368CE' : '#ffffff',
+              'line-width': 5,
               'line-opacity': activeFilter || selectedRange ? 0.3 : 1,
             }}
             layout={{ 'line-cap': 'round', 'line-join': 'round' }}
+          />
+
+          <Layer
+            id="route-direction-arrows"
+            type="symbol"
+            layout={{
+              'symbol-placement': 'line',
+              'symbol-spacing': 80, // More frequent arrows
+              'text-field': '>',
+              'text-size': ['interpolate', ['linear'], ['zoom'], 10, 12, 18, 24],
+              'text-keep-upright': false,
+              'text-allow-overlap': true,
+              'text-rotate': 0, // In line-placement, 0 is along the line
+              'text-font': ['Open Sans Regular', 'Arial Unicode MS Regular'],
+            }}
+            paint={{
+              'text-color': mapType === 'standard' ? '#000' : '#ffffff',
+              'text-opacity': activeFilter || selectedRange ? 0.4 : 1,
+              'text-halo-color': mapType === 'standard' ? '#ffffff' : '#000000',
+              'text-halo-width': 2,
+            }}
           />
         </Source>
       )}
@@ -51,7 +94,7 @@ export function RouteLayers({
             id="highlight-glow"
             type="line"
             paint={{
-              'line-color': '#3ecf8e',
+              'line-color': '#4f86d1',
               'line-width': 8,
               'line-opacity': 0.4,
               'line-blur': 4,
@@ -85,31 +128,6 @@ export function RouteLayers({
             id="range-line"
             type="line"
             paint={{ 'line-color': '#007aff', 'line-width': 5, 'line-opacity': 1 }}
-          />
-        </Source>
-      )}
-
-      {routeData && (
-        <Source id="route-arrows-source" type="geojson" data={routeData}>
-          <Layer
-            id="route-direction-arrows"
-            type="symbol"
-            layout={{
-              'symbol-placement': 'line',
-              'symbol-spacing': 80, // More frequent arrows
-              'text-field': '>',
-              'text-size': ['interpolate', ['linear'], ['zoom'], 10, 12, 18, 24],
-              'text-keep-upright': false,
-              'text-allow-overlap': true,
-              'text-rotate': 0, // In line-placement, 0 is along the line
-              'text-font': ['Open Sans Regular', 'Arial Unicode MS Regular'],
-            }}
-            paint={{
-              'text-color': mapType === 'standard' ? '#065f46' : '#ffffff',
-              'text-opacity': activeFilter || selectedRange ? 0.4 : 1,
-              'text-halo-color': mapType === 'standard' ? '#ffffff' : '#000000',
-              'text-halo-width': 2,
-            }}
           />
         </Source>
       )}
