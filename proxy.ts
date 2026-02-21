@@ -13,7 +13,13 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Redirect unauthenticated users to login
-  if (!session?.user && !pathname.startsWith('/login') && !pathname.startsWith('/api/auth')) {
+  const isPublicPath =
+    pathname.startsWith('/login') ||
+    pathname.startsWith('/terms') ||
+    pathname.startsWith('/privacy') ||
+    pathname.startsWith('/api/auth');
+
+  if (!session?.user && !isPublicPath) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 

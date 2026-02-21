@@ -54,11 +54,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
-      const isLoginPage = nextUrl.pathname.startsWith('/login');
+      const isPublicPage = ['/login', '/terms', '/privacy'].some((path) =>
+        nextUrl.pathname.startsWith(path),
+      );
       const isPublicApi = nextUrl.pathname.startsWith('/api/auth');
 
-      if (isLoginPage || isPublicApi) {
-        if (isLoggedIn) return Response.redirect(new URL('/', nextUrl));
+      if (isPublicPage || isPublicApi) {
+        if (isLoggedIn && nextUrl.pathname === '/login') {
+          return Response.redirect(new URL('/', nextUrl));
+        }
         return true;
       }
 

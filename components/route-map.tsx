@@ -27,7 +27,7 @@ interface RouteMapProps {
   exactSelectedPoint?: any | null;
   onHoverRoutePoint?: (point: any | null) => void;
   onPointSelect?: (index: number) => void;
-  activeFilter?: { key: 'pathType' | 'surface'; value: string } | null;
+  activeFilter?: { key: 'pathType' | 'surface' | 'hazard'; value: string } | null;
   selectedRange?: { start: number; end: number } | null;
   activityType?: 'cycling' | 'walking';
   onClearSelection?: () => void;

@@ -22,7 +22,6 @@ import { AnalysisSkeleton } from '../../_components/analysis-skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AnalysisChart } from '@/components/weather-timeline/elevation-profile';
 import { RouteSegments } from '@/components/weather-timeline/route-segments';
-import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';

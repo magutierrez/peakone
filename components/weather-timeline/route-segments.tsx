@@ -6,8 +6,10 @@ import type { RouteWeatherPoint } from '@/lib/types';
 
 interface RouteSegmentsProps {
   weatherPoints: RouteWeatherPoint[];
-  activeFilter?: { key: 'pathType' | 'surface'; value: string } | null;
-  setActiveFilter?: (filter: { key: 'pathType' | 'surface'; value: string } | null) => void;
+  activeFilter?: { key: 'pathType' | 'surface' | 'hazard'; value: string } | null;
+  setActiveFilter?: (
+    filter: { key: 'pathType' | 'surface' | 'hazard'; value: string } | null,
+  ) => void;
   onRangeSelect?: (range: { start: number; end: number } | null) => void;
 }
 

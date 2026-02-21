@@ -272,6 +272,7 @@
     "continueX": "Continue with X (Twitter)",
     "continueStrava": "Continue with Strava",
     "terms": "By continuing, you agree to our terms of service and privacy policy.",
+    "termsLinks": "By continuing, you agree to our <terms>terms of service</terms> and <privacy>privacy policy</privacy>.",
     "logout": "Log out",
     "settings": "Settings",
     "settingsTitle": "Unit Preferences",
@@ -283,6 +284,30 @@
     "uk": "United Kingdom (mi, m, °C)",
     "imperial": "Imperial (mi, ft, °C)",
     "save": "Save changes"
+  },
+  "Privacy": {
+    "title": "Privacy Policy",
+    "introduction": "At peakOne, your privacy is our priority. As a Local-First application, we handle your data differently than traditional web apps.",
+    "localDataTitle": "Local-First Storage",
+    "localDataContent": "All your route data, GPX files, and settings are stored locally in your browser using PGLite (WASM Postgres) and IndexedDB. We do not have a central database where your tracks are stored.",
+    "noServerStorageTitle": "No Server Storage",
+    "noServerStorageContent": "Your sensitive activity data never leaves your device to be stored on our servers. Any analysis (weather, terrain) is performed by sending coordinates to public APIs, but your original tracks are not kept by us.",
+    "authenticationTitle": "Authentication",
+    "authenticationContent": "We use third-party providers (Google, Strava, etc.) only to identify you and allow access to the application. We do not sell or share your profile data with anyone.",
+    "openSourceTitle": "Open Source",
+    "openSourceContent": "peakOne is open source. You can audit our code to verify how your data is handled."
+  },
+  "Terms": {
+    "title": "Terms of Service",
+    "acceptance": "By using peakOne, you agree to these terms.",
+    "noResponsibilityTitle": "No Responsibility",
+    "noResponsibilityContent": "peakOne is provided 'as is', without any warranty. We are not responsible for any inaccuracies in weather forecasts, terrain data, or any incidents that may occur during your activities.",
+    "userResponsibilityTitle": "Your Responsibility",
+    "userResponsibilityContent": "Outdoor activities are inherently risky. Always check multiple sources of information and use your own judgment. The data provided by peakOne is for planning purposes only.",
+    "openSourceTitle": "License",
+    "openSourceContent": "The application code is open source. You are free to use it according to its license, but we provide no guarantees regarding its operation.",
+    "dataLossTitle": "Data Loss",
+    "dataLossContent": "Since data is stored locally in your browser, clearing your browser cache or changing devices will result in the loss of your saved routes unless you have backups."
   },
   "LocaleSwitcher": {
     "switchLocale": "Switch language"

@@ -2,6 +2,7 @@
 
 import { signIn } from 'next-auth/react';
 import { Mountain, Facebook } from 'lucide-react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -96,7 +97,20 @@ export function LoginPageClient() {
           </Button>
         </CardContent>
         <CardFooter className="flex flex-col gap-4 text-center">
-          <p className="text-muted-foreground px-8 text-xs leading-relaxed">{t('terms')}</p>
+          <p className="text-muted-foreground px-8 text-xs leading-relaxed">
+            {t.rich('termsLinks', {
+              terms: (chunks) => (
+                <Link href="/terms" className="text-primary font-semibold hover:underline">
+                  {chunks}
+                </Link>
+              ),
+              privacy: (chunks) => (
+                <Link href="/privacy" className="text-primary font-semibold hover:underline">
+                  {chunks}
+                </Link>
+              ),
+            })}
+          </p>
         </CardFooter>
       </Card>
     </div>
