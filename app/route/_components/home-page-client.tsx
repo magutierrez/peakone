@@ -290,7 +290,6 @@ export default function HomePageClient({ session: serverSession }: HomePageClien
                   </TabsContent>
                 </Tabs>
 
-                {/* Route Summary — debajo del perfil de elevación */}
                 <div className="border-border bg-card rounded-lg border p-4">
                   <div className="mb-3 flex items-center justify-between">
                     <Label className="text-muted-foreground block text-xs font-semibold tracking-wider uppercase">

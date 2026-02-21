@@ -86,8 +86,8 @@ export function ActivityConfigSection({
         )}
       </div>
 
-      <div className="flex flex-row items-end gap-8">
-        <div className="flex flex-row gap-8">
+      <div className="flex flex-col items-center gap-8 lg:flex-row lg:items-end">
+        <div className="flex w-full flex-col gap-3 lg:w-auto lg:flex-row lg:gap-8">
           {/* Speed */}
           <div className="flex flex-col gap-1.5">
             <Label
@@ -227,24 +227,26 @@ export function ActivityConfigSection({
         </div>
 
         {/* Analyze button */}
-        <Button
-          onClick={onAnalyze}
-          disabled={!hasGpxData || isLoading}
-          className="bg-primary text-primary-foreground hover:bg-primary/90 h-12 flex-1 font-semibold"
-          size="lg"
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin" />
-              {t('analyzing')}
-            </>
-          ) : (
-            <>
-              <Zap className="h-4 w-4" />
-              {t('analyze')}
-            </>
-          )}
-        </Button>
+        <div className="w-full flex-1">
+          <Button
+            onClick={onAnalyze}
+            disabled={!hasGpxData || isLoading}
+            className="bg-primary text-primary-foreground hover:bg-primary/90 h-12 w-full flex-1 font-semibold"
+            size="lg"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                {t('analyzing')}
+              </>
+            ) : (
+              <>
+                <Zap className="h-4 w-4" />
+                {t('analyze')}
+              </>
+            )}
+          </Button>
+        </div>
       </div>
     </section>
   );
