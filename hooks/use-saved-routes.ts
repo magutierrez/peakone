@@ -1,18 +1,8 @@
 'use client';
 
 import useSWR, { mutate } from 'swr';
-import { getDb } from '@/lib/db';
+import { db, SavedRoute } from '@/lib/db';
 import { useSession } from 'next-auth/react';
-
-export interface SavedRoute {
-  id: string;
-  name: string;
-  gpx_content: string;
-  distance: number;
-  elevation_gain: number;
-  elevation_loss: number;
-  created_at: string;
-}
 
 const ROUTES_CACHE_KEY = 'local-saved-routes';
 
@@ -25,18 +15,16 @@ export function useSavedRoutes() {
     isLoading,
     error,
   } = useSWR(userIdentifier ? [ROUTES_CACHE_KEY, userIdentifier] : null, async ([, identifier]) => {
-    const db = await getDb();
-    if (!db) {
-      return [];
-    }
-
     try {
-      const result = await db.query<SavedRoute>(
-        `SELECT * FROM saved_routes WHERE user_email = $1 ORDER BY created_at DESC`,
-        [identifier],
-      );
-      return result.rows;
+      // Fetch routes for the user, ordered by creation date (newest first)
+      const result = await db.saved_routes
+        .where('user_email')
+        .equals(identifier)
+        .reverse()
+        .sortBy('created_at');
+      return result;
     } catch (e) {
+      console.error('Error fetching routes:', e);
       return [];
     }
   });
@@ -50,20 +38,19 @@ export function useSavedRoutes() {
     elevationLoss: number,
   ) => {
     if (!userIdentifier) return null;
+
     try {
-      const db = await getDb();
-      if (!db) return null;
+      // Check if a route with same name and similar distance already exists for this user
+      // We filter in memory because Dexie doesn't support complex SQL-like WHERE clauses directly
+      // combined with index ranges in a simple way for this specific logic.
+      const existing = await db.saved_routes
+        .where('user_email')
+        .equals(userIdentifier)
+        .filter((r) => r.name === name && Math.abs(r.distance - distance) < 0.01)
+        .first();
 
-      // Check if a route with same name and distance already exists for this user
-      const existing = await db.query<SavedRoute>(
-        `SELECT id FROM saved_routes 
-         WHERE user_email = $1 AND name = $2 AND abs(distance - $3) < 0.01
-         LIMIT 1`,
-        [userIdentifier, name, distance],
-      );
-
-      if (existing.rows.length > 0) {
-        return existing.rows[0].id;
+      if (existing) {
+        return existing.id;
       }
 
       let routeId: string;
@@ -77,28 +64,22 @@ export function useSavedRoutes() {
         });
       }
 
-      if (!routeId) {
-        throw new Error('Failed to generate unique ID for route.');
-      }
-
-      await db.query(
-        `INSERT INTO saved_routes (id, user_email, name, gpx_content, activity_type, distance, elevation_gain, elevation_loss) 
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-        [
-          routeId,
-          userIdentifier,
-          name,
-          content,
-          activityType,
-          distance,
-          elevationGain,
-          elevationLoss,
-        ],
-      );
+      await db.saved_routes.add({
+        id: routeId,
+        user_email: userIdentifier,
+        name,
+        gpx_content: content,
+        activity_type: activityType,
+        distance,
+        elevation_gain: elevationGain,
+        elevation_loss: elevationLoss,
+        created_at: new Date().toISOString(),
+      });
 
       await mutate([ROUTES_CACHE_KEY, userIdentifier]);
       return routeId;
     } catch (e) {
+      console.error('Error saving route:', e);
       throw e;
     }
   };
@@ -106,26 +87,20 @@ export function useSavedRoutes() {
   const deleteRoute = async (id: string) => {
     if (!userIdentifier) return;
     try {
-      const db = await getDb();
-      if (!db) return;
-
-      await db.query(`DELETE FROM saved_routes WHERE id = $1`, [id]);
+      await db.saved_routes.delete(id);
       mutate([ROUTES_CACHE_KEY, userIdentifier]);
     } catch (e) {
-      // Ignore
+      console.error('Error deleting route:', e);
     }
   };
 
   const updateRouteName = async (id: string, newName: string) => {
     if (!userIdentifier) return;
     try {
-      const db = await getDb();
-      if (!db) return;
-
-      await db.query(`UPDATE saved_routes SET name = $1 WHERE id = $2`, [newName, id]);
+      await db.saved_routes.update(id, { name: newName });
       mutate([ROUTES_CACHE_KEY, userIdentifier]);
     } catch (e) {
-      // Ignore
+      console.error('Error updating route name:', e);
     }
   };
 
