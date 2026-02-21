@@ -33,6 +33,7 @@ export function SetupPageClient({ session: serverSession }: SetupPageClientProps
   const router = useRouter();
 
   const [selectedGpxData, setSelectedGpxData] = useState<GPXData | null>(null);
+  const [selectedSavedRouteId, setSelectedSavedRouteId] = useState<string | null>(null);
   const [selectedGpxFileName, setSelectedGpxFileName] = useState<string | null>(null);
   const [rawGpxContent, setRawGpxContent] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -47,7 +48,7 @@ export function SetupPageClient({ session: serverSession }: SetupPageClientProps
   }, [refresh]);
 
   // Handlers for GPX and Saved Routes
-  const handleGPXLoaded = (content: string, fileName: string) => {
+  const handleGPXLoaded = (content: string, fileName: string, savedRouteId?: string) => {
     try {
       const data = parseGPX(content);
       if (data.points.length < 2) {
@@ -57,6 +58,7 @@ export function SetupPageClient({ session: serverSession }: SetupPageClientProps
       setSelectedGpxData(data);
       setSelectedGpxFileName(fileName);
       setRawGpxContent(content);
+      setSelectedSavedRouteId(savedRouteId || null);
       setError(null);
     } catch {
       setError(t('errors.readError'));
@@ -67,6 +69,7 @@ export function SetupPageClient({ session: serverSession }: SetupPageClientProps
     setSelectedGpxData(null);
     setSelectedGpxFileName(null);
     setRawGpxContent(null);
+    setSelectedSavedRouteId(null);
     setError(null);
   };
 
@@ -185,7 +188,10 @@ export function SetupPageClient({ session: serverSession }: SetupPageClientProps
               <Label className="text-muted-foreground text-sm font-semibold">
                 {t('savedRoutes')}
               </Label>
-              <SavedRoutesList onLoadRoute={handleGPXLoaded} />
+              <SavedRoutesList
+                onLoadRoute={handleGPXLoaded}
+                selectedRouteId={selectedSavedRouteId}
+              />
             </div>
           </TabsContent>
         </Tabs>

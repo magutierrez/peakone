@@ -17,12 +17,14 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { useTranslations } from 'next-intl';
+import { cn } from '@/lib/utils';
 
 interface SavedRoutesListProps {
-  onLoadRoute: (content: string, fileName: string) => void;
+  onLoadRoute: (content: string, fileName: string, id?: string) => void;
+  selectedRouteId?: string | null;
 }
 
-export function SavedRoutesList({ onLoadRoute }: SavedRoutesListProps) {
+export function SavedRoutesList({ onLoadRoute, selectedRouteId }: SavedRoutesListProps) {
   const t = useTranslations('SetupPage');
   const { routes, isLoading, deleteRoute, updateRouteName } = useSavedRoutes();
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -78,7 +80,12 @@ export function SavedRoutesList({ onLoadRoute }: SavedRoutesListProps) {
           {routes.map((route) => (
             <div
               key={route.id}
-              className="group border-border bg-secondary/30 hover:border-primary/30 hover:bg-secondary/50 relative flex min-w-0 flex-col rounded-lg border p-3 transition-all"
+              className={cn(
+                'group border-border relative flex min-w-0 flex-col rounded-lg border p-3 transition-all',
+                selectedRouteId === route.id
+                  ? 'border-primary bg-primary/10 ring-primary/20 ring-2'
+                  : 'bg-secondary/30 hover:border-primary/30 hover:bg-secondary/50',
+              )}
             >
               {editingId === route.id ? (
                 <div
@@ -118,11 +125,16 @@ export function SavedRoutesList({ onLoadRoute }: SavedRoutesListProps) {
                 <div className="flex w-full items-start justify-between gap-3">
                   <button
                     className="block min-w-0 flex-1 text-left"
-                    onClick={() => onLoadRoute(route.gpx_content, route.name)}
+                    onClick={() => onLoadRoute(route.gpx_content, route.name, route.id)}
                   >
-                    <p className="text-foreground text-sm leading-tight font-semibold break-words whitespace-normal">
-                      {stripExtension(route.name)}
-                    </p>
+                    <div className="flex items-start gap-2">
+                      <p className="text-foreground text-sm leading-tight font-semibold break-words whitespace-normal">
+                        {stripExtension(route.name)}
+                      </p>
+                      {selectedRouteId === route.id && (
+                        <Check className="text-primary mt-0.5 h-3.5 w-3.5 shrink-0" />
+                      )}
+                    </div>
                     <div className="text-muted-foreground mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
                       <span className="flex shrink-0 items-center gap-1">
                         <MapPin className="h-3 w-3" />
