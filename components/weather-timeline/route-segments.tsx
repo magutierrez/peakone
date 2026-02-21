@@ -126,7 +126,7 @@ export function RouteSegments({
       </div>
 
       {!hasMeaningfulData(data) ? (
-        <div className="bg-secondary/30 flex h-20 items-center justify-center rounded-lg border border-dashed">
+        <div className="bg-secondary/30 flex h-20 items-center justify-center rounded-lg border border-dashed p-2">
           <span className="text-muted-foreground text-xs">{t('noData')}</span>
         </div>
       ) : (
