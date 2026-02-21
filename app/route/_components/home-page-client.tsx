@@ -237,7 +237,7 @@ export default function HomePageClient({ session: serverSession }: HomePageClien
 
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
         <main className="relative flex min-w-0 flex-1 flex-col lg:flex-row lg:overflow-hidden">
-          <div className="custom-scrollbar flex w-full flex-col gap-10 p-4 md:p-8 lg:h-[calc(100vh-57px)] lg:w-[60%] lg:overflow-y-auto">
+          <div className="custom-scrollbar flex w-full flex-col gap-10 p-4 md:p-8 lg:h-[calc(100vh-57px)] lg:w-[55%] lg:overflow-y-auto">
             {isLoading && !gpxData ? (
               <AnalysisSkeleton />
             ) : !gpxData ? (
@@ -251,6 +251,7 @@ export default function HomePageClient({ session: serverSession }: HomePageClien
                   config={config}
                   setConfig={setConfig}
                   onAnalyze={handleAnalyze}
+                  onReverseRoute={onReverseWithRange}
                   isLoading={isLoading}
                   hasGpxData={!!gpxData}
                   totalDistance={recalculatedTotalDistance}
@@ -296,20 +297,9 @@ export default function HomePageClient({ session: serverSession }: HomePageClien
                     <Label className="text-muted-foreground block text-xs font-semibold tracking-wider uppercase">
                       {t('routeSummary')}
                     </Label>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-muted-foreground hover:text-primary h-7 gap-1.5 px-2 text-[10px]"
-                      onClick={onReverseWithRange}
-                    >
-                      <span className="rotate-90">
-                        <RotateCcw />
-                      </span>{' '}
-                      {t('reverseRoute')}
-                    </Button>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-4 gap-2">
                     <div className="bg-secondary rounded-lg p-3 text-center">
                       <p className="text-foreground font-mono text-lg font-bold">
                         {formatDistance(recalculatedTotalDistance, unitSystem).split(' ')[0]}
@@ -334,34 +324,26 @@ export default function HomePageClient({ session: serverSession }: HomePageClien
                         {formatElevation(recalculatedElevationLoss, unitSystem).split(' ')[1]}
                       </p>
                     </div>
-                  </div>
-
-                  <div className="mt-4 flex flex-col gap-1.5">
-                    <div className="flex items-center gap-2">
-                      <Label className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
-                        {tibp('title')}
-                      </Label>
+                    <div className="bg-secondary group relative flex flex-col items-center justify-center rounded-lg p-3 text-center">
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-4 w-4">
-                              <Info className="text-muted-foreground h-3 w-3" />
-                            </Button>
+                            <div className="cursor-help">
+                              <p className="text-primary font-mono text-lg font-bold">{ibpIndex}</p>
+                              <Badge
+                                variant={getDifficultyBadgeVariant(difficulty)}
+                                className="h-4 px-1 text-[8px] font-bold uppercase"
+                              >
+                                {tibp(`difficulty.${difficulty}`)}
+                              </Badge>
+                            </div>
                           </TooltipTrigger>
                           <TooltipContent className="max-w-xs text-xs">
-                            {tibp('description')}
+                            <p className="font-bold">{tibp('title')}</p>
+                            <p>{tibp('description')}</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
-                    </div>
-                    <div className="flex items-baseline gap-2">
-                      <p className="text-primary text-2xl font-bold">{ibpIndex}</p>
-                      <Badge
-                        variant={getDifficultyBadgeVariant(difficulty)}
-                        className="text-sm font-medium"
-                      >
-                        {tibp(`difficulty.${difficulty}`)}
-                      </Badge>
                     </div>
                   </div>
 
@@ -407,7 +389,7 @@ export default function HomePageClient({ session: serverSession }: HomePageClien
 
           <div
             className={cn(
-              'border-border relative h-[400px] w-full border-t lg:h-[calc(100vh-57px)] lg:w-[40%] lg:border-t-0 lg:border-l',
+              'border-border relative h-[400px] w-full border-t lg:h-[calc(100vh-57px)] lg:w-[45%] lg:border-t-0 lg:border-l',
               !gpxData && 'hidden lg:block',
             )}
           >

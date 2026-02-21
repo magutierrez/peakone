@@ -1,6 +1,14 @@
 'use client';
 
-import { Calendar as CalendarIcon, Clock, Gauge, Edit2, Loader2, Zap } from 'lucide-react';
+import {
+  Calendar as CalendarIcon,
+  Clock,
+  Gauge,
+  Edit2,
+  Loader2,
+  Zap,
+  RotateCcw,
+} from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -13,6 +21,7 @@ interface ActivityConfigSectionProps {
   config: RouteConfig;
   setConfig: (config: RouteConfig) => void;
   onAnalyze: () => void;
+  onReverseRoute?: () => void;
   isLoading: boolean;
   hasGpxData: boolean;
   totalDistance: number;
@@ -24,6 +33,7 @@ export function ActivityConfigSection({
   config,
   setConfig,
   onAnalyze,
+  onReverseRoute,
   isLoading,
   hasGpxData,
   totalDistance,
@@ -56,9 +66,24 @@ export function ActivityConfigSection({
 
   return (
     <section className="border-border bg-card rounded-lg border p-4">
-      <div className="mb-4 flex items-center gap-2">
-        <Zap className="text-primary h-4 w-4" />
-        <h2 className="text-foreground text-sm font-semibold">{t('analyze')}</h2>
+      <div className="mb-4 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Zap className="text-primary h-4 w-4" />
+          <h2 className="text-foreground text-sm font-semibold">{t('analyze')}</h2>
+        </div>
+        {onReverseRoute && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-muted-foreground hover:text-primary h-7 gap-1.5 px-2 text-[10px]"
+            onClick={onReverseRoute}
+          >
+            <span className="rotate-90">
+              <RotateCcw className="h-3 w-3" />
+            </span>
+            {t('reverseRoute')}
+          </Button>
+        )}
       </div>
 
       <div className="flex flex-col gap-3">
