@@ -25,6 +25,7 @@ interface RouteMapProps {
   selectedPointIndex?: number | null;
   fullSelectedPointIndex?: number | null;
   exactSelectedPoint?: any | null;
+  onHoverRoutePoint?: (point: any | null) => void;
   onPointSelect?: (index: number) => void;
   activeFilter?: { key: 'pathType' | 'surface'; value: string } | null;
   selectedRange?: { start: number; end: number } | null;
@@ -42,6 +43,7 @@ export default function RouteMap({
   fullSelectedPointIndex = null,
   exactSelectedPoint = null,
   onPointSelect,
+  onHoverRoutePoint,
   activeFilter = null,
   selectedRange = null,
   activityType = 'cycling',
@@ -109,6 +111,50 @@ export default function RouteMap({
     [onPointSelect],
   );
 
+  const onMapMouseMove = useCallback(
+    (e: any) => {
+      const map = mapRef.current?.getMap();
+      if (!map || !onHoverRoutePoint) return;
+
+      const features = map.queryRenderedFeatures(e.point, {
+        layers: ['route-hover-target', 'highlight-line', 'range-line'],
+      });
+
+      if (features.length > 0) {
+        map.getCanvas().style.cursor = 'pointer';
+
+        // Find the closest point in our data
+        const coords = e.lngLat;
+        let minServiceDist = Infinity;
+        let closestIdx = -1;
+
+        // Optimization: only check points near the mouse
+        for (let i = 0; i < points.length; i++) {
+          const p = points[i];
+          const d = Math.pow(p.lon - coords.lng, 2) + Math.pow(p.lat - coords.lat, 2);
+          if (d < minServiceDist) {
+            minServiceDist = d;
+            closestIdx = i;
+          }
+        }
+
+        if (closestIdx !== -1) {
+          onHoverRoutePoint(points[closestIdx]);
+        }
+      } else {
+        map.getCanvas().style.cursor = '';
+        onHoverRoutePoint(null);
+      }
+    },
+    [onHoverRoutePoint, points],
+  );
+
+  const onMapMouseLeave = useCallback(() => {
+    const map = mapRef.current?.getMap();
+    if (map) map.getCanvas().style.cursor = '';
+    if (onHoverRoutePoint) onHoverRoutePoint(null);
+  }, [onHoverRoutePoint]);
+
   const popupInfo = useMemo(() => {
     const idx = hoveredPointIdx !== null ? hoveredPointIdx : selectedPointIndex;
     if (idx !== null && weatherPoints?.[idx]) return { ...weatherPoints[idx], index: idx };
@@ -151,6 +197,8 @@ export default function RouteMap({
         mapStyle={mapStyle as any}
         onClick={onMapClick}
         onLoad={onMapLoad}
+        onMouseMove={onMapMouseMove}
+        onMouseLeave={onMapMouseLeave}
         dragRotate={true}
         touchZoomRotate={true}
       >

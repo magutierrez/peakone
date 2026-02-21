@@ -418,6 +418,7 @@ export default function HomePageClient({ session: serverSession }: HomePageClien
               selectedPointIndex={selectedPointIndex}
               exactSelectedPoint={exactSelectedPoint}
               onPointSelect={setSelectedPointIndex}
+              onHoverRoutePoint={setExactSelectedPoint}
               activeFilter={activeFilter}
               selectedRange={selectedRange}
               activityType={activityType}

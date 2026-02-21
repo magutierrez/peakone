@@ -59,6 +59,48 @@ export function useRouteAnalysis(
   const [bestWindows, setBestWindows] = useState<any[]>([]);
   const [isFindingWindow, setIsFindingWindow] = useState(false);
 
+  const handleReverseRoute = useCallback(() => {
+    if (!gpxData) return;
+    const reversed = reverseGPXData(gpxData);
+    setGPXData(reversed);
+    setRecalculatedElevationGain(reversed.totalElevationGain);
+    setRecalculatedElevationLoss(reversed.totalElevationLoss);
+    setRecalculatedTotalDistance(reversed.totalDistance);
+    setWeatherPoints([]);
+    setSelectedPointIndex(null);
+    setIsWeatherAnalyzed(false); // Reset weather analysis status
+  }, [gpxData]);
+
+  const fetchRouteInfo = useCallback(async () => {
+    if (!gpxData) {
+      setRouteInfoData([]);
+      return;
+    }
+
+    setIsRouteInfoLoading(true);
+    try {
+      const response = await fetch('/api/route-info', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          points: sampleRoutePoints(gpxData.points, 100).map((p) => ({
+            lat: p.lat,
+            lon: p.lon,
+            distanceFromStart: p.distanceFromStart,
+          })),
+        }),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setRouteInfoData(data.pathData || []);
+      }
+    } catch (e) {
+      setError(t('errors.unknownError'));
+    } finally {
+      setIsRouteInfoLoading(false);
+    }
+  }, [gpxData, t]);
+
   // Effect to initialize GPX data from props received from setup page
   useEffect(() => {
     // Only process if initial content is provided and gpxData hasn't been set yet
@@ -120,7 +162,7 @@ export function useRouteAnalysis(
       setWeatherPoints([]);
       setIsWeatherAnalyzed(false);
     }
-  }, [gpxData]);
+  }, [gpxData, fetchRouteInfo]);
 
   // Effect to update elevation data with richer info from API (routeInfoData)
   useEffect(() => {
@@ -143,55 +185,6 @@ export function useRouteAnalysis(
       setRecalculatedTotalDistance(calculatedDistance);
     }
   }, [elevationData]);
-
-  const handleReverseRoute = useCallback(() => {
-    if (!gpxData) return;
-    const reversed = reverseGPXData(gpxData);
-    setGPXData(reversed);
-    setRecalculatedElevationGain(reversed.totalElevationGain);
-    setRecalculatedElevationLoss(reversed.totalElevationLoss);
-    setRecalculatedTotalDistance(reversed.totalDistance);
-    setWeatherPoints([]);
-    setSelectedPointIndex(null);
-    setIsWeatherAnalyzed(false); // Reset weather analysis status
-  }, [gpxData]);
-
-  const fetchRouteInfo = useCallback(async () => {
-    if (!gpxData) {
-      setRouteInfoData([]);
-      return;
-    }
-
-    setIsRouteInfoLoading(true);
-    try {
-      const response = await fetch('/api/route-info', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          points: sampleRoutePoints(gpxData.points, 100).map((p) => ({
-            lat: p.lat,
-            lon: p.lon,
-            distanceFromStart: p.distanceFromStart,
-          })),
-        }),
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setRouteInfoData(data.pathData || []);
-      }
-    } catch (e) {
-      setError(t('errors.unknownError'));
-    } finally {
-      setIsRouteInfoLoading(false);
-    }
-  }, [gpxData, t]);
-
-  // Run fetchRouteInfo when gpxData is set/changes
-  useEffect(() => {
-    if (gpxData) {
-      fetchRouteInfo();
-    }
-  }, [gpxData, fetchRouteInfo]);
 
   const handleClearGPX = useCallback(() => {
     setGPXData(null);

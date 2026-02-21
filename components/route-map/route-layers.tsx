@@ -24,6 +24,15 @@ export function RouteLayers({
       {routeData && (
         <Source id="route-source" type="geojson" data={routeData}>
           <Layer
+            id="route-hover-target"
+            type="line"
+            paint={{
+              'line-color': 'transparent',
+              'line-width': 30, // Big hit area for mouse
+            }}
+            layout={{ 'line-cap': 'round', 'line-join': 'round' }}
+          />
+          <Layer
             id="route-base"
             type="line"
             paint={{
@@ -39,12 +48,8 @@ export function RouteLayers({
             layout={{
               'symbol-placement': 'line',
               'symbol-spacing': 80, // More frequent arrows
-              'text-field': '>', 
-              'text-size': [
-                'interpolate', ['linear'], ['zoom'],
-                10, 12,
-                18, 24
-              ],
+              'text-field': '>',
+              'text-size': ['interpolate', ['linear'], ['zoom'], 10, 12, 18, 24],
               'text-keep-upright': false,
               'text-allow-overlap': true,
               'text-rotate': 0, // In line-placement, 0 is along the line
@@ -75,10 +80,10 @@ export function RouteLayers({
           <Layer
             id="highlight-line"
             type="line"
-            paint={{ 
-              'line-color': ['coalesce', ['get', 'color'], '#3ecf8e'], 
-              'line-width': 6, 
-              'line-opacity': 1 
+            paint={{
+              'line-color': ['coalesce', ['get', 'color'], '#3ecf8e'],
+              'line-width': 6,
+              'line-opacity': 1,
             }}
           />
         </Source>
