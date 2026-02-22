@@ -3,23 +3,21 @@
 import { Popup } from 'react-map-gl/maplibre';
 import { useTranslations } from 'next-intl';
 import type { RouteWeatherPoint } from '@/lib/types';
+import { WEATHER_CODES } from '@/lib/types';
 import {
   ArrowDown,
   ArrowLeft,
   ArrowRight,
   ArrowUp,
+  Loader2,
   Map as MapIcon,
   MapPinned,
-  X,
-  Loader2,
-  Wind,
   Sun,
+  X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
+import { useEffect, useState } from 'react';
 import { WeatherIcon } from '@/components/weather-icon';
-import { WEATHER_CODES } from '@/lib/types';
 
 interface MapPopupProps {
   popupInfo: RouteWeatherPoint & { index: number; point: any; bearing?: number };
@@ -64,8 +62,8 @@ export function MapPopup({ popupInfo, onClose }: MapPopupProps) {
   }, [popupInfo.point]);
 
   if (showStreetView) {
-    return createPortal(
-      <div className="bg-background animate-in fade-in fixed inset-0 z-[100] flex flex-col duration-200">
+    return (
+      <div className="bg-background animate-in fade-in absolute inset-0 z-[100] flex flex-col duration-200">
         <div className="border-border bg-card flex items-center justify-between border-b px-4 py-3 shadow-sm">
           <div className="flex items-center gap-4">
             <Button
@@ -114,8 +112,7 @@ export function MapPopup({ popupInfo, onClose }: MapPopupProps) {
             title="Street View"
           />
         </div>
-      </div>,
-      document.body,
+      </div>
     );
   }
 
