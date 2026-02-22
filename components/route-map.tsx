@@ -88,14 +88,78 @@ export default function RouteMap({ onResetToFullRouteView }: RouteMapProps) {
     [syncTerrain, resetToFullRouteView],
   );
 
+  const [selectedPopupInfo, setSelectedPopupInfo] = useState<any>(null);
+
   const onMapClick = useCallback(
     (event: any) => {
+      // 1. Check if we clicked a marker or specific feature first
       const feature = event.features?.[0];
       if (feature) {
         setSelectedPointIndex(feature.properties.index);
+        return;
       }
+
+      // 2. If no feature, find closest point on route line
+      const { lng, lat } = event.lngLat;
+      if (points.length === 0) return;
+
+      let minDist = Infinity;
+      let closestIdx = 0;
+      for (let i = 0; i < points.length; i++) {
+        const p = points[i];
+        const d = (p.lon - lng) ** 2 + (p.lat - lat) ** 2;
+        if (d < minDist) {
+          minDist = d;
+          closestIdx = i;
+        }
+      }
+
+      // Find precise interpolated point
+      const projectOntoSegment = (i: number) => {
+        if (i < 0 || i >= points.length - 1) return null;
+        const p1 = points[i];
+        const p2 = points[i + 1];
+        const dx = p2.lon - p1.lon;
+        const dy = p2.lat - p1.lat;
+        const lenSq = dx * dx + dy * dy;
+        const t =
+          lenSq > 0
+            ? Math.max(0, Math.min(1, ((lng - p1.lon) * dx + (lat - p1.lat) * dy) / lenSq))
+            : 0;
+        return {
+          point: {
+            lat: p1.lat + t * dy,
+            lon: p1.lon + t * dx,
+            ele: (p1.ele || 0) + t * ((p2.ele || 0) - (p1.ele || 0)),
+            distanceFromStart:
+              p1.distanceFromStart + t * (p2.distanceFromStart - p1.distanceFromStart),
+            estimatedTime:
+              (p1.estimatedTime || 0) + t * ((p2.estimatedTime || 0) - (p1.estimatedTime || 0)),
+          },
+        };
+      };
+
+      const segBefore = projectOntoSegment(closestIdx - 1);
+      const segAfter = projectOntoSegment(closestIdx);
+      const interpolated = (segBefore ?? segAfter)?.point ?? points[closestIdx];
+
+      // Find nearest weather point to show weather data
+      const weatherIdx = Math.min(
+        Math.floor((interpolated.distanceFromStart / points[points.length - 1].distanceFromStart) * weatherPoints.length),
+        weatherPoints.length - 1
+      );
+      
+      const weatherInfo = weatherPoints[weatherIdx] || {
+        weather: { temperature: 0, weatherCode: 0, windSpeed: 0, time: new Date().toISOString() }
+      };
+
+      setSelectedPopupInfo({
+        point: interpolated,
+        weather: weatherInfo.weather,
+        index: -1 // Custom point
+      });
     },
-    [setSelectedPointIndex],
+    [points, weatherPoints, setSelectedPointIndex],
   );
 
   const onMapMouseMove = useCallback(
@@ -249,7 +313,17 @@ export default function RouteMap({ onResetToFullRouteView }: RouteMapProps) {
           focusPoint={focusPoint}
         />
 
-        {popupInfo && <MapPopup popupInfo={popupInfo} onClose={() => setHoveredPointIdx(null)} />}
+        {selectedPopupInfo && (
+          <MapPopup
+            popupInfo={selectedPopupInfo}
+            onClose={() => setSelectedPopupInfo(null)}
+            key={`popup-${selectedPopupInfo.point.lat}-${selectedPopupInfo.point.lon}`}
+          />
+        )}
+
+        {popupInfo && !selectedPopupInfo && (
+          <MapPopup popupInfo={popupInfo} onClose={() => setHoveredPointIdx(null)} />
+        )}
 
         {isPlayerActive && (
           <RoutePlayer points={points} map={mapRef.current} onStop={handleStopPlayer} />
