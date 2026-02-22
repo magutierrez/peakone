@@ -286,9 +286,54 @@ export default function RouteMap({ onResetToFullRouteView }: RouteMapProps) {
       const map = mapRef.current?.getMap();
       if (map) {
         map.flyTo({ center: [focusPoint.lon, focusPoint.lat], zoom: 14, duration: 2000 });
+
+        // Show popup for focused point
+        const weatherIdx = weatherPoints.findIndex(
+          (wp) =>
+            Math.abs(wp.point.lat - focusPoint.lat) < 0.0001 &&
+            Math.abs(wp.point.lon - focusPoint.lon) < 0.0001,
+        );
+
+        if (weatherIdx !== -1) {
+          const wp = weatherPoints[weatherIdx];
+
+          // Calculate bearing for this specific weather point relative to the next one (if exists)
+          let bearing = 0;
+          if (weatherIdx < weatherPoints.length - 1) {
+            const p1 = wp.point;
+            const p2 = weatherPoints[weatherIdx + 1].point;
+            const toRad = (deg: number) => (deg * Math.PI) / 180;
+            const toDeg = (rad: number) => (rad * 180) / Math.PI;
+            const lat1 = toRad(p1.lat);
+            const lat2 = toRad(p2.lat);
+            const dLon = toRad(p2.lon - p1.lon);
+            const y = Math.sin(dLon) * Math.cos(lat2);
+            const x =
+              Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
+            bearing = (toDeg(Math.atan2(y, x)) + 360) % 360;
+          }
+
+          // Calculate slope for this weather point (using prev or next for diff)
+          let slope = 0;
+          if (weatherIdx > 0) {
+            const prev = weatherPoints[weatherIdx - 1];
+            const distDiff = (wp.point.distanceFromStart - prev.point.distanceFromStart) * 1000;
+            const eleDiff = (wp.point.ele || 0) - (prev.point.ele || 0);
+            if (distDiff > 0.1) slope = (eleDiff / distDiff) * 100;
+          }
+
+          setSelectedPopupInfo({
+            point: { ...wp.point, slope }, // Ensure slope is passed
+            weather: wp.weather,
+            index: weatherIdx,
+            bearing: bearing,
+          });
+          // Also clear hovered popup to prevent double popups
+          setHoveredPointIdx(null);
+        }
       }
     }
-  }, [focusPoint]);
+  }, [focusPoint, weatherPoints]);
 
   const initialViewState = useMemo(() => {
     if (points && points.length > 0) {
@@ -341,14 +386,20 @@ export default function RouteMap({ onResetToFullRouteView }: RouteMapProps) {
 
         {selectedPopupInfo && (
           <MapPopup
-            key={`popup-${selectedPopupInfo.point.lat}-${selectedPopupInfo.point.lon}`}
+            key={`popup-selected-${selectedPopupInfo.point.lat}-${selectedPopupInfo.point.lon}`}
             popupInfo={selectedPopupInfo}
-            onClose={() => setSelectedPopupInfo(null)}
+            onClose={() => {
+              setSelectedPopupInfo(null);
+            }}
           />
         )}
 
         {popupInfo && !selectedPopupInfo && (
-          <MapPopup popupInfo={popupInfo} onClose={() => setHoveredPointIdx(null)} />
+          <MapPopup
+            key={`popup-hover-${popupInfo.point.lat}-${popupInfo.point.lon}`}
+            popupInfo={popupInfo}
+            onClose={() => setHoveredPointIdx(null)}
+          />
         )}
 
         {isPlayerActive && (

@@ -76,9 +76,11 @@ export function WeatherList({ weatherPoints, selectedIndex, onSelect }: WeatherL
               <button
                 key={idx}
                 onClick={() => {
-                  if (onSelect) {
-                    onSelect(idx);
-                  }
+                  // Calculate bearing (heading) for Street View if needed
+                  // For now we just pass 0, but ideally we'd calculate it like in RouteMap
+                  const bearing = 0;
+
+                  onSelect(idx);
                 }}
                 className={`flex shrink-0 flex-col items-center gap-1.5 rounded-lg border p-3 transition-all ${
                   isSelected
