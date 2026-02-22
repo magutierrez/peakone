@@ -360,7 +360,11 @@
       "play": "Iniciar ruta",
       "stop": "Detener",
       "speed": "Velocidad"
-    }
+    },
+    "backToMap": "Volver al Mapa",
+    "elevation": "Elevación",
+    "slope": "Pendiente",
+    "streetView": "Street View"
   },
   "IBP": {
     "title": "Índice IBP",

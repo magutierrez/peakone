@@ -360,7 +360,11 @@
       "play": "Start route",
       "stop": "Stop",
       "speed": "Speed"
-    }
+    },
+    "backToMap": "Back to Map",
+    "elevation": "Elevation",
+    "slope": "Slope",
+    "streetView": "Street View"
   },
   "IBP": {
     "title": "IBP Index",

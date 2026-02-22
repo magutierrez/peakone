@@ -126,6 +126,12 @@ export default function RouteMap({ onResetToFullRouteView }: RouteMapProps) {
           lenSq > 0
             ? Math.max(0, Math.min(1, ((lng - p1.lon) * dx + (lat - p1.lat) * dy) / lenSq))
             : 0;
+            
+        // Calculate slope between p1 and p2
+        const distDiff = (p2.distanceFromStart - p1.distanceFromStart) * 1000;
+        const eleDiff = (p2.ele || 0) - (p1.ele || 0);
+        const slope = distDiff > 0.1 ? (eleDiff / distDiff) * 100 : 0;
+
         return {
           point: {
             lat: p1.lat + t * dy,
@@ -135,6 +141,7 @@ export default function RouteMap({ onResetToFullRouteView }: RouteMapProps) {
               p1.distanceFromStart + t * (p2.distanceFromStart - p1.distanceFromStart),
             estimatedTime:
               (p1.estimatedTime || 0) + t * ((p2.estimatedTime || 0) - (p1.estimatedTime || 0)),
+            slope: slope
           },
         };
       };
@@ -315,9 +322,9 @@ export default function RouteMap({ onResetToFullRouteView }: RouteMapProps) {
 
         {selectedPopupInfo && (
           <MapPopup
+            key={`popup-${selectedPopupInfo.point.lat}-${selectedPopupInfo.point.lon}`}
             popupInfo={selectedPopupInfo}
             onClose={() => setSelectedPopupInfo(null)}
-            key={`popup-${selectedPopupInfo.point.lat}-${selectedPopupInfo.point.lon}`}
           />
         )}
 
