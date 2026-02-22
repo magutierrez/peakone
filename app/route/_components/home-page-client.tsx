@@ -56,7 +56,7 @@ export default function HomePageClient({ session: serverSession }: HomePageClien
   const tibp = useTranslations('IBP');
   const { unitSystem } = useSettings();
 
-  // Store state
+  // Read reactive state from store
   const gpxData = useRouteStore((s) => s.gpxData);
   const isLoading = useRouteStore((s) => s.isLoading);
   const isRouteInfoLoading = useRouteStore((s) => s.isRouteInfoLoading);
@@ -75,6 +75,15 @@ export default function HomePageClient({ session: serverSession }: HomePageClien
   const mapResetViewRef = useRef<(() => void) | null>(null);
 
   const activityType = fetchedActivityType || initialActivityType;
+
+  // Sync speed with activity type from URL if store is still at initial defaults
+  useEffect(() => {
+    if (initialActivityType === 'walking' && config.speed === 25) {
+      setConfig({ ...config, speed: 5 });
+    } else if (initialActivityType === 'cycling' && config.speed === 5) {
+      setConfig({ ...config, speed: 25 });
+    }
+  }, [initialActivityType, setConfig]); // Only run when initialActivityType is known or setConfig changes
 
   // Reset store on unmount to avoid stale state on re-navigation
   useEffect(() => {

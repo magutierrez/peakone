@@ -72,12 +72,7 @@ export function BestDepartureFinder({
               minute: '2-digit',
             });
             return (
-              <Card
-                key={idx}
-                className={cn(
-                  'border-border/50 bg-secondary/5 hover:border-primary/30 overflow-hidden transition-all',
-                )}
-              >
+              <Card key={idx} className={cn('overflow-hidden transition-all')}>
                 <CardContent className="flex h-full flex-col justify-between p-3">
                   <div>
                     <div className="mb-2 flex items-center justify-between">

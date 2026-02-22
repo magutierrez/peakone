@@ -22,7 +22,7 @@ interface RouteState {
   // ── Fetched route data (set by home-page-client from DB) ────────────────────
   fetchedRawGpxContent: string | null;
   fetchedGpxFileName: string | null;
-  fetchedActivityType: 'cycling' | 'walking';
+  fetchedActivityType: 'cycling' | 'walking' | null;
   initialDistance: number;
   initialElevationGain: number;
   initialElevationLoss: number;
@@ -100,7 +100,7 @@ const initialState = {
 
   fetchedRawGpxContent: null as string | null,
   fetchedGpxFileName: null as string | null,
-  fetchedActivityType: 'cycling' as 'cycling' | 'walking',
+  fetchedActivityType: null as 'cycling' | 'walking' | null,
   initialDistance: 0,
   initialElevationGain: 0,
   initialElevationLoss: 0,
@@ -135,17 +135,32 @@ export const useRouteStore = create<RouteState>()((set) => ({
   setConfig: (config) => set({ config }),
 
   setFetchedRoute: ({ rawGpxContent, gpxFileName, activityType, distance, elevationGain, elevationLoss }) =>
-    set({
-      fetchedRawGpxContent: rawGpxContent,
-      fetchedGpxFileName: gpxFileName,
-      fetchedActivityType: activityType,
-      initialDistance: distance,
-      initialElevationGain: elevationGain,
-      initialElevationLoss: elevationLoss,
+    set((state) => {
+      // If the speed is one of our defaults, update it to the appropriate default for the activity
+      const isDefaultSpeed = state.config.speed === 25 || state.config.speed === 5;
+      const newSpeed = activityType === 'walking' ? 5 : 25;
+
+      return {
+        fetchedRawGpxContent: rawGpxContent,
+        fetchedGpxFileName: gpxFileName,
+        fetchedActivityType: activityType,
+        initialDistance: distance,
+        initialElevationGain: elevationGain,
+        initialElevationLoss: elevationLoss,
+        config: isDefaultSpeed ? { ...state.config, speed: newSpeed } : state.config,
+      };
     }),
 
   clearSelection: () => set({ selectedRange: null, activeFilter: null }),
-  reset: () => set({ ...initialState, config: { date: getDefaultDate(), time: '08:00', speed: 25 } }),
+  reset: () =>
+    set((state) => ({
+      ...initialState,
+      config: {
+        ...initialState.config,
+        date: getDefaultDate(),
+        speed: state.fetchedActivityType === 'walking' ? 5 : 25,
+      },
+    })),
 
   setGpxData: (data) => set({ gpxData: data }),
   setGpxFileName: (name) => set({ gpxFileName: name }),

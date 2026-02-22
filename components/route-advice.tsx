@@ -184,7 +184,7 @@ export function RouteAdvice({
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
         {advices.map((advice, i) => (
-          <Card key={i} className="border-border/50 bg-secondary/20 overflow-hidden">
+          <Card key={i} className="overflow-hidden">
             <CardContent className="flex gap-4 p-4">
               <div className="mt-1 flex-shrink-0">{advice.icon}</div>
               <div className="flex flex-col gap-1">

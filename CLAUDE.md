@@ -39,6 +39,8 @@ No test runner is configured. There is a `/testing` directory with test data fix
 | `lib/gpx-parser.ts` | GPX parsing, bearing calculation, point sampling |
 | `lib/weather-providers.ts` | Weather strategy pattern (`WeatherProvider` interface) |
 | `lib/utils.ts` | `cn()`, IBP index, Naismith rule, solar exposure |
+| `store/route-store.ts` | Zustand global store — all route/map/analysis state |
+| `hooks/use-route-analysis.ts` | Analysis orchestration hook (uses store setters) |
 | `auth.ts` | NextAuth v5 config (Strava, Google, Facebook, Twitter) |
 | `proxy.ts` | Middleware: i18n locale detection + auth-guard redirects |
 | `components/route-map.tsx` | MapLibre GL map wrapper (dynamic import, SSR disabled) |
@@ -47,8 +49,12 @@ No test runner is configured. There is a `/testing` directory with test data fix
 
 ### State Management
 
+- **Zustand** (`store/route-store.ts`): Global state for all route/map/analysis state. See `CONVENTIONS.md` for usage rules. Components read from the store directly — no prop drilling.
+  - `exactSelectedPoint`: set by map hover → read by elevation chart for ReferenceLine
+  - `chartHoverPoint`: set by chart/hazard hover → read by map for cursor dot
+  - `activeFilter`, `selectedRange`, `weatherPoints`, `elevationData`, `gpxData`, etc.
 - **React Context**: `SettingsContext` (units, wind unit) — persisted to `localStorage`
-- **Custom hooks**: `useRouteAnalysis`, `useSavedRoutes`, `useSettings`
+- **Custom hooks**: `useRouteAnalysis` (orchestrates analysis, uses store setters internally), `useSavedRoutes`, `useSettings`
 - **Dexie.js**: `saved_routes` table keyed by `user_email` — all data is client-side only, no backend DB
 - **Session**: NextAuth `useSession()` / server-side `auth()`
 
