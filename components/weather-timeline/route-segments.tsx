@@ -2,16 +2,7 @@
 
 import { Map as MapIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import type { RouteWeatherPoint } from '@/lib/types';
-
-interface RouteSegmentsProps {
-  weatherPoints: RouteWeatherPoint[];
-  activeFilter?: { key: 'pathType' | 'surface' | 'hazard'; value: string } | null;
-  setActiveFilter?: (
-    filter: { key: 'pathType' | 'surface' | 'hazard'; value: string } | null,
-  ) => void;
-  onRangeSelect?: (range: { start: number; end: number } | null) => void;
-}
+import { useRouteStore } from '@/store/route-store';
 
 const PATH_TYPE_COLORS: Record<string, string> = {
   cycleway: '#3ecf8e',
@@ -50,15 +41,13 @@ const SURFACE_COLORS: Record<string, string> = {
   unknown: '#e5e7eb',
 };
 
-export function RouteSegments({
-  weatherPoints,
-  activeFilter,
-  setActiveFilter,
-  onRangeSelect,
-}: RouteSegmentsProps) {
+export function RouteSegments() {
   const t = useTranslations('WeatherTimeline');
 
-  const totalPoints = weatherPoints.length;
+  const weatherPoints = useRouteStore((s) => s.weatherPoints);
+  const activeFilter = useRouteStore((s) => s.activeFilter);
+  const setActiveFilter = useRouteStore((s) => s.setActiveFilter);
+  const setSelectedRange = useRouteStore((s) => s.setSelectedRange);
 
   const getBreakdown = (key: 'pathType' | 'surface', colorMap: Record<string, string>) => {
     const distances: Record<string, number> = {};
@@ -67,12 +56,8 @@ export function RouteSegments({
     for (let i = 0; i < weatherPoints.length; i++) {
       const wp = weatherPoints[i];
       const val = wp[key] || 'unknown';
-
-      // Calculate distance for this segment
-      // We take the distance from previous point to current point
       const prevDist = i > 0 ? weatherPoints[i - 1].point.distanceFromStart : 0;
       const segmentDist = wp.point.distanceFromStart - prevDist;
-
       distances[val] = (distances[val] || 0) + segmentDist;
       totalDist += segmentDist;
     }
@@ -83,23 +68,21 @@ export function RouteSegments({
         percent: totalDist > 0 ? (dist / totalDist) * 100 : 0,
         color: colorMap[name] || colorMap.unknown,
       }))
-      .filter((item) => item.percent > 0.5) // Filter out negligible segments
+      .filter((item) => item.percent > 0.5)
       .sort((a, b) => b.percent - a.percent);
   };
 
   const handleSegmentClick = (key: 'pathType' | 'surface', value: string) => {
     if (activeFilter?.key === key && activeFilter.value === value) {
-      setActiveFilter?.(null);
-      onRangeSelect?.(null);
+      setActiveFilter(null);
+      setSelectedRange(null);
     } else {
-      setActiveFilter?.({ key, value });
-
-      // Find the distance range for this filter
+      setActiveFilter({ key, value });
       const matchingPoints = weatherPoints.filter((wp) => (wp[key] || 'unknown') === value);
       if (matchingPoints.length > 0) {
         const startDist = Math.min(...matchingPoints.map((p) => p.point.distanceFromStart));
         const endDist = Math.max(...matchingPoints.map((p) => p.point.distanceFromStart));
-        onRangeSelect?.({ start: startDist, end: endDist });
+        setSelectedRange({ start: startDist, end: endDist });
       }
     }
   };

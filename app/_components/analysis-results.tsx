@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { ThermometerSnowflake, Waves } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { WeatherSummary } from '@/components/weather-timeline/weather-summary';
 import { WeatherList } from '@/components/weather-timeline/weather-list';
@@ -15,59 +14,45 @@ import { Progress } from '@/components/ui/progress';
 
 import { analyzeRouteSegments, calculatePhysiologicalNeeds } from '@/lib/utils';
 import { useSettings } from '@/hooks/use-settings';
-import type { RouteWeatherPoint } from '@/lib/types';
+import { useRouteStore } from '@/store/route-store';
 
 interface AnalysisResultsProps {
-  weatherPoints: RouteWeatherPoint[];
-  routeInfoData: any[];
-  allPoints?: any[];
-  elevationData: { distance: number; elevation: number }[];
-  activeFilter: { key: 'pathType' | 'surface' | 'hazard'; value: string } | null;
-  setActiveFilter: (
-    filter: { key: 'pathType' | 'surface' | 'hazard'; value: string } | null,
-  ) => void;
-  selectedPointIndex: number | null;
-  setSelectedPointIndex: (index: number | null) => void;
-  onRangeSelect: (range: { start: number; end: number } | null) => void;
-  onSelectPoint?: (point: any | null) => void; // New prop
-  selectedRange: { start: number; end: number } | null;
-  activityType: 'cycling' | 'walking';
-  showWaterSources: boolean;
-  onToggleWaterSources: () => void;
-  bestWindows?: any[];
-  isFindingWindow?: boolean;
-  onFindBestWindow?: () => void;
-  onSelectBestWindow?: (time: string) => void;
-  onAnalyzeBestWindow?: (time: string) => void;
-  onShowOnMap?: (lat: number, lon: number, name?: string) => void;
+  onFindBestWindow: () => void;
+  onSelectBestWindow: (time: string) => void;
+  onAnalyzeBestWindow: (time: string) => void;
 }
 
 export function AnalysisResults({
-  weatherPoints,
-  routeInfoData,
-  allPoints = [],
-  elevationData,
-  activeFilter,
-  setActiveFilter,
-  selectedPointIndex,
-  setSelectedPointIndex,
-  onRangeSelect,
-  onSelectPoint, // New prop
-  selectedRange,
-  activityType,
-  showWaterSources,
-  onToggleWaterSources,
-  bestWindows = [],
-  isFindingWindow = false,
-  onFindBestWindow = () => {},
-  onSelectBestWindow = () => {},
-  onAnalyzeBestWindow = () => {},
-  onShowOnMap,
+  onFindBestWindow,
+  onSelectBestWindow,
+  onAnalyzeBestWindow,
 }: AnalysisResultsProps) {
   const t = useTranslations('HomePage');
   const tp = useTranslations('physiology');
   const th = useTranslations('Hazards');
   const { unitSystem } = useSettings();
+
+  // Read all state from store
+  const weatherPoints = useRouteStore((s) => s.weatherPoints);
+  const routeInfoData = useRouteStore((s) => s.routeInfoData);
+  const gpxData = useRouteStore((s) => s.gpxData);
+  const elevationData = useRouteStore((s) => s.elevationData);
+  const activeFilter = useRouteStore((s) => s.activeFilter);
+  const setActiveFilter = useRouteStore((s) => s.setActiveFilter);
+  const selectedPointIndex = useRouteStore((s) => s.selectedPointIndex);
+  const setSelectedPointIndex = useRouteStore((s) => s.setSelectedPointIndex);
+  const setSelectedRange = useRouteStore((s) => s.setSelectedRange);
+  const setExactSelectedPoint = useRouteStore((s) => s.setExactSelectedPoint);
+  const selectedRange = useRouteStore((s) => s.selectedRange);
+  const activityType = useRouteStore((s) => s.fetchedActivityType);
+  const showWaterSources = useRouteStore((s) => s.showWaterSources);
+  const setShowWaterSources = useRouteStore((s) => s.setShowWaterSources);
+  const bestWindows = useRouteStore((s) => s.bestWindows);
+  const isFindingWindow = useRouteStore((s) => s.isFindingWindow);
+  const setFocusPoint = useRouteStore((s) => s.setFocusPoint);
+  const clearSelection = useRouteStore((s) => s.clearSelection);
+
+  const allPoints = gpxData?.points || [];
 
   const [tab, setTab] = useState('weather');
 
@@ -142,7 +127,7 @@ export function AnalysisResults({
                   <WeatherPointDetail
                     weatherPoint={selectedWeatherPoint}
                     activityType={activityType}
-                    onShowOnMap={onShowOnMap}
+                    onShowOnMap={(lat, lon, name) => setFocusPoint({ lat, lon, name })}
                   />
                 );
               }
@@ -162,7 +147,7 @@ export function AnalysisResults({
             weatherPoints={weatherPoints}
             activityType={activityType}
             showWaterSources={showWaterSources}
-            onToggleWaterSources={onToggleWaterSources}
+            onToggleWaterSources={() => setShowWaterSources(!showWaterSources)}
           />
         </TabsContent>
 
@@ -171,14 +156,11 @@ export function AnalysisResults({
             weatherPoints={weatherPoints}
             allPoints={allPoints}
             onSelectSegment={(segment) =>
-              segment && onRangeSelect({ start: segment?.start, end: segment?.end })
+              segment && setSelectedRange({ start: segment?.start, end: segment?.end })
             }
-            onSelectPoint={onSelectPoint}
+            onSelectPoint={setExactSelectedPoint}
             setActiveFilter={setActiveFilter}
-            onClearSelection={() => {
-              onRangeSelect(null);
-              setActiveFilter(null);
-            }}
+            onClearSelection={clearSelection}
           />
 
           {totalSegments > 0 && (

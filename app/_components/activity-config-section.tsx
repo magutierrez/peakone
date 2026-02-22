@@ -14,31 +14,24 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import type { RouteConfig } from '@/lib/types';
 import { useState, useEffect } from 'react';
+import { useRouteStore } from '@/store/route-store';
 
 interface ActivityConfigSectionProps {
-  config: RouteConfig;
-  setConfig: (config: RouteConfig) => void;
   onAnalyze: () => void;
   onReverseRoute?: () => void;
-  isLoading: boolean;
-  hasGpxData: boolean;
-  totalDistance: number;
-  recalculatedElevationGain: number;
-  recalculatedElevationLoss: number;
 }
 
-export function ActivityConfigSection({
-  config,
-  setConfig,
-  onAnalyze,
-  onReverseRoute,
-  isLoading,
-  hasGpxData,
-  totalDistance,
-}: ActivityConfigSectionProps) {
+export function ActivityConfigSection({ onAnalyze, onReverseRoute }: ActivityConfigSectionProps) {
   const t = useTranslations('RouteConfigPanel');
+
+  const config = useRouteStore((s) => s.config);
+  const setConfig = useRouteStore((s) => s.setConfig);
+  const isLoading = useRouteStore((s) => s.isLoading);
+  const gpxData = useRouteStore((s) => s.gpxData);
+  const totalDistance = useRouteStore((s) => s.recalculatedTotalDistance);
+
+  const hasGpxData = !!gpxData;
 
   const estimatedDuration =
     totalDistance > 0 && config.speed > 0 ? (totalDistance / config.speed) * 60 : 0;
@@ -190,7 +183,7 @@ export function ActivityConfigSection({
             </Popover>
           </div>
 
-          {/* Row 2: Date + Time */}
+          {/* Date */}
           <div className="flex flex-col gap-1.5">
             <Label
               htmlFor="date"

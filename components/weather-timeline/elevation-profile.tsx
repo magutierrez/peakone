@@ -14,35 +14,25 @@ import {
   ReferenceLine,
   ReferenceArea,
 } from 'recharts';
-import type { RouteWeatherPoint } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { useSettings } from '@/hooks/use-settings';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { formatElevation, formatDistance } from '@/lib/utils';
+import { useRouteStore } from '@/store/route-store';
 
-interface AnalysisChartProps {
-  weatherPoints: RouteWeatherPoint[];
-  allPoints: any[];
-  elevationData: { distance: number; elevation: number }[];
-  selectedPoint: any | null; // Changed from index to full point object
-  onSelect: (point: any | null) => void;
-  onRangeSelect?: (range: { start: number; end: number } | null) => void;
-  selectedRange?: { start: number; end: number } | null;
-  activeFilter?: any;
-}
-
-export function AnalysisChart({
-  weatherPoints,
-  allPoints = [],
-  elevationData,
-  selectedPoint,
-  onSelect,
-  onRangeSelect,
-}: AnalysisChartProps) {
+export function AnalysisChart() {
   const t = useTranslations('WeatherTimeline');
   const { unitSystem } = useSettings();
   const isMobile = useIsMobile();
   const lastUpdateRef = useRef<number>(0);
+
+  // Read all state from the store
+  const weatherPoints = useRouteStore((s) => s.weatherPoints);
+  const allPoints = useRouteStore((s) => s.gpxData?.points || []);
+  const elevationData = useRouteStore((s) => s.elevationData);
+  const selectedPoint = useRouteStore((s) => s.exactSelectedPoint);
+  const setSelectedPoint = useRouteStore((s) => s.setExactSelectedPoint);
+  const setSelectedRange = useRouteStore((s) => s.setSelectedRange);
 
   const [refAreaLeft, setRefAreaLeft] = useState<any>(null);
   const [refAreaRight, setRefAreaRight] = useState<any>(null);
@@ -67,10 +57,7 @@ export function AnalysisChart({
   const stats = useMemo(() => {
     if (!displayData.length) return { min: 0, max: 0 };
     const elevations = displayData.map((d) => d.elevation);
-    return {
-      min: Math.min(...elevations),
-      max: Math.max(...elevations),
-    };
+    return { min: Math.min(...elevations), max: Math.max(...elevations) };
   }, [displayData]);
 
   const getSlopeColorHex = (slope: number) => {
@@ -149,12 +136,9 @@ export function AnalysisChart({
       const now = Date.now();
 
       if (now - lastUpdateRef.current > 16 && allPoints.length > 1) {
-        // Linear Interpolation for total fluidity (Komoot style)
         let p1 = allPoints[0];
         let p2 = allPoints[1];
 
-        // Find the segment [p1, p2] that contains activeDistance
-        // Since allPoints is sorted by distance, we can use binary search or a fast loop
         for (let i = 0; i < allPoints.length - 1; i++) {
           if (
             activeDistance >= allPoints[i].distanceFromStart &&
@@ -169,7 +153,6 @@ export function AnalysisChart({
         const segmentDist = p2.distanceFromStart - p1.distanceFromStart;
         const ratio = segmentDist > 0 ? (activeDistance - p1.distanceFromStart) / segmentDist : 0;
 
-        // Interpolate Lat, Lon, and Ele
         const interpolatedPoint = {
           lat: p1.lat + (p2.lat - p1.lat) * ratio,
           lon: p1.lon + (p2.lon - p1.lon) * ratio,
@@ -177,7 +160,7 @@ export function AnalysisChart({
           distanceFromStart: activeDistance,
         };
 
-        onSelect(interpolatedPoint);
+        setSelectedPoint(interpolatedPoint);
         lastUpdateRef.current = now;
       }
     }
@@ -185,7 +168,7 @@ export function AnalysisChart({
   };
 
   const handleMouseLeave = () => {
-    onSelect(null);
+    setSelectedPoint(null);
     setRefAreaLeft(null);
     setRefAreaRight(null);
   };
@@ -204,7 +187,7 @@ export function AnalysisChart({
     if (filteredData.length > 0) {
       setLeft(start);
       setRight(end);
-      onRangeSelect?.({ start, end });
+      setSelectedRange({ start, end });
     }
 
     setRefAreaLeft(null);
@@ -216,7 +199,7 @@ export function AnalysisChart({
     setRight('dataMax');
     setRefAreaLeft(null);
     setRefAreaRight(null);
-    onRangeSelect?.(null);
+    setSelectedRange(null);
   };
 
   return (
@@ -324,7 +307,6 @@ export function AnalysisChart({
                   const data = payload[0].payload;
                   const currentDist = data.distance;
 
-                  // Use interpolated elevation for tooltip if available and close
                   const displayEle =
                     selectedPoint && Math.abs(selectedPoint.distanceFromStart - currentDist) < 0.05
                       ? selectedPoint.ele

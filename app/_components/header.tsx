@@ -41,7 +41,20 @@ export function Header({ session, mobileMenuContent }: HeaderProps) {
   return (
     <header className="border-border bg-background sticky top-0 z-40 flex h-14 items-center justify-between border-b px-4 lg:px-6">
       <Link href="/setup" className="flex items-center gap-2">
-        <Mountain className="text-primary h-6 w-6" />
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+          <defs>
+            <linearGradient id="zustrack-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#3B82F6" />{' '}
+              <stop offset="100%" stop-color="#1D4ED8" />{' '}
+            </linearGradient>
+          </defs>
+
+          <path d="M15 25 h 45 l -15 20 h -30 z" fill="url(#zustrack-grad)" />
+
+          <path d="M40 40 h 30 l -45 60 h -10 l 15 -20 h -20 z" fill="url(#zustrack-grad)" />
+
+          <path d="M85 40 l -15 20 h -30 l 15 -20 z" fill="#2563EB" />
+        </svg>
         <span className="text-lg font-bold">peakOne</span>
       </Link>
 

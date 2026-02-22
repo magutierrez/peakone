@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import { useTranslations } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { useRouteAnalysis, type UseRouteAnalysisConfig } from '@/hooks/use-route-analysis';
-import type { RouteConfig } from '@/lib/types';
+import { useRouteAnalysis } from '@/hooks/use-route-analysis';
+import { useRouteStore } from '@/store/route-store';
 import { getRouteFromDb } from '@/lib/db';
 import { cn, calculateIBP, getIBPDifficulty, formatDistance, formatElevation } from '@/lib/utils';
 import { useSettings } from '@/hooks/use-settings';
@@ -38,12 +38,6 @@ const RouteMap = dynamic(() => import('@/components/route-map'), {
   },
 });
 
-function getDefaultDate(): string {
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  return tomorrow.toISOString().split('T')[0];
-}
-
 interface HomePageClientProps {
   session: Session | null;
 }
@@ -56,111 +50,63 @@ export default function HomePageClient({ session: serverSession }: HomePageClien
   const routeId = searchParams.get('routeId');
   const initialActivityType = (searchParams.get('activity') as 'cycling' | 'walking') || 'cycling';
 
-  const [fetchedRawGpxContent, setFetchedRawGpxContent] = useState<string | null>(null);
-  const [fetchedGpxFileName, setFetchedGpxFileName] = useState<string | null>(null);
-  const [fetchedActivityType, setFetchedActivityType] = useState<'cycling' | 'walking'>(
-    initialActivityType,
-  );
-  const [initialDistance, setInitialDistance] = useState<number>(0);
-  const [initialElevationGain, setInitialElevationGain] = useState<number>(0);
-  const [initialElevationLoss, setInitialElevationLoss] = useState<number>(0);
-
-  useEffect(() => {
-    const userIdentifier = session?.user?.email || session?.user?.id;
-    if (routeId && userIdentifier && !fetchedRawGpxContent) {
-      const fetchRoute = async () => {
-        const route = await getRouteFromDb(routeId, userIdentifier);
-        if (route) {
-          setFetchedRawGpxContent(route.gpx_content);
-          setFetchedGpxFileName(route.name);
-          setFetchedActivityType(route.activity_type);
-          setInitialDistance(route.distance);
-          setInitialElevationGain(route.elevation_gain);
-          setInitialElevationLoss(route.elevation_loss);
-        } else {
-          router.replace('/setup');
-        }
-      };
-      fetchRoute();
-    } else if (!routeId && !fetchedRawGpxContent) {
-      router.replace('/setup');
-    }
-  }, [
-    routeId,
-    session?.user?.email,
-    session?.user?.id,
-    fetchedRawGpxContent,
-    router,
-    initialActivityType,
-  ]);
-
-  const [config, setConfig] = useState<RouteConfig>({
-    date: getDefaultDate(),
-    time: '08:00',
-    speed: 25,
-  });
-
-  const activityType = fetchedActivityType;
-
-  const [activeFilter, setActiveFilter] = useState<{
-    key: 'pathType' | 'surface' | 'hazard';
-    value: string;
-  } | null>(null);
-  const [selectedRange, setSelectedRange] = useState<{ start: number; end: number } | null>(null);
-  const [exactSelectedPoint, setExactSelectedPoint] = useState<any | null>(null);
-  const [focusPoint, setFocusPoint] = useState<{ lat: number; lon: number; name?: string } | null>(
-    null,
-  );
-  const [showWaterSources, setShowWaterSources] = useState(false);
   const tHomePage = useTranslations('HomePage');
   const twt = useTranslations('WeatherTimeline');
   const t = useTranslations('RouteConfigPanel');
   const tibp = useTranslations('IBP');
   const { unitSystem } = useSettings();
 
+  // Store state
+  const gpxData = useRouteStore((s) => s.gpxData);
+  const isLoading = useRouteStore((s) => s.isLoading);
+  const isRouteInfoLoading = useRouteStore((s) => s.isRouteInfoLoading);
+  const error = useRouteStore((s) => s.error);
+  const recalculatedTotalDistance = useRouteStore((s) => s.recalculatedTotalDistance);
+  const recalculatedElevationGain = useRouteStore((s) => s.recalculatedElevationGain);
+  const recalculatedElevationLoss = useRouteStore((s) => s.recalculatedElevationLoss);
+  const isWeatherAnalyzed = useRouteStore((s) => s.isWeatherAnalyzed);
+  const config = useRouteStore((s) => s.config);
+  const fetchedActivityType = useRouteStore((s) => s.fetchedActivityType);
+  const { setFetchedRoute, setConfig, reset } = useRouteStore();
+
+  const { handleAnalyze, handleClearGPX, handleReverseRoute, handleFindBestWindow } =
+    useRouteAnalysis();
+
   const mapResetViewRef = useRef<(() => void) | null>(null);
-  const handleResetMapView = useCallback(() => {
-    if (mapResetViewRef.current) {
-      mapResetViewRef.current();
+
+  const activityType = fetchedActivityType || initialActivityType;
+
+  // Reset store on unmount to avoid stale state on re-navigation
+  useEffect(() => {
+    return () => reset();
+  }, [reset]);
+
+  // Fetch route data from DB
+  useEffect(() => {
+    const userIdentifier = session?.user?.email || session?.user?.id;
+    if (routeId && userIdentifier) {
+      const fetchRoute = async () => {
+        const route = await getRouteFromDb(routeId, userIdentifier);
+        if (route) {
+          setFetchedRoute({
+            rawGpxContent: route.gpx_content,
+            gpxFileName: route.name,
+            activityType: route.activity_type,
+            distance: route.distance,
+            elevationGain: route.elevation_gain,
+            elevationLoss: route.elevation_loss,
+          });
+        } else {
+          router.replace('/setup');
+        }
+      };
+      fetchRoute();
+    } else if (!routeId) {
+      router.replace('/setup');
     }
-  }, []);
-
-  const {
-    gpxData,
-    gpxFileName,
-    rawGPXContent,
-    weatherPoints,
-    elevationData,
-    routeInfoData,
-    selectedPointIndex,
-    setSelectedPointIndex,
-    isLoading,
-    isRouteInfoLoading,
-    error,
-    handleClearGPX,
-    handleReverseRoute,
-    handleAnalyze,
-    recalculatedElevationGain,
-    recalculatedElevationLoss,
-    recalculatedTotalDistance,
-    isWeatherAnalyzed,
-    bestWindows,
-    isFindingWindow,
-    handleFindBestWindow,
-  } = useRouteAnalysis({ ...config, activityType }, fetchedRawGpxContent, fetchedGpxFileName, {
-    distance: initialDistance,
-    elevationGain: initialElevationGain,
-    elevationLoss: initialElevationLoss,
-  });
-
-  const onClearGPXWithRange = useCallback(() => {
-    setSelectedRange(null);
-    handleClearGPX();
-    router.push('/setup');
-  }, [handleClearGPX, router]);
+  }, [routeId, session?.user?.email, session?.user?.id, setFetchedRoute, router]);
 
   const onReverseWithRange = useCallback(() => {
-    setSelectedRange(null);
     handleReverseRoute();
   }, [handleReverseRoute]);
 
@@ -172,14 +118,9 @@ export default function HomePageClient({ session: serverSession }: HomePageClien
       const day = String(date.getDate()).padStart(2, '0');
       const month = String(date.getMonth() + 1).padStart(2, '0');
       const year = date.getFullYear();
-
-      setConfig({
-        ...config,
-        date: `${year}-${month}-${day}`,
-        time: `${hours}:${minutes}`,
-      });
+      setConfig({ ...config, date: `${year}-${month}-${day}`, time: `${hours}:${minutes}` });
     },
-    [config],
+    [config, setConfig],
   );
 
   const handleSelectAndAnalyze = useCallback(
@@ -190,18 +131,16 @@ export default function HomePageClient({ session: serverSession }: HomePageClien
       const day = String(date.getDate()).padStart(2, '0');
       const month = String(date.getMonth() + 1).padStart(2, '0');
       const year = date.getFullYear();
-
-      const newConfig: UseRouteAnalysisConfig = {
+      const newConfig = {
         ...config,
         date: `${year}-${month}-${day}`,
         time: `${hours}:${minutes}`,
         activityType,
       };
-
       setConfig(newConfig);
       handleAnalyze(newConfig);
     },
-    [config, handleAnalyze, activityType],
+    [config, setConfig, handleAnalyze, activityType],
   );
 
   // IBP calculation for route summary
@@ -244,20 +183,11 @@ export default function HomePageClient({ session: serverSession }: HomePageClien
               <AnalysisSkeleton />
             ) : (
               <div className="flex flex-col gap-10">
-                {/* Activity Config Section — arriba */}
                 <ActivityConfigSection
-                  config={config}
-                  setConfig={setConfig}
                   onAnalyze={handleAnalyze}
                   onReverseRoute={onReverseWithRange}
-                  isLoading={isLoading}
-                  hasGpxData={!!gpxData}
-                  totalDistance={recalculatedTotalDistance}
-                  recalculatedElevationGain={recalculatedElevationGain}
-                  recalculatedElevationLoss={recalculatedElevationLoss}
                 />
 
-                {/* Elevation Profile + Terrain Tabs */}
                 <Tabs defaultValue="elevation" className="w-full">
                   <TabsList className="custom-scrollbar bg-secondary/50 mb-4 flex w-full items-center justify-start overflow-x-auto overflow-y-hidden md:grid md:grid-cols-2 md:justify-center">
                     <TabsTrigger value="elevation" className="min-w-fit md:w-full">
@@ -268,24 +198,10 @@ export default function HomePageClient({ session: serverSession }: HomePageClien
                     </TabsTrigger>
                   </TabsList>
                   <TabsContent value="elevation" className="mt-0">
-                    <AnalysisChart
-                      elevationData={elevationData}
-                      weatherPoints={weatherPoints}
-                      allPoints={gpxData?.points || []}
-                      selectedPoint={exactSelectedPoint}
-                      onSelect={setExactSelectedPoint}
-                      onRangeSelect={setSelectedRange}
-                      selectedRange={selectedRange}
-                      activeFilter={activeFilter}
-                    />
+                    <AnalysisChart />
                   </TabsContent>
                   <TabsContent value="terrain" className="mt-0">
-                    <RouteSegments
-                      weatherPoints={weatherPoints}
-                      activeFilter={activeFilter}
-                      setActiveFilter={setActiveFilter}
-                      onRangeSelect={setSelectedRange}
-                    />
+                    <RouteSegments />
                   </TabsContent>
                 </Tabs>
 
@@ -353,26 +269,9 @@ export default function HomePageClient({ session: serverSession }: HomePageClien
 
                 {isWeatherAnalyzed ? (
                   <AnalysisResults
-                    weatherPoints={weatherPoints}
-                    routeInfoData={routeInfoData}
-                    allPoints={gpxData?.points || []}
-                    elevationData={elevationData}
-                    activeFilter={activeFilter}
-                    setActiveFilter={setActiveFilter}
-                    selectedPointIndex={selectedPointIndex}
-                    setSelectedPointIndex={setSelectedPointIndex}
-                    onRangeSelect={setSelectedRange}
-                    onSelectPoint={setExactSelectedPoint}
-                    selectedRange={selectedRange}
-                    activityType={activityType}
-                    showWaterSources={showWaterSources}
-                    onToggleWaterSources={() => setShowWaterSources(!showWaterSources)}
-                    bestWindows={bestWindows}
-                    isFindingWindow={isFindingWindow}
                     onFindBestWindow={handleFindBestWindow}
                     onSelectBestWindow={handleSelectBestWindow}
                     onAnalyzeBestWindow={handleSelectAndAnalyze}
-                    onShowOnMap={(lat, lon, name) => setFocusPoint({ lat, lon, name })}
                   />
                 ) : (
                   <div className="border-border bg-card/50 text-muted-foreground flex h-60 flex-col items-center justify-center rounded-lg border border-dashed p-6 text-center">
@@ -392,22 +291,7 @@ export default function HomePageClient({ session: serverSession }: HomePageClien
           >
             <RouteLoadingOverlay isVisible={isRouteInfoLoading} />
             <RouteMap
-              points={gpxData?.points || []}
-              weatherPoints={weatherPoints.length > 0 ? weatherPoints : undefined}
-              selectedPointIndex={selectedPointIndex}
-              exactSelectedPoint={exactSelectedPoint}
-              onPointSelect={setSelectedPointIndex}
-              onHoverRoutePoint={setExactSelectedPoint}
-              activeFilter={activeFilter}
-              selectedRange={selectedRange}
-              activityType={activityType}
-              onClearSelection={() => {
-                setSelectedRange(null);
-                setActiveFilter(null);
-              }}
-              showWaterSources={showWaterSources}
               onResetToFullRouteView={(func) => (mapResetViewRef.current = func)}
-              focusPoint={focusPoint}
             />
           </div>
         </main>

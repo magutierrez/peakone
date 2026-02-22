@@ -6,7 +6,6 @@ import Map, { NavigationControl, MapRef } from 'react-map-gl/maplibre';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
-import type { RoutePoint, RouteWeatherPoint } from '@/lib/types';
 import { useMapLayers } from './route-map/use-map-layers';
 import { MapMarkers } from './route-map/map-markers';
 import { MapPopup } from './route-map/map-popup';
@@ -18,42 +17,29 @@ import { useMapView } from './route-map/use-map-view';
 import { useMapTerrain } from './route-map/use-map-terrain';
 import { RoutePlayer } from './route-map/route-player';
 import { MapOverlayControls } from './route-map/map-overlay-controls';
+import { useRouteStore } from '@/store/route-store';
 
 interface RouteMapProps {
-  points: RoutePoint[];
-  weatherPoints?: RouteWeatherPoint[];
-  selectedPointIndex?: number | null;
-  fullSelectedPointIndex?: number | null;
-  exactSelectedPoint?: any | null;
-  onHoverRoutePoint?: (point: any | null) => void;
-  onPointSelect?: (index: number) => void;
-  activeFilter?: { key: 'pathType' | 'surface' | 'hazard'; value: string } | null;
-  selectedRange?: { start: number; end: number } | null;
-  activityType?: 'cycling' | 'walking';
-  onClearSelection?: () => void;
-  showWaterSources?: boolean;
   onResetToFullRouteView?: (func: () => void) => void;
-  focusPoint?: { lat: number; lon: number; name?: string } | null;
 }
 
-export default function RouteMap({
-  points,
-  weatherPoints,
-  selectedPointIndex = null,
-  fullSelectedPointIndex = null,
-  exactSelectedPoint = null,
-  onPointSelect,
-  onHoverRoutePoint,
-  activeFilter = null,
-  selectedRange = null,
-  activityType = 'cycling',
-  onClearSelection,
-  showWaterSources = false,
-  onResetToFullRouteView,
-  focusPoint = null,
-}: RouteMapProps) {
+export default function RouteMap({ onResetToFullRouteView }: RouteMapProps) {
   const { resolvedTheme } = useTheme();
   const mapRef = useRef<MapRef>(null);
+
+  // Read all state from the store
+  const gpxData = useRouteStore((s) => s.gpxData);
+  const weatherPoints = useRouteStore((s) => s.weatherPoints);
+  const selectedPointIndex = useRouteStore((s) => s.selectedPointIndex);
+  const exactSelectedPoint = useRouteStore((s) => s.exactSelectedPoint);
+  const activeFilter = useRouteStore((s) => s.activeFilter);
+  const selectedRange = useRouteStore((s) => s.selectedRange);
+  const activityType = useRouteStore((s) => s.fetchedActivityType);
+  const showWaterSources = useRouteStore((s) => s.showWaterSources);
+  const focusPoint = useRouteStore((s) => s.focusPoint);
+  const { setSelectedPointIndex, setExactSelectedPoint, clearSelection } = useRouteStore();
+
+  const points = gpxData?.points || [];
 
   const [hoveredPointIdx, setHoveredPointIdx] = useState<number | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -65,7 +51,7 @@ export default function RouteMap({
 
   const { routeData, highlightedData, rangeHighlightData } = useMapLayers(
     points,
-    weatherPoints,
+    weatherPoints.length > 0 ? weatherPoints : undefined,
     activeFilter,
     selectedRange,
   );
@@ -95,7 +81,6 @@ export default function RouteMap({
     (event: any) => {
       syncTerrain();
       event.target.on('styledata', syncTerrain);
-      // Fit bounds once the map is loaded to ensure it matches the route
       resetToFullRouteView();
     },
     [syncTerrain, resetToFullRouteView],
@@ -104,40 +89,35 @@ export default function RouteMap({
   const onMapClick = useCallback(
     (event: any) => {
       const feature = event.features?.[0];
-      if (feature && onPointSelect) {
-        onPointSelect(feature.properties.index);
+      if (feature) {
+        setSelectedPointIndex(feature.properties.index);
       }
     },
-    [onPointSelect],
+    [setSelectedPointIndex],
   );
 
   const onMapMouseMove = useCallback(
     (e: any) => {
       const map = mapRef.current?.getMap();
-      if (!map || !onHoverRoutePoint) return;
+      if (!map) return;
 
       const activeLayers = ['route-hover-target', 'highlight-line', 'range-line'].filter((id) =>
         map.getLayer(id),
       );
 
       if (activeLayers.length === 0) {
-        onHoverRoutePoint(null);
+        setExactSelectedPoint(null);
         return;
       }
 
-      const features = map.queryRenderedFeatures(e.point, {
-        layers: activeLayers,
-      });
+      const features = map.queryRenderedFeatures(e.point, { layers: activeLayers });
 
       if (features.length > 0) {
         map.getCanvas().style.cursor = 'pointer';
-
-        // Find the closest point in our data
         const coords = e.lngLat;
         let minServiceDist = Infinity;
         let closestIdx = -1;
 
-        // Optimization: only check points near the mouse
         for (let i = 0; i < points.length; i++) {
           const p = points[i];
           const d = Math.pow(p.lon - coords.lng, 2) + Math.pow(p.lat - coords.lat, 2);
@@ -148,21 +128,21 @@ export default function RouteMap({
         }
 
         if (closestIdx !== -1) {
-          onHoverRoutePoint(points[closestIdx]);
+          setExactSelectedPoint(points[closestIdx]);
         }
       } else {
         map.getCanvas().style.cursor = '';
-        onHoverRoutePoint(null);
+        setExactSelectedPoint(null);
       }
     },
-    [onHoverRoutePoint, points],
+    [setExactSelectedPoint, points],
   );
 
   const onMapMouseLeave = useCallback(() => {
     const map = mapRef.current?.getMap();
     if (map) map.getCanvas().style.cursor = '';
-    if (onHoverRoutePoint) onHoverRoutePoint(null);
-  }, [onHoverRoutePoint]);
+    setExactSelectedPoint(null);
+  }, [setExactSelectedPoint]);
 
   const popupInfo = useMemo(() => {
     const idx = hoveredPointIdx !== null ? hoveredPointIdx : selectedPointIndex;
@@ -174,22 +154,14 @@ export default function RouteMap({
     if (focusPoint) {
       const map = mapRef.current?.getMap();
       if (map) {
-        map.flyTo({
-          center: [focusPoint.lon, focusPoint.lat],
-          zoom: 14,
-          duration: 2000,
-        });
+        map.flyTo({ center: [focusPoint.lon, focusPoint.lat], zoom: 14, duration: 2000 });
       }
     }
   }, [focusPoint]);
 
   const initialViewState = useMemo(() => {
     if (points && points.length > 0) {
-      return {
-        longitude: points[0].lon,
-        latitude: points[0].lat,
-        zoom: 10,
-      };
+      return { longitude: points[0].lon, latitude: points[0].lat, zoom: 10 };
     }
     return { longitude: -3.7038, latitude: 40.4168, zoom: 5 };
   }, [points]);
@@ -224,12 +196,12 @@ export default function RouteMap({
 
         <MapMarkers
           points={points}
-          weatherPoints={weatherPoints}
+          weatherPoints={weatherPoints.length > 0 ? weatherPoints : undefined}
           selectedPointIndex={selectedPointIndex}
-          fullSelectedPointIndex={fullSelectedPointIndex}
+          fullSelectedPointIndex={null}
           exactSelectedPoint={exactSelectedPoint}
           activeFilter={activeFilter}
-          onPointSelect={onPointSelect}
+          onPointSelect={setSelectedPointIndex}
           onHoverPoint={setHoveredPointIdx}
           activityType={activityType}
           showWaterSources={showWaterSources}
@@ -249,7 +221,7 @@ export default function RouteMap({
         selectedRange={selectedRange}
         activeFilter={activeFilter}
         onStartPlayer={() => setIsPlayerActive(true)}
-        onClearSelection={onClearSelection}
+        onClearSelection={clearSelection}
       />
 
       <LayerControl mapType={mapType} setMapType={setMapType} />

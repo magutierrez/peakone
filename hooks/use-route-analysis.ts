@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import {
   parseGPX,
@@ -9,7 +9,7 @@ import {
   getWindEffect,
   reverseGPXData,
 } from '@/lib/gpx-parser';
-import type { GPXData, RouteConfig, RouteWeatherPoint, WeatherData } from '@/lib/types';
+import type { RouteWeatherPoint, WeatherData } from '@/lib/types';
 import {
   getSunPosition,
   getSolarExposure,
@@ -17,62 +17,62 @@ import {
   calculateSmartSpeed,
   calculateElevationGainLoss,
 } from '@/lib/utils';
+import { useRouteStore } from '@/store/route-store';
 
-export interface UseRouteAnalysisConfig {
-  date: string;
-  time: string;
-  speed: number;
-  activityType: 'cycling' | 'walking';
-}
-
-export function useRouteAnalysis(
-  config: UseRouteAnalysisConfig,
-  initialRawGpxContent: string | null,
-  initialGpxFileName: string | null,
-  initialData?: {
-    distance: number;
-    elevationGain: number;
-    elevationLoss: number;
-  },
-) {
+export function useRouteAnalysis() {
   const t = useTranslations('HomePage');
-  const [gpxData, setGPXData] = useState<GPXData | null>(null);
-  const [gpxFileName, setGPXFileName] = useState<string | null>(null);
-  const [rawGPXContent, setRawGPXContent] = useState<string | null>(null);
-  const [weatherPoints, setWeatherPoints] = useState<RouteWeatherPoint[]>([]);
-  const [elevationData, setElevationData] = useState<{ distance: number; elevation: number }[]>([]);
-  const [routeInfoData, setRouteInfoData] = useState<any[]>([]); // Terrain, surface, etc.
-  const [selectedPointIndex, setSelectedPointIndex] = useState<number | null>(null);
-  const [isLoading, setIsLoading] = useState(false); // For analyze button
-  const [isRouteInfoLoading, setIsRouteInfoLoading] = useState(false); // For initial route data
-  const [error, setError] = useState<string | null>(null);
-  const [recalculatedElevationGain, setRecalculatedElevationGain] = useState(
-    initialData?.elevationGain || 0,
-  );
-  const [recalculatedElevationLoss, setRecalculatedElevationLoss] = useState(
-    initialData?.elevationLoss || 0,
-  );
-  const [recalculatedTotalDistance, setRecalculatedTotalDistance] = useState(
-    initialData?.distance || 0,
-  );
-  const [isWeatherAnalyzed, setIsWeatherAnalyzed] = useState(false); // New state
-  const [bestWindows, setBestWindows] = useState<any[]>([]);
-  const [isFindingWindow, setIsFindingWindow] = useState(false);
+
+  // Read reactive state from store (for useEffect dependencies)
+  const gpxData = useRouteStore((s) => s.gpxData);
+  const fetchedRawGpxContent = useRouteStore((s) => s.fetchedRawGpxContent);
+  const fetchedGpxFileName = useRouteStore((s) => s.fetchedGpxFileName);
+  const routeInfoData = useRouteStore((s) => s.routeInfoData);
+  const elevationData = useRouteStore((s) => s.elevationData);
+
+  // Store setters
+  const {
+    setGpxData,
+    setGpxFileName,
+    setRawGPXContent,
+    setWeatherPoints,
+    setElevationData,
+    setRouteInfoData,
+    setIsLoading,
+    setIsRouteInfoLoading,
+    setError,
+    setRecalculatedElevationGain,
+    setRecalculatedElevationLoss,
+    setRecalculatedTotalDistance,
+    setIsWeatherAnalyzed,
+    setBestWindows,
+    setIsFindingWindow,
+    setSelectedPointIndex,
+  } = useRouteStore();
 
   const handleReverseRoute = useCallback(() => {
-    if (!gpxData) return;
-    const reversed = reverseGPXData(gpxData);
-    setGPXData(reversed);
+    const currentGpxData = useRouteStore.getState().gpxData;
+    if (!currentGpxData) return;
+    const reversed = reverseGPXData(currentGpxData);
+    setGpxData(reversed);
     setRecalculatedElevationGain(reversed.totalElevationGain);
     setRecalculatedElevationLoss(reversed.totalElevationLoss);
     setRecalculatedTotalDistance(reversed.totalDistance);
     setWeatherPoints([]);
     setSelectedPointIndex(null);
-    setIsWeatherAnalyzed(false); // Reset weather analysis status
-  }, [gpxData]);
+    setIsWeatherAnalyzed(false);
+  }, [
+    setGpxData,
+    setRecalculatedElevationGain,
+    setRecalculatedElevationLoss,
+    setRecalculatedTotalDistance,
+    setWeatherPoints,
+    setSelectedPointIndex,
+    setIsWeatherAnalyzed,
+  ]);
 
   const fetchRouteInfo = useCallback(async () => {
-    if (!gpxData) {
+    const currentGpxData = useRouteStore.getState().gpxData;
+    if (!currentGpxData) {
       setRouteInfoData([]);
       return;
     }
@@ -83,7 +83,7 @@ export function useRouteAnalysis(
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          points: sampleRoutePoints(gpxData.points, 100).map((p) => ({
+          points: sampleRoutePoints(currentGpxData.points, 100).map((p) => ({
             lat: p.lat,
             lon: p.lon,
             distanceFromStart: p.distanceFromStart,
@@ -94,52 +94,60 @@ export function useRouteAnalysis(
         const data = await response.json();
         setRouteInfoData(data.pathData || []);
       }
-    } catch (e) {
+    } catch {
       setError(t('errors.unknownError'));
     } finally {
       setIsRouteInfoLoading(false);
     }
-  }, [gpxData, t]);
+  }, [setRouteInfoData, setIsRouteInfoLoading, setError, t]);
 
-  // Effect to initialize GPX data from props received from setup page
+  // Initialize GPX data from fetched route content
   useEffect(() => {
-    // Only process if initial content is provided and gpxData hasn't been set yet
-    if (initialRawGpxContent && initialGpxFileName && !gpxData) {
+    if (fetchedRawGpxContent && fetchedGpxFileName && !gpxData) {
       try {
-        const trimmedContent = initialRawGpxContent.trim();
-        let data: GPXData;
-
-        // Simplified: only support GPX XML content for now
-        // If it starts with '{' it might be old data in DB, we skip it
+        const trimmedContent = fetchedRawGpxContent.trim();
         if (trimmedContent.startsWith('{')) {
           throw new Error('JSON data is currently disabled');
         }
 
-        data = parseGPX(trimmedContent);
-
+        const data = parseGPX(trimmedContent);
         if (data.points.length < 2) {
           setError(t('errors.insufficientPoints'));
           return;
         }
-        setGPXData(data);
-        setGPXFileName(initialGpxFileName);
-        setRawGPXContent(initialRawGpxContent);
 
-        // Use provided initial data or fallback to parsed data
-        setRecalculatedTotalDistance(initialData?.distance || data.totalDistance || 0);
-        setRecalculatedElevationGain(initialData?.elevationGain || data.totalElevationGain || 0);
-        setRecalculatedElevationLoss(initialData?.elevationLoss || data.totalElevationLoss || 0);
+        const { initialDistance, initialElevationGain, initialElevationLoss } =
+          useRouteStore.getState();
 
+        setGpxData(data);
+        setGpxFileName(fetchedGpxFileName);
+        setRawGPXContent(fetchedRawGpxContent);
+        setRecalculatedTotalDistance(initialDistance || data.totalDistance || 0);
+        setRecalculatedElevationGain(initialElevationGain || data.totalElevationGain || 0);
+        setRecalculatedElevationLoss(initialElevationLoss || data.totalElevationLoss || 0);
         setError(null);
-        setIsWeatherAnalyzed(false); // Reset weather analysis status
+        setIsWeatherAnalyzed(false);
       } catch (err) {
         console.error('Error parsing GPX content:', err);
         setError(t('errors.readError'));
       }
     }
-  }, [initialRawGpxContent, initialGpxFileName, gpxData, t, initialData]);
+  }, [
+    fetchedRawGpxContent,
+    fetchedGpxFileName,
+    gpxData,
+    t,
+    setGpxData,
+    setGpxFileName,
+    setRawGPXContent,
+    setRecalculatedTotalDistance,
+    setRecalculatedElevationGain,
+    setRecalculatedElevationLoss,
+    setError,
+    setIsWeatherAnalyzed,
+  ]);
 
-  // Effect to update initial elevation data when gpxData changes
+  // Update elevation data and fetch route info when gpxData changes
   useEffect(() => {
     if (gpxData) {
       const dense = sampleRoutePoints(gpxData.points, 3000);
@@ -147,11 +155,7 @@ export function useRouteAnalysis(
         distance: p.distanceFromStart,
         elevation: p.ele || 0,
       }));
-
-      // Always set initial elevation to prepare the chart
       setElevationData(initialElevation);
-      // Also fetch route info (terrain, etc.) immediately when GPX data is available
-      // The old handleGPXLoaded also triggered routeInfoData fetch.
       fetchRouteInfo();
     } else {
       setElevationData([]);
@@ -162,9 +166,19 @@ export function useRouteAnalysis(
       setWeatherPoints([]);
       setIsWeatherAnalyzed(false);
     }
-  }, [gpxData, fetchRouteInfo]);
+  }, [
+    gpxData,
+    fetchRouteInfo,
+    setElevationData,
+    setRecalculatedElevationGain,
+    setRecalculatedElevationLoss,
+    setRecalculatedTotalDistance,
+    setRouteInfoData,
+    setWeatherPoints,
+    setIsWeatherAnalyzed,
+  ]);
 
-  // Effect to update elevation data with richer info from API (routeInfoData)
+  // Update elevation data when routeInfoData arrives
   useEffect(() => {
     if (routeInfoData.length > 0) {
       const newElevationData = routeInfoData.map((item) => ({
@@ -173,42 +187,64 @@ export function useRouteAnalysis(
       }));
       setElevationData(newElevationData);
     }
-  }, [routeInfoData]);
+  }, [routeInfoData, setElevationData]);
 
-  // Effect to recalculate elevation gain/loss/distance when elevationData changes
+  // Recalculate totals when elevationData changes
   useEffect(() => {
     if (elevationData.length > 0) {
       const { totalElevationGain, totalElevationLoss } = calculateElevationGainLoss(elevationData);
       setRecalculatedElevationGain(totalElevationGain);
       setRecalculatedElevationLoss(totalElevationLoss);
-      const calculatedDistance = elevationData[elevationData.length - 1].distance;
-      setRecalculatedTotalDistance(calculatedDistance);
+      setRecalculatedTotalDistance(elevationData[elevationData.length - 1].distance);
     }
-  }, [elevationData]);
+  }, [
+    elevationData,
+    setRecalculatedElevationGain,
+    setRecalculatedElevationLoss,
+    setRecalculatedTotalDistance,
+  ]);
 
   const handleClearGPX = useCallback(() => {
-    setGPXData(null);
-    setGPXFileName(null);
+    setGpxData(null);
+    setGpxFileName(null);
     setRawGPXContent(null);
     setWeatherPoints([]);
     setRouteInfoData([]);
     setSelectedPointIndex(null);
     setError(null);
-    setIsWeatherAnalyzed(false); // Reset weather analysis status
-  }, []);
+    setIsWeatherAnalyzed(false);
+  }, [
+    setGpxData,
+    setGpxFileName,
+    setRawGPXContent,
+    setWeatherPoints,
+    setRouteInfoData,
+    setSelectedPointIndex,
+    setError,
+    setIsWeatherAnalyzed,
+  ]);
 
   const handleAnalyze = useCallback(
-    async (params?: UseRouteAnalysisConfig | React.MouseEvent | any) => {
-      if (!gpxData) return;
+    async (overrideConfig?: {
+      date: string;
+      time: string;
+      speed: number;
+      activityType: 'cycling' | 'walking';
+    }) => {
+      const currentGpxData = useRouteStore.getState().gpxData;
+      const currentRouteInfoData = useRouteStore.getState().routeInfoData;
+      const storeConfig = useRouteStore.getState().config;
+      const storeActivityType = useRouteStore.getState().fetchedActivityType;
+      const analysisConfig = overrideConfig ?? {
+        ...storeConfig,
+        activityType: storeActivityType,
+      };
 
-      // Safety check: React events might be passed if called directly from onClick
-      const hasOverride =
-        params && typeof params === 'object' && 'date' in params && 'time' in params;
-      const analysisConfig = hasOverride ? params : config;
+      if (!currentGpxData) return;
 
       setIsLoading(true);
       setError(null);
-      setWeatherPoints([]); // Clear previous weather points
+      setWeatherPoints([]);
       setIsWeatherAnalyzed(false);
 
       const fetchWithRetry = async (
@@ -221,53 +257,43 @@ export function useRouteAnalysis(
           try {
             const response = await fetch(url, options);
             if (response.status === 429) {
-              const waitTime = Math.pow(2, i) * 1000;
-              await new Promise((resolve) => setTimeout(resolve, waitTime));
+              await new Promise((resolve) => setTimeout(resolve, Math.pow(2, i) * 1000));
               continue;
             }
             return response;
           } catch (err) {
             lastError = err instanceof Error ? err : new Error('Unknown error');
-            const waitTime = Math.pow(2, i) * 1000;
-            await new Promise((resolve) => setTimeout(resolve, waitTime));
+            await new Promise((resolve) => setTimeout(resolve, Math.pow(2, i) * 1000));
           }
         }
         throw lastError || new Error('Retry limit reached');
       };
 
       try {
-        const sampled = sampleRoutePoints(gpxData.points, 48);
+        const sampled = sampleRoutePoints(currentGpxData.points, 48);
         const startTime = new Date(`${analysisConfig.date}T${analysisConfig.time}:00`);
 
         if (isNaN(startTime.getTime())) {
           throw new Error('Invalid start time configuration');
         }
 
-        // Calculate times point-to-point with smart speed
         const pointsWithTime: any[] = [];
         let currentElapsedTime = 0;
 
         sampled.forEach((point, idx) => {
           if (idx === 0) {
-            pointsWithTime.push({
-              ...point,
-              estimatedTime: new Date(startTime.getTime()),
-            });
+            pointsWithTime.push({ ...point, estimatedTime: new Date(startTime.getTime()) });
           } else {
             const prevPoint = sampled[idx - 1];
             const segmentDist = point.distanceFromStart - prevPoint.distanceFromStart;
             const segmentEleGain = Math.max(0, (point.ele || 0) - (prevPoint.ele || 0));
-
             const speedAtSegment = calculateSmartSpeed(
               analysisConfig.speed,
               segmentDist,
               segmentEleGain,
               analysisConfig.activityType,
             );
-
-            const segmentTimeHours = segmentDist / speedAtSegment;
-            currentElapsedTime += segmentTimeHours;
-
+            currentElapsedTime += segmentDist / speedAtSegment;
             pointsWithTime.push({
               ...point,
               estimatedTime: new Date(startTime.getTime() + currentElapsedTime * 3600000),
@@ -306,34 +332,31 @@ export function useRouteAnalysis(
           const weather = weatherData[idx];
           const windResult = getWindEffect(bearing, weather.windDirection);
 
-          // Find closest info by distance (not index) to be robust
-          const info = routeInfoData.reduce(
+          const info = currentRouteInfoData.reduce(
             (prev, curr) =>
               Math.abs(curr.distanceFromStart - point.distanceFromStart) <
               Math.abs(prev.distanceFromStart - point.distanceFromStart)
                 ? curr
                 : prev,
-            routeInfoData[0] || {},
+            currentRouteInfoData[0] || {},
           );
 
           const ele = point.ele !== undefined && point.ele !== 0 ? point.ele : info.elevation || 0;
 
-          // Calculate slope and aspect for hillshading
-          const distDiff = (nextPoint.distanceFromStart - prevPoint.distanceFromStart) * 1000; // meters
+          const distDiff = (nextPoint.distanceFromStart - prevPoint.distanceFromStart) * 1000;
           const eleDiff =
             (nextPoint.ele !== undefined
               ? nextPoint.ele
-              : routeInfoData.find((d: any) => d.distanceFromStart === nextPoint.distanceFromStart)
-                  ?.elevation || 0) -
+              : currentRouteInfoData.find(
+                  (d: any) => d.distanceFromStart === nextPoint.distanceFromStart,
+                )?.elevation || 0) -
             (prevPoint.ele !== undefined
               ? prevPoint.ele
-              : routeInfoData.find((d: any) => d.distanceFromStart === prevPoint.distanceFromStart)
-                  ?.elevation || 0);
+              : currentRouteInfoData.find(
+                  (d: any) => d.distanceFromStart === prevPoint.distanceFromStart,
+                )?.elevation || 0);
           const slopeRad = distDiff > 0 ? Math.atan(eleDiff / distDiff) : 0;
           const slopeDeg = (slopeRad * 180) / Math.PI;
-
-          // Aspect is the direction of the steepest descent
-          // If going uphill, aspect is bearing + 180, if downhill, aspect is bearing
           const aspectDeg = eleDiff > 0 ? (bearing + 180) % 360 : bearing;
 
           const sunPos = getSunPosition(point.estimatedTime, point.lat, point.lon);
@@ -341,10 +364,7 @@ export function useRouteAnalysis(
           const solarIntensity = getSolarIntensity(weather.directRadiation, solarExposure);
 
           return {
-            point: {
-              ...point,
-              ele,
-            },
+            point: { ...point, ele },
             weather,
             windEffect: windResult.effect,
             windEffectAngle: windResult.angle,
@@ -361,38 +381,42 @@ export function useRouteAnalysis(
 
         setWeatherPoints(routeWeatherPoints);
         setSelectedPointIndex(0);
-        setIsWeatherAnalyzed(true); // Mark weather as analyzed
+        setIsWeatherAnalyzed(true);
       } catch (err) {
         setError(err instanceof Error ? err.message : t('errors.unknownError'));
       } finally {
         setIsLoading(false);
       }
     },
-    [gpxData, config, t, routeInfoData],
+    [t, setIsLoading, setError, setWeatherPoints, setIsWeatherAnalyzed, setSelectedPointIndex],
   );
 
   const handleFindBestWindow = useCallback(async () => {
-    if (!gpxData) return;
+    const currentGpxData = useRouteStore.getState().gpxData;
+    if (!currentGpxData) return;
+
     setIsFindingWindow(true);
     setBestWindows([]);
 
     try {
-      // Pick 3 points: start, mid, end
-      const startPoint = gpxData.points[0];
-      const midPoint = gpxData.points[Math.floor(gpxData.points.length / 2)];
-      const endPoint = gpxData.points[gpxData.points.length - 1];
+      const { config: storeConfig, fetchedActivityType } = useRouteStore.getState();
 
-      // Estimate bearings for mid points
       const calculateApproxBearing = (idx: number) => {
-        const p1 = gpxData.points[idx];
-        const p2 = gpxData.points[Math.min(idx + 10, gpxData.points.length - 1)];
+        const p1 = currentGpxData.points[idx];
+        const p2 = currentGpxData.points[Math.min(idx + 10, currentGpxData.points.length - 1)];
         return calculateBearing(p1.lat, p1.lon, p2.lat, p2.lon);
       };
 
       const keyPoints = [
-        { ...startPoint, bearing: calculateApproxBearing(0) },
-        { ...midPoint, bearing: calculateApproxBearing(Math.floor(gpxData.points.length / 2)) },
-        { ...endPoint, bearing: calculateApproxBearing(gpxData.points.length - 1) },
+        { ...currentGpxData.points[0], bearing: calculateApproxBearing(0) },
+        {
+          ...currentGpxData.points[Math.floor(currentGpxData.points.length / 2)],
+          bearing: calculateApproxBearing(Math.floor(currentGpxData.points.length / 2)),
+        },
+        {
+          ...currentGpxData.points[currentGpxData.points.length - 1],
+          bearing: calculateApproxBearing(currentGpxData.points.length - 1),
+        },
       ];
 
       const response = await fetch('/api/weather/best-window', {
@@ -400,9 +424,9 @@ export function useRouteAnalysis(
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           keyPoints,
-          activityType: config.activityType,
-          baseSpeed: config.speed,
-          startTime: `${config.date}T${config.time}:00`,
+          activityType: fetchedActivityType,
+          baseSpeed: storeConfig.speed,
+          startTime: `${storeConfig.date}T${storeConfig.time}:00`,
         }),
       });
 
@@ -410,34 +434,17 @@ export function useRouteAnalysis(
         const data = await response.json();
         setBestWindows(data.windows || []);
       }
-    } catch (e) {
+    } catch {
       // Ignore
     } finally {
       setIsFindingWindow(false);
     }
-  }, [gpxData, config]);
+  }, [setIsFindingWindow, setBestWindows]);
 
   return {
-    gpxData,
-    gpxFileName,
-    rawGPXContent,
-    weatherPoints,
-    elevationData,
-    routeInfoData,
-    selectedPointIndex,
-    setSelectedPointIndex,
-    isLoading,
-    isRouteInfoLoading,
-    error,
+    handleAnalyze,
     handleClearGPX,
     handleReverseRoute,
-    handleAnalyze,
     handleFindBestWindow,
-    bestWindows,
-    isFindingWindow,
-    recalculatedElevationGain,
-    recalculatedElevationLoss,
-    recalculatedTotalDistance,
-    isWeatherAnalyzed, // Export new state
   };
 }
