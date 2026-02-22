@@ -9,7 +9,8 @@ export interface SavedRoute {
   distance: number;
   elevation_gain: number;
   elevation_loss: number;
-  created_at: string; // ISO string
+  elevation_points?: number[]; // Added for mini-preview
+  created_at: string;
 }
 
 class PeakOneDB extends Dexie {

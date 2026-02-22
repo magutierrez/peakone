@@ -3,6 +3,7 @@
 import useSWR, { mutate } from 'swr';
 import { db, SavedRoute } from '@/lib/db';
 import { useSession } from 'next-auth/react';
+import { parseGPX, sampleRoutePoints } from '@/lib/gpx-parser';
 
 const ROUTES_CACHE_KEY = 'local-saved-routes';
 
@@ -53,6 +54,16 @@ export function useSavedRoutes() {
         return existing.id;
       }
 
+      // Extract elevation points for preview
+      let elevationPoints: number[] = [];
+      try {
+        const parsed = parseGPX(content);
+        const sampled = sampleRoutePoints(parsed.points, 30);
+        elevationPoints = sampled.map((p) => Math.round(p.ele || 0));
+      } catch (e) {
+        console.warn('Failed to extract elevation points for preview:', e);
+      }
+
       let routeId: string;
       try {
         routeId = crypto.randomUUID();
@@ -73,6 +84,7 @@ export function useSavedRoutes() {
         distance,
         elevation_gain: elevationGain,
         elevation_loss: elevationLoss,
+        elevation_points: elevationPoints,
         created_at: new Date().toISOString(),
       });
 

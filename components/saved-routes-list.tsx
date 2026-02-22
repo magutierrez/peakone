@@ -11,6 +11,8 @@ import {
   X,
   ArrowUp,
   ArrowDown,
+  Bike,
+  Footprints,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -18,6 +20,7 @@ import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
+import { parseGPX, sampleRoutePoints } from '@/lib/gpx-parser';
 
 interface SavedRoutesListProps {
   onLoadRoute: (content: string, fileName: string, id?: string) => void;
@@ -135,7 +138,7 @@ export function SavedRoutesList({ onLoadRoute, selectedRouteId }: SavedRoutesLis
                         <Check className="text-primary mt-0.5 h-3.5 w-3.5 shrink-0" />
                       )}
                     </div>
-                    <div className="text-muted-foreground mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+                    <div className="text-muted-foreground mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] font-medium tracking-wider uppercase">
                       <span className="flex shrink-0 items-center gap-1">
                         <MapPin className="h-3 w-3" />
                         {Number(route.distance).toFixed(1)} km
@@ -149,32 +152,86 @@ export function SavedRoutesList({ onLoadRoute, selectedRouteId }: SavedRoutesLis
                         {Math.round(route.elevation_loss || 0)}m
                       </span>
                       <span className="flex shrink-0 items-center gap-1">
+                        {route.activity_type === 'walking' ? (
+                          <Footprints className="h-3 w-3" />
+                        ) : (
+                          <Bike className="h-3 w-3" />
+                        )}
+                        {route.activity_type === 'walking' ? 'Hiking' : 'Bicicleta'}
+                      </span>
+                      <span className="flex shrink-0 items-center gap-1">
                         <Calendar className="h-3 w-3" />
                         {new Date(route.created_at).toLocaleDateString()}
                       </span>
                     </div>
                   </button>
 
-                  <div className="flex shrink-0 items-center gap-0.5">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-muted-foreground hover:bg-primary/5 hover:text-primary h-8 w-8 transition-colors"
-                      onClick={(e) => handleStartEdit(e, route)}
-                    >
-                      <Pencil className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-muted-foreground hover:bg-destructive/5 hover:text-destructive h-8 w-8 transition-colors"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteRoute(route.id);
-                      }}
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
+                  <div className="flex shrink-0 items-center gap-3">
+                    {(() => {
+                      try {
+                        let points = route.elevation_points;
+                        if (!points || points.length === 0) {
+                          const parsed = parseGPX(route.gpx_content);
+                          points = sampleRoutePoints(parsed.points, 30).map((p) => p.ele || 0);
+                        }
+                        if (points.length < 2) return null;
+
+                        const min = Math.min(...points);
+                        const max = Math.max(...points);
+                        const range = max - min || 1;
+                        const pathData = points
+                          .map((p, i) => {
+                            const x = (i / (points.length - 1)) * 64;
+                            const y = 30 - ((p - min) / range) * 28; // Leave a 2px margin
+                            return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
+                          })
+                          .join(' ');
+
+                        return (
+                          <div className="h-8 w-16 shrink-0 overflow-visible opacity-60 transition-opacity group-hover:opacity-100">
+                            <svg
+                              width="64"
+                              height="32"
+                              viewBox="0 0 64 32"
+                              className="text-primary"
+                              preserveAspectRatio="none"
+                            >
+                              <path
+                                d={pathData}
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="1"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          </div>
+                        );
+                      } catch (e) {
+                        return null;
+                      }
+                    })()}
+                    <div className="flex items-center gap-0.5">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-muted-foreground hover:bg-primary/5 hover:text-primary h-8 w-8 transition-colors"
+                        onClick={(e) => handleStartEdit(e, route)}
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-muted-foreground hover:bg-destructive/5 hover:text-destructive h-8 w-8 transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteRoute(route.id);
+                        }}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               )}
