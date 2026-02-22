@@ -147,7 +147,12 @@ export default function RouteMap({ onResetToFullRouteView }: RouteMapProps) {
             distanceFromStart:
               p1.distanceFromStart + t * (p2.distanceFromStart - p1.distanceFromStart),
             estimatedTime:
-              (p1.estimatedTime || 0) + t * ((p2.estimatedTime || 0) - (p1.estimatedTime || 0)),
+              p1.estimatedTime && p2.estimatedTime
+                ? new Date(
+                    p1.estimatedTime.getTime() +
+                      t * (p2.estimatedTime.getTime() - p1.estimatedTime.getTime()),
+                  )
+                : undefined,
             slope: slope,
           },
           bearing: bearing,
@@ -353,7 +358,7 @@ export default function RouteMap({ onResetToFullRouteView }: RouteMapProps) {
           activeFilter={activeFilter}
           onPointSelect={setSelectedPointIndex}
           onHoverPoint={setHoveredPointIdx}
-          activityType={activityType}
+          activityType={activityType ?? undefined}
           showWaterSources={showWaterSources}
           focusPoint={focusPoint}
         />

@@ -84,7 +84,7 @@ export function AnalysisChart() {
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
             data={chartData}
-            onMouseDown={(e) => e && setRefAreaLeft(e.activeLabel as number)}
+            onMouseDown={(e) => e && setRefAreaLeft(e.activeLabel as unknown as number)}
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
             onMouseUp={zoom}

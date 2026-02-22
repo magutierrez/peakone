@@ -2,6 +2,8 @@
 
 import useSWR, { mutate } from 'swr';
 import { db, SavedRoute } from '@/lib/db';
+
+export type { SavedRoute };
 import { useSession } from 'next-auth/react';
 import { parseGPX, sampleRoutePoints } from '@/lib/gpx-parser';
 
@@ -18,12 +20,11 @@ export function useSavedRoutes() {
   } = useSWR(userIdentifier ? [ROUTES_CACHE_KEY, userIdentifier] : null, async ([, identifier]) => {
     try {
       // Fetch routes for the user, ordered by creation date (newest first)
-      const result = await db.saved_routes
+      return await db.saved_routes
         .where('user_email')
         .equals(identifier)
         .reverse()
         .sortBy('created_at');
-      return result;
     } catch (e) {
       console.error('Error fetching routes:', e);
       return [];

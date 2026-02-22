@@ -93,7 +93,7 @@ export function AnalysisResults({
                 return (
                   <WeatherPointDetail
                     weatherPoint={selectedWeatherPoint}
-                    activityType={activityType}
+                    activityType={activityType ?? 'cycling'}
                     onShowOnMap={(lat, lon, name) => setFocusPoint({ lat, lon, name })}
                   />
                 );
@@ -112,7 +112,7 @@ export function AnalysisResults({
         <TabsContent value="advice" className="mt-6 flex flex-col gap-6">
           <RouteAdvice
             weatherPoints={weatherPoints}
-            activityType={activityType}
+            activityType={activityType ?? 'cycling'}
             showWaterSources={showWaterSources}
             onToggleWaterSources={() => setShowWaterSources(!showWaterSources)}
           />

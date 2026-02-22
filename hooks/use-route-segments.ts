@@ -2,46 +2,11 @@
 
 import { useMemo, useCallback } from 'react';
 import { useRouteStore } from '@/store/route-store';
-
-const PATH_TYPE_COLORS: Record<string, string> = {
-  cycleway: '#3ecf8e',
-  path: '#10b981',
-  footway: '#059669',
-  pedestrian: '#059669',
-  track: '#8b5cf6',
-  residential: '#6b7280',
-  living_street: '#9ca3af',
-  primary: '#ef4444',
-  primary_link: '#ef4444',
-  trunk: '#b91c1c',
-  secondary: '#f59e0b',
-  secondary_link: '#f59e0b',
-  tertiary: '#fbbf24',
-  tertiary_link: '#fbbf24',
-  service: '#d1d5db',
-  unclassified: '#9ca3af',
-  raceway: '#1e1b4b',
-  unknown: '#e5e7eb',
-};
-
-const SURFACE_COLORS: Record<string, string> = {
-  asphalt: '#4b5563',
-  paved: '#6b7280',
-  paving_stones: '#9ca3af',
-  concrete: '#d1d5db',
-  gravel: '#d97706',
-  fine_gravel: '#f59e0b',
-  unpaved: '#b45309',
-  ground: '#78350f',
-  compacted: '#92400e',
-  dirt: '#a16207',
-  sand: '#fcd34d',
-  grass: '#10b981',
-  unknown: '#e5e7eb',
-};
+import { PATH_TYPE_COLORS, SURFACE_COLORS } from '@/lib/route-colors';
+import type { RouteWeatherPoint } from '@/lib/types';
 
 function getBreakdown(
-  weatherPoints: ReturnType<typeof useRouteStore.getState>['weatherPoints'],
+  weatherPoints: RouteWeatherPoint[],
   key: 'pathType' | 'surface',
   colorMap: Record<string, string>,
 ) {

@@ -52,7 +52,7 @@ export function useAnalysisMetrics() {
         totalDistanceKm,
         totalElevationGain,
         avgTemperatureCelsius,
-        activityType,
+        activityType ?? 'cycling',
       ),
     [routeDurationHours, totalDistanceKm, totalElevationGain, avgTemperatureCelsius, activityType],
   );

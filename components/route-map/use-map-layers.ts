@@ -1,49 +1,14 @@
 import { useMemo } from 'react';
 import type { RoutePoint, RouteWeatherPoint } from '@/lib/types';
-import type { Feature, FeatureCollection, LineString, MultiLineString, Point } from 'geojson';
+import type { Feature, FeatureCollection, LineString, Point } from 'geojson';
 import { getSlopeColorHex } from '@/lib/slope-colors';
-
-const PATH_TYPE_COLORS: Record<string, string> = {
-  cycleway: '#3ecf8e',
-  path: '#10b981',
-  footway: '#059669',
-  pedestrian: '#059669',
-  track: '#8b5cf6',
-  residential: '#6b7280',
-  living_street: '#9ca3af',
-  primary: '#ef4444',
-  primary_link: '#ef4444',
-  trunk: '#b91c1c',
-  secondary: '#f59e0b',
-  secondary_link: '#f59e0b',
-  tertiary: '#fbbf24',
-  tertiary_link: '#fbbf24',
-  service: '#d1d5db',
-  unclassified: '#9ca3af',
-  raceway: '#1e1b4b',
-  unknown: '#e5e7eb',
-};
-
-const SURFACE_COLORS: Record<string, string> = {
-  asphalt: '#4b5563',
-  paved: '#6b7280',
-  paving_stones: '#9ca3af',
-  concrete: '#d1d5db',
-  gravel: '#d97706',
-  fine_gravel: '#f59e0b',
-  unpaved: '#b45309',
-  ground: '#78350f',
-  compacted: '#92400e',
-  dirt: '#a16207',
-  sand: '#fcd34d',
-  grass: '#10b981',
-  unknown: '#e5e7eb',
-};
+import { PATH_TYPE_COLORS, SURFACE_COLORS } from '@/lib/route-colors';
+import type { ActiveFilter } from '@/store/route-store';
 
 export function useMapLayers(
   points: RoutePoint[],
   weatherPoints?: RouteWeatherPoint[],
-  activeFilter?: { key: 'pathType' | 'surface'; value: string } | null,
+  activeFilter?: ActiveFilter,
   selectedRange?: { start: number; end: number } | null,
 ) {
   const routeData = useMemo<Feature<LineString> | null>(() => {
@@ -65,39 +30,40 @@ export function useMapLayers(
   }, [points]);
 
   const highlightedData = useMemo<FeatureCollection<LineString> | null>(() => {
-    if (!activeFilter || !weatherPoints || weatherPoints.length < 2 || points.length < 2) return null;
-    
+    if (!activeFilter || !weatherPoints || weatherPoints.length < 2 || points.length < 2)
+      return null;
+
     const features: Feature<LineString>[] = [];
 
     if (activeFilter.key === 'hazard') {
       const [start, end] = activeFilter.value.split('-').map(Number);
-      
-      // For hazards, we create many small segments each with its own color based on slope
+
       for (let i = 0; i < points.length - 1; i++) {
         const p1 = points[i];
-        const p2 = points[i+1];
-        
+        const p2 = points[i + 1];
+
         if (p1.distanceFromStart >= start && p2.distanceFromStart <= end) {
           const distDiffM = (p2.distanceFromStart - p1.distanceFromStart) * 1000;
           const eleDiffM = (p2.ele || 0) - (p1.ele || 0);
           const slope = distDiffM > 0.1 ? (eleDiffM / distDiffM) * 100 : 0;
-          
+
           features.push({
             type: 'Feature',
             geometry: {
               type: 'LineString',
-              coordinates: [[p1.lon, p1.lat], [p2.lon, p2.lat]]
+              coordinates: [
+                [p1.lon, p1.lat],
+                [p2.lon, p2.lat],
+              ],
             },
-            properties: {
-              color: getSlopeColorHex(slope)
-            }
+            properties: { color: getSlopeColorHex(slope) },
           });
         }
       }
     } else {
-      // Logic for pathType and surface (Solid color)
+      const filterKey = activeFilter.key;
       let currentSegment: number[][] = [];
-      points.forEach((p, i) => {
+      points.forEach((p) => {
         let matchingWp = weatherPoints[0];
         for (let j = 0; j < weatherPoints.length; j++) {
           if (p.distanceFromStart <= weatherPoints[j].point.distanceFromStart) {
@@ -107,8 +73,8 @@ export function useMapLayers(
           if (j === weatherPoints.length - 1) matchingWp = weatherPoints[j];
         }
 
-        const currentFilterValue = matchingWp[activeFilter.key as 'pathType' | 'surface'] || 'unknown';
-        const colorMap = activeFilter.key === 'pathType' ? PATH_TYPE_COLORS : SURFACE_COLORS;
+        const currentFilterValue = matchingWp[filterKey] || 'unknown';
+        const colorMap = filterKey === 'pathType' ? PATH_TYPE_COLORS : SURFACE_COLORS;
         const color = colorMap[currentFilterValue] || colorMap.unknown;
 
         if (currentFilterValue === activeFilter.value) {
@@ -118,18 +84,18 @@ export function useMapLayers(
             features.push({
               type: 'Feature',
               geometry: { type: 'LineString', coordinates: currentSegment },
-              properties: { color }
+              properties: { color },
             });
           }
           currentSegment = [];
         }
       });
       if (currentSegment.length > 1) {
-        const colorMap = activeFilter.key === 'pathType' ? PATH_TYPE_COLORS : SURFACE_COLORS;
+        const colorMap = filterKey === 'pathType' ? PATH_TYPE_COLORS : SURFACE_COLORS;
         features.push({
           type: 'Feature',
           geometry: { type: 'LineString', coordinates: currentSegment },
-          properties: { color: colorMap[activeFilter.value] || colorMap.unknown }
+          properties: { color: colorMap[activeFilter.value] || colorMap.unknown },
         });
       }
     }

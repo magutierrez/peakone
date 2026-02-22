@@ -11,19 +11,9 @@ interface WeatherTimelineProps {
   weatherPoints: RouteWeatherPoint[];
   selectedIndex: number | null;
   onSelect: (index: number) => void;
-  activeFilter?: { key: 'pathType' | 'surface'; value: string } | null;
-  onFilterChange?: (filter: { key: 'pathType' | 'surface'; value: string } | null) => void;
-  onRangeSelect?: (range: { start: number; end: number } | null) => void;
 }
 
-export function WeatherTimeline({
-  weatherPoints,
-  selectedIndex,
-  onSelect,
-  activeFilter,
-  onFilterChange,
-  onRangeSelect,
-}: WeatherTimelineProps) {
+export function WeatherTimeline({ weatherPoints, selectedIndex, onSelect }: WeatherTimelineProps) {
   if (weatherPoints.length === 0) return null;
 
   return (
@@ -32,32 +22,13 @@ export function WeatherTimeline({
       <WeatherSummary weatherPoints={weatherPoints} />
 
       {/* 2. Horizontal Points List */}
-      <WeatherList
-        weatherPoints={weatherPoints}
-        selectedIndex={selectedIndex}
-        onSelect={onSelect}
-      />
+      <WeatherList weatherPoints={weatherPoints} selectedIndex={selectedIndex} onSelect={onSelect} />
 
       {/* 3. Route Segments (Path types & Surfaces) */}
-      <RouteSegments
-        weatherPoints={weatherPoints}
-        activeFilter={activeFilter}
-        setActiveFilter={onFilterChange}
-        onRangeSelect={onRangeSelect}
-      />
+      <RouteSegments />
 
-      {/* 4. Elevation Chart (Komoot style) */}
-      <ElevationProfile
-        weatherPoints={weatherPoints}
-        allPoints={[]} // Empty array as fallback
-        elevationData={[]} // Empty array as fallback
-        selectedPoint={selectedIndex !== null ? weatherPoints[selectedIndex] : null}
-        onSelect={(p) => {
-          if (p === null) onSelect(-1); // Or handle null index
-          // This component seems to use index, but elevation-profile uses point
-        }}
-        onRangeSelect={onRangeSelect}
-      />
+      {/* 4. Elevation Chart */}
+      <ElevationProfile />
 
       {/* 5. Selected Point Detail */}
       {selectedIndex !== null && weatherPoints[selectedIndex] && (

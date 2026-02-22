@@ -4,6 +4,7 @@ import { Marker } from 'react-map-gl/maplibre';
 import { WindArrow } from '@/components/wind-arrow';
 import { MapPin, Droplets, Signpost } from 'lucide-react';
 import type { RoutePoint, RouteWeatherPoint } from '@/lib/types';
+import type { ActiveFilter } from '@/store/route-store';
 import { useTranslations } from 'next-intl';
 
 interface MapMarkersProps {
@@ -11,8 +12,8 @@ interface MapMarkersProps {
   weatherPoints?: RouteWeatherPoint[];
   selectedPointIndex: number | null;
   fullSelectedPointIndex?: number | null;
-  exactSelectedPoint?: any | null; // New prop for ultra-precise sync
-  activeFilter?: { key: 'pathType' | 'surface'; value: string } | null;
+  exactSelectedPoint?: any | null;
+  activeFilter?: ActiveFilter;
   onPointSelect?: (index: number) => void;
   onHoverPoint: (index: number | null) => void;
   activityType?: 'cycling' | 'walking';
@@ -134,7 +135,9 @@ export function MapMarkers({
       {weatherPoints?.map((wp, idx) => {
         const isSelected = selectedPointIndex === idx;
         const isFiltered =
-          activeFilter && (wp[activeFilter.key] || 'unknown') !== activeFilter.value;
+          activeFilter &&
+          activeFilter.key !== 'hazard' &&
+          (wp[activeFilter.key] || 'unknown') !== activeFilter.value;
 
         if (isFiltered && !isSelected) return null;
 
