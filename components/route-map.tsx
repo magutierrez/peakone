@@ -126,11 +126,24 @@ export default function RouteMap({ onResetToFullRouteView }: RouteMapProps) {
           lenSq > 0
             ? Math.max(0, Math.min(1, ((lng - p1.lon) * dx + (lat - p1.lat) * dy) / lenSq))
             : 0;
-            
+
         // Calculate slope between p1 and p2
         const distDiff = (p2.distanceFromStart - p1.distanceFromStart) * 1000;
         const eleDiff = (p2.ele || 0) - (p1.ele || 0);
         const slope = distDiff > 0.1 ? (eleDiff / distDiff) * 100 : 0;
+
+        // Calculate bearing (heading) for Street View
+        const toRad = (deg: number) => (deg * Math.PI) / 180;
+        const toDeg = (rad: number) => (rad * 180) / Math.PI;
+
+        const lat1 = toRad(p1.lat);
+        const lat2 = toRad(p2.lat);
+        const dLon = toRad(p2.lon - p1.lon);
+
+        const y = Math.sin(dLon) * Math.cos(lat2);
+        const x =
+          Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
+        const bearing = (toDeg(Math.atan2(y, x)) + 360) % 360;
 
         return {
           point: {
@@ -141,8 +154,9 @@ export default function RouteMap({ onResetToFullRouteView }: RouteMapProps) {
               p1.distanceFromStart + t * (p2.distanceFromStart - p1.distanceFromStart),
             estimatedTime:
               (p1.estimatedTime || 0) + t * ((p2.estimatedTime || 0) - (p1.estimatedTime || 0)),
-            slope: slope
+            slope: slope,
           },
+          bearing: bearing,
         };
       };
 
@@ -152,18 +166,22 @@ export default function RouteMap({ onResetToFullRouteView }: RouteMapProps) {
 
       // Find nearest weather point to show weather data
       const weatherIdx = Math.min(
-        Math.floor((interpolated.distanceFromStart / points[points.length - 1].distanceFromStart) * weatherPoints.length),
-        weatherPoints.length - 1
+        Math.floor(
+          (interpolated.distanceFromStart / points[points.length - 1].distanceFromStart) *
+            weatherPoints.length,
+        ),
+        weatherPoints.length - 1,
       );
-      
+
       const weatherInfo = weatherPoints[weatherIdx] || {
-        weather: { temperature: 0, weatherCode: 0, windSpeed: 0, time: new Date().toISOString() }
+        weather: { temperature: 0, weatherCode: 0, windSpeed: 0, time: new Date().toISOString() },
       };
 
       setSelectedPopupInfo({
         point: interpolated,
         weather: weatherInfo.weather,
-        index: -1 // Custom point
+        index: -1, // Custom point
+        bearing: (segBefore ?? segAfter)?.bearing || 0,
       });
     },
     [points, weatherPoints, setSelectedPointIndex],
@@ -213,9 +231,10 @@ export default function RouteMap({ onResetToFullRouteView }: RouteMapProps) {
           const dx = p2.lon - p1.lon;
           const dy = p2.lat - p1.lat;
           const lenSq = dx * dx + dy * dy;
-          const t = lenSq > 0
-            ? Math.max(0, Math.min(1, ((lng - p1.lon) * dx + (lat - p1.lat) * dy) / lenSq))
-            : 0;
+          const t =
+            lenSq > 0
+              ? Math.max(0, Math.min(1, ((lng - p1.lon) * dx + (lat - p1.lat) * dy) / lenSq))
+              : 0;
           const projLon = p1.lon + t * dx;
           const projLat = p1.lat + t * dy;
           return {

@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 
 interface MapPopupProps {
-  popupInfo: RouteWeatherPoint & { index: number; point: any };
+  popupInfo: RouteWeatherPoint & { index: number; point: any; bearing?: number };
   onClose: () => void;
 }
 
@@ -60,7 +60,7 @@ export function MapPopup({ popupInfo, onClose }: MapPopupProps) {
         </div>
         <div className="bg-muted relative flex-1">
           <iframe
-            src={`https://www.google.com/maps?layer=c&cbll=${popupInfo.point.lat},${popupInfo.point.lon}&cbp=12,0,0,0,0&output=svembed`}
+            src={`https://www.google.com/maps?layer=c&cbll=${popupInfo.point.lat},${popupInfo.point.lon}&cbp=12,${popupInfo.bearing || 0},0,0,0&output=svembed`}
             className="h-full w-full border-0"
             allowFullScreen
             loading="lazy"
