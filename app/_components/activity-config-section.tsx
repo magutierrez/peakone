@@ -222,7 +222,7 @@ export function ActivityConfigSection({ onAnalyze, onReverseRoute }: ActivityCon
         {/* Analyze button */}
         <div className="w-full flex-1">
           <Button
-            onClick={onAnalyze}
+            onClick={() => onAnalyze()}
             disabled={!hasGpxData || isLoading}
             className="bg-primary text-primary-foreground hover:bg-primary/90 h-12 w-full flex-1 font-semibold"
             size="lg"

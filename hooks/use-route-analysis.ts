@@ -231,16 +231,29 @@ export function useRouteAnalysis() {
       const storeConfig = useRouteStore.getState().config;
       const storeActivityType = useRouteStore.getState().fetchedActivityType;
 
-      // Guard against React MouseEvent being passed when used directly as onClick handler
-      const hasValidOverride =
+      // Guard against React MouseEvent or other non-config objects being passed
+      const isConfigObject =
         overrideConfig &&
         typeof overrideConfig === 'object' &&
         'date' in overrideConfig &&
         'time' in overrideConfig;
 
-      const analysisConfig = hasValidOverride
-        ? (overrideConfig as { date: string; time: string; speed: number; activityType: 'cycling' | 'walking' })
-        : { ...storeConfig, activityType: storeActivityType };
+      const analysisConfig = isConfigObject
+        ? (overrideConfig as {
+            date: string;
+            time: string;
+            speed: number;
+            activityType: 'cycling' | 'walking';
+          })
+        : {
+            ...storeConfig,
+            activityType: storeActivityType || 'cycling',
+          };
+
+      // Ensure we use the latest speed from the store if not overridden by a valid config object
+      if (!isConfigObject) {
+        analysisConfig.speed = storeConfig.speed;
+      }
 
       if (!currentGpxData) return;
 

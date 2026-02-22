@@ -88,7 +88,7 @@ export function RouteAdvice({
             className={cn(
               'h-7 w-fit gap-2 text-[10px] font-bold uppercase transition-all',
               showWaterSources
-                ? 'border-cyan-600 bg-cyan-500 text-white hover:bg-cyan-600'
+                ? 'bg-emerald-500 text-white hover:bg-emerald-600 hover:text-white'
                 : 'bg-card border-border hover:bg-muted',
             )}
           >
