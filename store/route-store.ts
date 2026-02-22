@@ -10,7 +10,10 @@ interface RouteState {
   // ── UI / Map state ──────────────────────────────────────────────────────────
   activeFilter: ActiveFilter;
   selectedRange: { start: number; end: number } | null;
+  /** Set by map hover → chart reads it to show the reference line */
   exactSelectedPoint: any | null;
+  /** Set by chart hover → map reads it to show the cursor dot */
+  chartHoverPoint: any | null;
   focusPoint: { lat: number; lon: number; name?: string } | null;
   showWaterSources: boolean;
   selectedPointIndex: number | null;
@@ -45,6 +48,7 @@ interface RouteState {
   setActiveFilter: (filter: ActiveFilter) => void;
   setSelectedRange: (range: { start: number; end: number } | null) => void;
   setExactSelectedPoint: (point: any | null) => void;
+  setChartHoverPoint: (point: any | null) => void;
   setFocusPoint: (point: { lat: number; lon: number; name?: string } | null) => void;
   setShowWaterSources: (show: boolean) => void;
   setSelectedPointIndex: (index: number | null) => void;
@@ -88,6 +92,7 @@ const initialState = {
   activeFilter: null as ActiveFilter,
   selectedRange: null as { start: number; end: number } | null,
   exactSelectedPoint: null,
+  chartHoverPoint: null,
   focusPoint: null as { lat: number; lon: number; name?: string } | null,
   showWaterSources: false,
   selectedPointIndex: null as number | null,
@@ -123,6 +128,7 @@ export const useRouteStore = create<RouteState>()((set) => ({
   setActiveFilter: (filter) => set({ activeFilter: filter }),
   setSelectedRange: (range) => set({ selectedRange: range }),
   setExactSelectedPoint: (point) => set({ exactSelectedPoint: point }),
+  setChartHoverPoint: (point) => set({ chartHoverPoint: point }),
   setFocusPoint: (point) => set({ focusPoint: point }),
   setShowWaterSources: (show) => set({ showWaterSources: show }),
   setSelectedPointIndex: (index) => set({ selectedPointIndex: index }),

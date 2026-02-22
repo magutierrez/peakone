@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { analyzeRouteSegments } from '@/lib/utils';
-import { AreaChart, Area, ResponsiveContainer, YAxis, ReferenceLine, Tooltip } from 'recharts';
+import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, ReferenceLine, Tooltip } from 'recharts';
 import { useRef } from 'react';
 
 interface RouteHazardsProps {
@@ -74,11 +74,16 @@ export function RouteHazards({
   };
 
   const handleMouseMove = (e: any, segmentPoints: any[]) => {
-    if (e && e.activePayload && e.activePayload[0] && onSelectPoint) {
-      const activeDist = e.activePayload[0].payload.dist;
+    if (e && e.chartX && e.viewBox && onSelectPoint && segmentPoints.length > 1) {
       const now = Date.now();
 
-      if (now - lastUpdateRef.current > 16) {
+      if (now - lastUpdateRef.current > 8) {
+        const { x, width } = e.viewBox;
+        const chartRatio = Math.max(0, Math.min(1, (e.chartX - x) / width));
+        const startDist = segmentPoints[0].distanceFromStart;
+        const endDist = segmentPoints[segmentPoints.length - 1].distanceFromStart;
+        const activeDist = startDist + chartRatio * (endDist - startDist);
+
         // Find the precise point in the dense list
         let p1 = segmentPoints[0];
         let p2 = segmentPoints[1];
@@ -289,6 +294,12 @@ export function RouteHazards({
                           fontSize: 8,
                           fontWeight: 'black',
                         }}
+                      />
+                      <XAxis
+                        type="number"
+                        dataKey="dist"
+                        hide
+                        domain={[seg.startDist, seg.endDist]}
                       />
                       <YAxis hide domain={[minEle - 1, maxEle + 1]} />
                     </AreaChart>

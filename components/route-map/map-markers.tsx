@@ -127,7 +127,7 @@ export function MapMarkers({
           anchor="center"
           z-index={100}
         >
-          <div className="animate-in fade-in zoom-in h-4 w-4 rounded-full border-2 border-blue-500 bg-white shadow-md duration-150" />
+          <div className="h-4 w-4 rounded-full border-2 border-blue-500 bg-white shadow-md" />
         </Marker>
       )}
 

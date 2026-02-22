@@ -30,9 +30,15 @@ export function AnalysisChart() {
   const weatherPoints = useRouteStore((s) => s.weatherPoints);
   const allPoints = useRouteStore((s) => s.gpxData?.points || []);
   const elevationData = useRouteStore((s) => s.elevationData);
-  const selectedPoint = useRouteStore((s) => s.exactSelectedPoint);
-  const setSelectedPoint = useRouteStore((s) => s.setExactSelectedPoint);
+  // mapHoverPoint (exactSelectedPoint) → set by map hover, read by chart for reference line
+  const mapHoverPoint = useRouteStore((s) => s.exactSelectedPoint);
+  // chartHoverPoint → set by chart/hazard hover, shown as cursor dot on map
+  const chartHoverPoint = useRouteStore((s) => s.chartHoverPoint);
+  const setChartHoverPoint = useRouteStore((s) => s.setChartHoverPoint);
   const setSelectedRange = useRouteStore((s) => s.setSelectedRange);
+
+  // The active cursor for this chart: chart hover takes priority, fallback to map hover
+  const selectedPoint = chartHoverPoint ?? mapHoverPoint;
 
   const [refAreaLeft, setRefAreaLeft] = useState<any>(null);
   const [refAreaRight, setRefAreaRight] = useState<any>(null);
@@ -131,44 +137,47 @@ export function AnalysisChart() {
   }, [chartData, left, right]);
 
   const handleMouseMove = (e: any) => {
-    if (e && e.activePayload && e.activePayload[0]) {
-      const activeDistance = e.activePayload[0].payload.distance;
-      const now = Date.now();
+    if (e && e.chartX && e.viewBox && allPoints.length > 1 && chartData.length > 0) {
+      const { x, width } = e.viewBox;
+      const chartRatio = Math.max(0, Math.min(1, (e.chartX - x) / width));
 
-      if (now - lastUpdateRef.current > 16 && allPoints.length > 1) {
-        let p1 = allPoints[0];
-        let p2 = allPoints[1];
+      const actualMin = chartData[0].distance;
+      const actualMax = chartData[chartData.length - 1].distance;
+      const domainMin = left === 'dataMin' ? actualMin : left;
+      const domainMax = right === 'dataMax' ? actualMax : right;
+      const activeDistance = domainMin + chartRatio * (domainMax - domainMin);
 
-        for (let i = 0; i < allPoints.length - 1; i++) {
-          if (
-            activeDistance >= allPoints[i].distanceFromStart &&
-            activeDistance <= allPoints[i + 1].distanceFromStart
-          ) {
-            p1 = allPoints[i];
-            p2 = allPoints[i + 1];
-            break;
-          }
+      let p1 = allPoints[0];
+      let p2 = allPoints[1];
+
+      for (let i = 0; i < allPoints.length - 1; i++) {
+        if (
+          activeDistance >= allPoints[i].distanceFromStart &&
+          activeDistance <= allPoints[i + 1].distanceFromStart
+        ) {
+          p1 = allPoints[i];
+          p2 = allPoints[i + 1];
+          break;
         }
-
-        const segmentDist = p2.distanceFromStart - p1.distanceFromStart;
-        const ratio = segmentDist > 0 ? (activeDistance - p1.distanceFromStart) / segmentDist : 0;
-
-        const interpolatedPoint = {
-          lat: p1.lat + (p2.lat - p1.lat) * ratio,
-          lon: p1.lon + (p2.lon - p1.lon) * ratio,
-          ele: (p1.ele || 0) + ((p2.ele || 0) - (p1.ele || 0)) * ratio,
-          distanceFromStart: activeDistance,
-        };
-
-        setSelectedPoint(interpolatedPoint);
-        lastUpdateRef.current = now;
       }
+
+      const segmentDist = p2.distanceFromStart - p1.distanceFromStart;
+      const ratio = segmentDist > 0 ? (activeDistance - p1.distanceFromStart) / segmentDist : 0;
+
+      const interpolatedPoint = {
+        lat: p1.lat + (p2.lat - p1.lat) * ratio,
+        lon: p1.lon + (p2.lon - p1.lon) * ratio,
+        ele: (p1.ele || 0) + ((p2.ele || 0) - (p1.ele || 0)) * ratio,
+        distanceFromStart: activeDistance,
+      };
+
+      setChartHoverPoint(interpolatedPoint);
     }
-    if (refAreaLeft !== null && e) setRefAreaRight(e.activeLabel);
+    if (refAreaLeft !== null && e && e.activeLabel) setRefAreaRight(e.activeLabel);
   };
 
   const handleMouseLeave = () => {
-    setSelectedPoint(null);
+    setChartHoverPoint(null);
     setRefAreaLeft(null);
     setRefAreaRight(null);
   };

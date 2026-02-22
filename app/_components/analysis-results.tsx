@@ -42,7 +42,7 @@ export function AnalysisResults({
   const selectedPointIndex = useRouteStore((s) => s.selectedPointIndex);
   const setSelectedPointIndex = useRouteStore((s) => s.setSelectedPointIndex);
   const setSelectedRange = useRouteStore((s) => s.setSelectedRange);
-  const setExactSelectedPoint = useRouteStore((s) => s.setExactSelectedPoint);
+  const setChartHoverPoint = useRouteStore((s) => s.setChartHoverPoint);
   const selectedRange = useRouteStore((s) => s.selectedRange);
   const activityType = useRouteStore((s) => s.fetchedActivityType);
   const showWaterSources = useRouteStore((s) => s.showWaterSources);
@@ -158,7 +158,7 @@ export function AnalysisResults({
             onSelectSegment={(segment) =>
               segment && setSelectedRange({ start: segment?.start, end: segment?.end })
             }
-            onSelectPoint={setExactSelectedPoint}
+            onSelectPoint={setChartHoverPoint}
             setActiveFilter={setActiveFilter}
             onClearSelection={clearSelection}
           />

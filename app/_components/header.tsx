@@ -55,7 +55,7 @@ export function Header({ session, mobileMenuContent }: HeaderProps) {
 
           <path d="M85 40 l -15 20 h -30 l 15 -20 z" fill="#2563EB" />
         </svg>
-        <span className="text-lg font-bold">peakOne</span>
+        <span className="font-heading text-lg font-bold">zusTrack</span>
       </Link>
 
       <div className="flex items-center gap-2">

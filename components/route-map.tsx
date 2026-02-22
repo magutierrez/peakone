@@ -26,12 +26,14 @@ interface RouteMapProps {
 export default function RouteMap({ onResetToFullRouteView }: RouteMapProps) {
   const { resolvedTheme } = useTheme();
   const mapRef = useRef<MapRef>(null);
+  const lastMapHoverRef = useRef<number>(0);
 
   // Read all state from the store
   const gpxData = useRouteStore((s) => s.gpxData);
   const weatherPoints = useRouteStore((s) => s.weatherPoints);
   const selectedPointIndex = useRouteStore((s) => s.selectedPointIndex);
   const exactSelectedPoint = useRouteStore((s) => s.exactSelectedPoint);
+  const chartHoverPoint = useRouteStore((s) => s.chartHoverPoint);
   const activeFilter = useRouteStore((s) => s.activeFilter);
   const selectedRange = useRouteStore((s) => s.selectedRange);
   const activityType = useRouteStore((s) => s.fetchedActivityType);
@@ -114,22 +116,61 @@ export default function RouteMap({ onResetToFullRouteView }: RouteMapProps) {
 
       if (features.length > 0) {
         map.getCanvas().style.cursor = 'pointer';
-        const coords = e.lngLat;
-        let minServiceDist = Infinity;
-        let closestIdx = -1;
 
+        const { lng, lat } = e.lngLat;
+
+        if (points.length === 0) return;
+
+        // 1. Find closest point index (O(n) pass)
+        let minDist = Infinity;
+        let closestIdx = 0;
         for (let i = 0; i < points.length; i++) {
           const p = points[i];
-          const d = Math.pow(p.lon - coords.lng, 2) + Math.pow(p.lat - coords.lat, 2);
-          if (d < minServiceDist) {
-            minServiceDist = d;
+          const d = (p.lon - lng) ** 2 + (p.lat - lat) ** 2;
+          if (d < minDist) {
+            minDist = d;
             closestIdx = i;
           }
         }
 
-        if (closestIdx !== -1) {
-          setExactSelectedPoint(points[closestIdx]);
+        // 2. Project mouse onto the two segments adjacent to closestIdx
+        //    and pick the projection with smallest distance to mouse
+        const projectOntoSegment = (i: number) => {
+          if (i < 0 || i >= points.length - 1) return null;
+          const p1 = points[i];
+          const p2 = points[i + 1];
+          const dx = p2.lon - p1.lon;
+          const dy = p2.lat - p1.lat;
+          const lenSq = dx * dx + dy * dy;
+          const t = lenSq > 0
+            ? Math.max(0, Math.min(1, ((lng - p1.lon) * dx + (lat - p1.lat) * dy) / lenSq))
+            : 0;
+          const projLon = p1.lon + t * dx;
+          const projLat = p1.lat + t * dy;
+          return {
+            t,
+            distSq: (lng - projLon) ** 2 + (lat - projLat) ** 2,
+            point: {
+              lat: projLat,
+              lon: projLon,
+              ele: (p1.ele || 0) + t * ((p2.ele || 0) - (p1.ele || 0)),
+              distanceFromStart:
+                p1.distanceFromStart + t * (p2.distanceFromStart - p1.distanceFromStart),
+            },
+          };
+        };
+
+        const segBefore = projectOntoSegment(closestIdx - 1);
+        const segAfter = projectOntoSegment(closestIdx);
+
+        let interpolated;
+        if (segBefore && segAfter) {
+          interpolated = segBefore.distSq <= segAfter.distSq ? segBefore.point : segAfter.point;
+        } else {
+          interpolated = (segBefore ?? segAfter)?.point ?? points[closestIdx];
         }
+
+        setExactSelectedPoint(interpolated);
       } else {
         map.getCanvas().style.cursor = '';
         setExactSelectedPoint(null);
@@ -199,7 +240,7 @@ export default function RouteMap({ onResetToFullRouteView }: RouteMapProps) {
           weatherPoints={weatherPoints.length > 0 ? weatherPoints : undefined}
           selectedPointIndex={selectedPointIndex}
           fullSelectedPointIndex={null}
-          exactSelectedPoint={exactSelectedPoint}
+          exactSelectedPoint={chartHoverPoint || exactSelectedPoint}
           activeFilter={activeFilter}
           onPointSelect={setSelectedPointIndex}
           onHoverPoint={setHoveredPointIdx}
