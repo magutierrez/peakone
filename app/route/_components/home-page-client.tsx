@@ -293,6 +293,11 @@ export default function HomePageClient({ session: serverSession }: HomePageClien
                     onFindBestWindow={handleFindBestWindow}
                     onSelectBestWindow={handleSelectBestWindow}
                     onAnalyzeBestWindow={handleSelectAndAnalyze}
+                    onSelectWeatherPoint={(index) => {
+                      // We don't need to do anything here because AnalysisResults/WeatherTimeline
+                      // handles selection internally and updates the store/map via store state or callbacks.
+                      // But if we wanted to enforce "user-only selection", we ensure no auto-selection happens on load.
+                    }}
                   />
                 ) : (
                   <div className="border-border bg-card/50 text-muted-foreground flex h-60 flex-col items-center justify-center rounded-lg border border-dashed p-6 text-center">

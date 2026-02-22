@@ -91,6 +91,11 @@ export function AnalysisResults({
   const lowDangerSegments = routeSegments.filter((s) => s.dangerLevel === 'low').length;
 
   useEffect(() => {
+    // Ensure no point is pre-selected on mount
+    setSelectedPointIndex(null);
+  }, [setSelectedPointIndex]);
+
+  useEffect(() => {
     const resultsContainer = document.getElementById('analysis-results-container');
     if (resultsContainer) {
       resultsContainer.scrollTo({ top: 0, behavior: 'smooth' });

@@ -177,13 +177,17 @@ export default function RouteMap({ onResetToFullRouteView }: RouteMapProps) {
         weather: { temperature: 0, weatherCode: 0, windSpeed: 0, time: new Date().toISOString() },
       };
 
-      setSelectedPopupInfo({
-        point: interpolated,
-        weather: weatherInfo.weather,
-        index: -1, // Custom point
-        bearing: (segBefore ?? segAfter)?.bearing || 0,
-      });
-    },
+        if (setSelectedPointIndex) {
+          setSelectedPointIndex(null);
+        }
+
+        setSelectedPopupInfo({
+          point: interpolated,
+          weather: weatherInfo.weather,
+          index: -1, // Custom point
+          bearing: (segBefore ?? segAfter)?.bearing || 0,
+        });
+      },
     [points, weatherPoints, setSelectedPointIndex],
   );
 
