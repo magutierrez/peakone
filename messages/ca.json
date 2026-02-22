@@ -122,7 +122,9 @@
     "minutes": "Minuts",
     "adjustDurationDesc": "Ajusta la durada per recalcular la velocitat mitjana automàticament.",
     "analyze": "Analitzar ruta",
-    "analyzing": "Analitzant..."
+    "analyzing": "Analitzant...",
+    "startPoint": "Inici",
+    "endPoint": "Final"
   },
   "GPXUpload": {
     "removeFile": "Eliminar arxiu",

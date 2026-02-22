@@ -88,18 +88,17 @@ export default function RouteMap({ onResetToFullRouteView }: RouteMapProps) {
     [syncTerrain, resetToFullRouteView],
   );
 
-  const [selectedPopupInfo, setSelectedPopupInfo] = useState<any>(null);
+  const [manualPopupInfo, setManualPopupInfo] = useState<any>(null);
 
   const onMapClick = useCallback(
     (event: any) => {
-      // 1. Check if we clicked a marker or specific feature first
       const feature = event.features?.[0];
       if (feature) {
         setSelectedPointIndex(feature.properties.index);
+        setManualPopupInfo(null); // Let the store selection handle it
         return;
       }
 
-      // 2. If no feature, find closest point on route line
       const { lng, lat } = event.lngLat;
       if (points.length === 0) return;
 
@@ -114,7 +113,6 @@ export default function RouteMap({ onResetToFullRouteView }: RouteMapProps) {
         }
       }
 
-      // Find precise interpolated point
       const projectOntoSegment = (i: number) => {
         if (i < 0 || i >= points.length - 1) return null;
         const p1 = points[i];
@@ -127,22 +125,17 @@ export default function RouteMap({ onResetToFullRouteView }: RouteMapProps) {
             ? Math.max(0, Math.min(1, ((lng - p1.lon) * dx + (lat - p1.lat) * dy) / lenSq))
             : 0;
 
-        // Calculate slope between p1 and p2
         const distDiff = (p2.distanceFromStart - p1.distanceFromStart) * 1000;
         const eleDiff = (p2.ele || 0) - (p1.ele || 0);
         const slope = distDiff > 0.1 ? (eleDiff / distDiff) * 100 : 0;
 
-        // Calculate bearing (heading) for Street View
         const toRad = (deg: number) => (deg * Math.PI) / 180;
         const toDeg = (rad: number) => (rad * 180) / Math.PI;
-
         const lat1 = toRad(p1.lat);
         const lat2 = toRad(p2.lat);
         const dLon = toRad(p2.lon - p1.lon);
-
         const y = Math.sin(dLon) * Math.cos(lat2);
-        const x =
-          Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
+        const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
         const bearing = (toDeg(Math.atan2(y, x)) + 360) % 360;
 
         return {
@@ -164,7 +157,6 @@ export default function RouteMap({ onResetToFullRouteView }: RouteMapProps) {
       const segAfter = projectOntoSegment(closestIdx);
       const interpolated = (segBefore ?? segAfter)?.point ?? points[closestIdx];
 
-      // Find nearest weather point to show weather data
       const weatherIdx = Math.min(
         Math.floor(
           (interpolated.distanceFromStart / points[points.length - 1].distanceFromStart) *
@@ -175,19 +167,22 @@ export default function RouteMap({ onResetToFullRouteView }: RouteMapProps) {
 
       const weatherInfo = weatherPoints[weatherIdx] || {
         weather: { temperature: 0, weatherCode: 0, windSpeed: 0, time: new Date().toISOString() },
+        windEffect: 'tailwind',
+        solarIntensity: 'moderate',
       };
 
-        if (setSelectedPointIndex) {
-          setSelectedPointIndex(null);
-        }
+      // Clear selection first
+      setSelectedPointIndex(null);
 
-        setSelectedPopupInfo({
-          point: interpolated,
-          weather: weatherInfo.weather,
-          index: -1, // Custom point
-          bearing: (segBefore ?? segAfter)?.bearing || 0,
-        });
-      },
+      setManualPopupInfo({
+        point: interpolated,
+        weather: weatherInfo.weather,
+        index: -1, // Custom point
+        bearing: (segBefore ?? segAfter)?.bearing || 0,
+        windEffect: weatherInfo.windEffect,
+        solarIntensity: weatherInfo.solarIntensity,
+      });
+    },
     [points, weatherPoints, setSelectedPointIndex],
   );
 
@@ -291,7 +286,6 @@ export default function RouteMap({ onResetToFullRouteView }: RouteMapProps) {
       if (map) {
         map.flyTo({ center: [focusPoint.lon, focusPoint.lat], zoom: 14, duration: 2000 });
 
-        // Show popup for focused point
         const weatherIdx = weatherPoints.findIndex(
           (wp) =>
             Math.abs(wp.point.lat - focusPoint.lat) < 0.0001 &&
@@ -301,7 +295,6 @@ export default function RouteMap({ onResetToFullRouteView }: RouteMapProps) {
         if (weatherIdx !== -1) {
           const wp = weatherPoints[weatherIdx];
 
-          // Calculate bearing for this specific weather point relative to the next one (if exists)
           let bearing = 0;
           if (weatherIdx < weatherPoints.length - 1) {
             const p1 = wp.point;
@@ -317,7 +310,6 @@ export default function RouteMap({ onResetToFullRouteView }: RouteMapProps) {
             bearing = (toDeg(Math.atan2(y, x)) + 360) % 360;
           }
 
-          // Calculate slope for this weather point (using prev or next for diff)
           let slope = 0;
           if (weatherIdx > 0) {
             const prev = weatherPoints[weatherIdx - 1];
@@ -326,18 +318,30 @@ export default function RouteMap({ onResetToFullRouteView }: RouteMapProps) {
             if (distDiff > 0.1) slope = (eleDiff / distDiff) * 100;
           }
 
-          setSelectedPopupInfo({
-            point: { ...wp.point, slope }, // Ensure slope is passed
+          setManualPopupInfo({
+            point: { ...wp.point, slope },
             weather: wp.weather,
             index: weatherIdx,
             bearing: bearing,
+            windEffect: wp.windEffect,
+            solarIntensity: wp.solarIntensity,
           });
-          // Also clear hovered popup to prevent double popups
           setHoveredPointIdx(null);
         }
       }
     }
   }, [focusPoint, weatherPoints]);
+
+  const activePopupData = useMemo(() => {
+    if (manualPopupInfo) return manualPopupInfo;
+    return popupInfo;
+  }, [manualPopupInfo, popupInfo]);
+
+  const handleClosePopup = useCallback(() => {
+    setManualPopupInfo(null);
+    setHoveredPointIdx(null);
+    setSelectedPointIndex(null);
+  }, [setSelectedPointIndex]);
 
   const initialViewState = useMemo(() => {
     if (points && points.length > 0) {
@@ -388,21 +392,11 @@ export default function RouteMap({ onResetToFullRouteView }: RouteMapProps) {
           focusPoint={focusPoint}
         />
 
-        {selectedPopupInfo && (
+        {activePopupData && (
           <MapPopup
-            key={`popup-selected-${selectedPopupInfo.point.lat}-${selectedPopupInfo.point.lon}`}
-            popupInfo={selectedPopupInfo}
-            onClose={() => {
-              setSelectedPopupInfo(null);
-            }}
-          />
-        )}
-
-        {popupInfo && !selectedPopupInfo && (
-          <MapPopup
-            key={`popup-hover-${popupInfo.point.lat}-${popupInfo.point.lon}`}
-            popupInfo={popupInfo}
-            onClose={() => setHoveredPointIdx(null)}
+            key={`popup-${activePopupData.index}-${activePopupData.point.lat}-${activePopupData.point.lon}`}
+            popupInfo={activePopupData}
+            onClose={handleClosePopup}
           />
         )}
 

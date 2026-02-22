@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { useTranslations } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -25,6 +25,7 @@ import { RouteSegments } from '@/components/weather-timeline/route-segments';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { ExternalLink } from 'lucide-react';
 
 const RouteMap = dynamic(() => import('@/components/route-map'), {
   ssr: false,
@@ -149,6 +150,14 @@ export default function HomePageClient({ session: serverSession }: HomePageClien
     : 0;
   const difficulty = getIBPDifficulty(ibpIndex, activityType);
 
+  const startPoint = useMemo(() => gpxData?.points[0] ?? null, [gpxData]);
+  const endPoint = useMemo(
+    () => (gpxData ? gpxData.points[gpxData.points.length - 1] : null),
+    [gpxData],
+  );
+  const mapsUrl = (lat: number, lon: number) =>
+    `https://www.google.com/maps?q=${lat.toFixed(6)},${lon.toFixed(6)}`;
+
   const getDifficultyBadgeVariant = (
     difficultyLevel: 'veryEasy' | 'easy' | 'moderate' | 'hard' | 'veryHard' | 'extreme',
   ) => {
@@ -271,6 +280,49 @@ export default function HomePageClient({ session: serverSession }: HomePageClien
                       </TooltipProvider>
                     </div>
                   </div>
+
+                  {startPoint && endPoint && (
+                    <div className="mt-3 flex gap-2">
+                      <a
+                        href={mapsUrl(startPoint.lat, startPoint.lon)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group flex flex-1 items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 transition-colors hover:border-emerald-500/40 hover:bg-emerald-500/20"
+                      >
+                        <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-[10px] font-black text-white shadow-sm">
+                          A
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-muted-foreground text-[8px] font-bold tracking-wider uppercase">
+                            {t('startPoint')}
+                          </p>
+                          <p className="text-foreground truncate font-mono text-[10px] font-semibold">
+                            {startPoint.lat.toFixed(4)}, {startPoint.lon.toFixed(4)}
+                          </p>
+                        </div>
+                        <ExternalLink className="h-3 w-3 shrink-0 text-emerald-600 opacity-0 transition-opacity group-hover:opacity-100" />
+                      </a>
+                      <a
+                        href={mapsUrl(endPoint.lat, endPoint.lon)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group flex flex-1 items-center gap-2 rounded-lg border border-rose-500/20 bg-rose-500/10 px-3 py-2 transition-colors hover:border-rose-500/40 hover:bg-rose-500/20"
+                      >
+                        <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-rose-500 text-[10px] font-black text-white shadow-sm">
+                          B
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-muted-foreground text-[8px] font-bold tracking-wider uppercase">
+                            {t('endPoint')}
+                          </p>
+                          <p className="text-foreground truncate font-mono text-[10px] font-semibold">
+                            {endPoint.lat.toFixed(4)}, {endPoint.lon.toFixed(4)}
+                          </p>
+                        </div>
+                        <ExternalLink className="h-3 w-3 shrink-0 text-rose-600 opacity-0 transition-opacity group-hover:opacity-100" />
+                      </a>
+                    </div>
+                  )}
 
                   {error && (
                     <div className="border-destructive/30 bg-destructive/10 mt-4 rounded-lg border p-3">

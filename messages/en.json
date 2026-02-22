@@ -135,7 +135,9 @@
     "minutes": "Minutes",
     "adjustDurationDesc": "Adjust the duration to automatically recalculate the average speed.",
     "analyze": "Analyze route",
-    "analyzing": "Analyzing..."
+    "analyzing": "Analyzing...",
+    "startPoint": "Start",
+    "endPoint": "End"
   },
   "GPXUpload": {
     "removeFile": "Remove file",
