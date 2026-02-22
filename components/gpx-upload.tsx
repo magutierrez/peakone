@@ -45,7 +45,9 @@ export function GPXUpload({ onFileLoaded, fileName, onClear }: GPXUploadProps) {
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
-      if (file) handleFile(file);
+      if (file && file.name.toLowerCase().endsWith('.gpx')) {
+        handleFile(file);
+      }
     },
     [handleFile],
   );

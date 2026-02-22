@@ -76,15 +76,6 @@ export default function HomePageClient({ session: serverSession }: HomePageClien
 
   const activityType = fetchedActivityType || initialActivityType;
 
-  // Sync speed with activity type from URL if store is still at initial defaults
-  useEffect(() => {
-    if (initialActivityType === 'walking' && config.speed === 25) {
-      setConfig({ ...config, speed: 5 });
-    } else if (initialActivityType === 'cycling' && config.speed === 5) {
-      setConfig({ ...config, speed: 25 });
-    }
-  }, [initialActivityType, setConfig]); // Only run when initialActivityType is known or setConfig changes
-
   // Reset store on unmount to avoid stale state on re-navigation
   useEffect(() => {
     return () => reset();

@@ -122,6 +122,23 @@ const initialState = {
   isFindingWindow: false,
 };
 
+const getSmartDefaultSpeed = (activity: 'cycling' | 'walking' | null, elevationGain: number, distance: number) => {
+  if (activity === 'walking') {
+    // Hiking logic
+    const slope = distance > 0 ? (elevationGain / (distance * 1000)) * 100 : 0;
+    if (slope > 8) return 2; // Very steep
+    if (slope > 5) return 3; // Steep
+    if (slope > 2) return 4; // Moderate
+    return 5; // Flat/easy
+  }
+  
+  // Cycling logic
+  const slope = distance > 0 ? (elevationGain / (distance * 1000)) * 100 : 0;
+  if (slope > 5) return 15; // Mountain/Steep
+  if (slope > 2) return 20; // Hilly
+  return 25; // Flat/Road
+};
+
 export const useRouteStore = create<RouteState>()((set) => ({
   ...initialState,
 
@@ -136,10 +153,9 @@ export const useRouteStore = create<RouteState>()((set) => ({
 
   setFetchedRoute: ({ rawGpxContent, gpxFileName, activityType, distance, elevationGain, elevationLoss }) =>
     set((state) => {
-      // If the speed is one of our defaults, update it to the appropriate default for the activity
-      const isDefaultSpeed = state.config.speed === 25 || state.config.speed === 5;
-      const newSpeed = activityType === 'walking' ? 5 : 25;
-
+      // Calculate smart speed based on activity and terrain
+      const newSpeed = getSmartDefaultSpeed(activityType, elevationGain, distance);
+      
       return {
         fetchedRawGpxContent: rawGpxContent,
         fetchedGpxFileName: gpxFileName,
@@ -147,7 +163,7 @@ export const useRouteStore = create<RouteState>()((set) => ({
         initialDistance: distance,
         initialElevationGain: elevationGain,
         initialElevationLoss: elevationLoss,
-        config: isDefaultSpeed ? { ...state.config, speed: newSpeed } : state.config,
+        config: { ...state.config, speed: newSpeed },
       };
     }),
 
@@ -158,7 +174,10 @@ export const useRouteStore = create<RouteState>()((set) => ({
       config: {
         ...initialState.config,
         date: getDefaultDate(),
-        speed: state.fetchedActivityType === 'walking' ? 5 : 25,
+        // Keep using smart speed if we have activity info, otherwise fallback to defaults
+        speed: state.fetchedActivityType 
+          ? getSmartDefaultSpeed(state.fetchedActivityType, state.initialElevationGain, state.initialDistance)
+          : 25,
       },
     })),
 
