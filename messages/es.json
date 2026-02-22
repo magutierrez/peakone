@@ -114,6 +114,10 @@
   },
   "RouteConfigPanel": {
     "routeSummary": "Resumen de Ruta",
+    "distance": "Distancia",
+    "positiveElevation": "Desnivel +",
+    "negativeElevation": "Desnivel -",
+    "difficulty": "Dificultad",
     "gpxFile": "Archivo GPX",
     "reverseRoute": "Invertir sentido",
     "km": "km",

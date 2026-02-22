@@ -223,6 +223,9 @@ export default function HomePageClient({ session: serverSession }: HomePageClien
 
                   <div className="grid grid-cols-4 gap-2">
                     <div className="bg-secondary rounded-lg p-3 text-center">
+                      <p className="text-muted-foreground mb-1 text-[8px] font-black tracking-widest uppercase">
+                        {t('distance')}
+                      </p>
                       <p className="text-foreground font-mono text-lg font-bold">
                         {formatDistance(recalculatedTotalDistance, unitSystem).split(' ')[0]}
                       </p>
@@ -231,6 +234,9 @@ export default function HomePageClient({ session: serverSession }: HomePageClien
                       </p>
                     </div>
                     <div className="bg-secondary rounded-lg p-3 text-center">
+                      <p className="text-muted-foreground mb-1 text-[8px] font-black tracking-widest uppercase">
+                        {t('positiveElevation')}
+                      </p>
                       <p className="text-primary font-mono text-lg font-bold">
                         +{formatElevation(recalculatedElevationGain, unitSystem).split(' ')[0]}
                       </p>
@@ -239,6 +245,9 @@ export default function HomePageClient({ session: serverSession }: HomePageClien
                       </p>
                     </div>
                     <div className="bg-secondary rounded-lg p-3 text-center">
+                      <p className="text-muted-foreground mb-1 text-[8px] font-black tracking-widest uppercase">
+                        {t('negativeElevation')}
+                      </p>
                       <p className="text-destructive font-mono text-lg font-bold">
                         -{formatElevation(recalculatedElevationLoss, unitSystem).split(' ')[0]}
                       </p>
@@ -247,6 +256,9 @@ export default function HomePageClient({ session: serverSession }: HomePageClien
                       </p>
                     </div>
                     <div className="bg-secondary group relative flex flex-col items-center justify-center rounded-lg p-3 text-center">
+                      <p className="text-muted-foreground mb-1 text-[8px] font-black tracking-widest uppercase">
+                        {t('difficulty')}
+                      </p>
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
