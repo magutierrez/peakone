@@ -3,22 +3,69 @@
 import { Popup } from 'react-map-gl/maplibre';
 import { useTranslations } from 'next-intl';
 import type { RouteWeatherPoint } from '@/lib/types';
-import { ArrowUp, Map as MapIcon, MapPinned, X } from 'lucide-react';
+import {
+  ArrowDown,
+  ArrowLeft,
+  ArrowRight,
+  ArrowUp,
+  Map as MapIcon,
+  MapPinned,
+  X,
+  Loader2,
+  Wind,
+  Sun,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import { WeatherIcon } from '@/components/weather-icon';
+import { WEATHER_CODES } from '@/lib/types';
 
 interface MapPopupProps {
   popupInfo: RouteWeatherPoint & { index: number; point: any; bearing?: number };
   onClose: () => void;
 }
 
+function getWindEffectIcon(effect: string) {
+  switch (effect) {
+    case 'tailwind':
+      return <ArrowDown className="h-3 w-3 text-emerald-500" />;
+    case 'headwind':
+      return <ArrowUp className="h-3 w-3 text-red-500" />;
+    case 'crosswind-left':
+      return <ArrowLeft className="h-3 w-3 text-amber-500" />;
+    case 'crosswind-right':
+      return <ArrowRight className="h-3 w-3 text-amber-500" />;
+    default:
+      return null;
+  }
+}
+
 export function MapPopup({ popupInfo, onClose }: MapPopupProps) {
   const [showStreetView, setShowStreetView] = useState(false);
+  const [streetViewAvailable, setStreetViewAvailable] = useState<boolean | null>(null);
   const t = useTranslations('RouteMap');
+  const tw = useTranslations('WeatherCodes');
+  const tt = useTranslations('WeatherTimeline');
+
+  const isWeatherPoint = popupInfo.index !== -1;
+
+  useEffect(() => {
+    const checkStreetView = async () => {
+      try {
+        // Optimistic check simulation
+        setStreetViewAvailable(true);
+      } catch (e) {
+        setStreetViewAvailable(true);
+      }
+    };
+
+    checkStreetView();
+  }, [popupInfo.point]);
 
   if (showStreetView) {
-    return (
-      <div className="bg-background animate-in fade-in absolute inset-0 z-[100] flex flex-col duration-200">
+    return createPortal(
+      <div className="bg-background animate-in fade-in fixed inset-0 z-[100] flex flex-col duration-200">
         <div className="border-border bg-card flex items-center justify-between border-b px-4 py-3 shadow-sm">
           <div className="flex items-center gap-4">
             <Button
@@ -67,9 +114,15 @@ export function MapPopup({ popupInfo, onClose }: MapPopupProps) {
             title="Street View"
           />
         </div>
-      </div>
+      </div>,
+      document.body,
     );
   }
+
+  const hasTranslation = !!tw.raw(popupInfo.weather.weatherCode.toString());
+  const weatherDescription = hasTranslation
+    ? tw(popupInfo.weather.weatherCode.toString() as any)
+    : WEATHER_CODES[popupInfo.weather.weatherCode]?.description || tt('unknownWeather');
 
   return (
     <Popup
@@ -77,8 +130,8 @@ export function MapPopup({ popupInfo, onClose }: MapPopupProps) {
       latitude={popupInfo.point.lat}
       anchor="bottom"
       onClose={onClose}
-      closeButton={false} // We'll implement our own custom close button for better styling
-      maxWidth="220px"
+      closeButton={false}
+      maxWidth={isWeatherPoint ? '260px' : '220px'}
       className="weather-popup"
       offset={15}
     >
@@ -94,10 +147,39 @@ export function MapPopup({ popupInfo, onClose }: MapPopupProps) {
 
         <div className="text-foreground p-2 text-xs leading-relaxed">
           <div className="border-border mb-3 flex items-center justify-between border-b pb-2">
-            <span className="text-muted-foreground font-mono text-[10px] font-bold tracking-wider uppercase">
-              km {popupInfo.point.distanceFromStart.toFixed(1)}
-            </span>
+            <div className="flex flex-col">
+              <span className="text-muted-foreground font-mono text-[10px] font-bold tracking-wider uppercase">
+                km {popupInfo.point.distanceFromStart.toFixed(1)}
+              </span>
+              {isWeatherPoint && (
+                <span className="text-foreground font-mono text-[11px] font-bold">
+                  {new Date(
+                    popupInfo.point.estimatedTime || popupInfo.weather.time,
+                  ).toLocaleTimeString('es-ES', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </span>
+              )}
+            </div>
+            {!isWeatherPoint && (
+              <span className="font-mono text-sm font-bold">
+                {Math.round(popupInfo.point.ele || 0)}m
+              </span>
+            )}
           </div>
+
+          {isWeatherPoint && (
+            <div className="bg-primary/5 mb-3 flex items-center gap-3 rounded-lg p-2">
+              <WeatherIcon code={popupInfo.weather.weatherCode} className="h-8 w-8 shrink-0" />
+              <div className="flex flex-col">
+                <span className="leading-tight font-bold">{weatherDescription}</span>
+                <span className="text-primary text-sm font-black">
+                  {Math.round(popupInfo.weather.temperature)}°C
+                </span>
+              </div>
+            </div>
+          )}
 
           <div className="mb-3 grid grid-cols-2 gap-2">
             <div className="bg-secondary/50 rounded p-2 text-center">
@@ -126,6 +208,38 @@ export function MapPopup({ popupInfo, onClose }: MapPopupProps) {
                 </span>
               </div>
             </div>
+
+            {isWeatherPoint && (
+              <>
+                <div className="bg-secondary/50 rounded p-2 text-center">
+                  <span className="text-muted-foreground block text-[9px] font-bold uppercase">
+                    {tt('summary.wind')}
+                  </span>
+                  <div className="flex items-center justify-center gap-1">
+                    {getWindEffectIcon(popupInfo.windEffect)}
+                    <span className="font-mono text-xs font-bold">
+                      {Math.round(popupInfo.weather.windSpeed)}
+                      <span className="text-muted-foreground ml-0.5 text-[9px] font-normal">
+                        km/h
+                      </span>
+                    </span>
+                  </div>
+                </div>
+                <div className="bg-secondary/50 rounded p-2 text-center">
+                  <span className="text-muted-foreground block text-[9px] font-bold uppercase">
+                    {tt('summary.solarTitle')}
+                  </span>
+                  <div className="flex items-center justify-center gap-1">
+                    <Sun className="h-3 w-3 text-amber-500" />
+                    <span className="font-mono text-[10px] font-bold tracking-tighter uppercase">
+                      {tt(
+                        `solarExposure.${popupInfo.solarIntensity === 'night' ? 'night' : popupInfo.solarIntensity === 'shade' ? 'shade' : 'sun'}` as any,
+                      )}
+                    </span>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
 
           <Button
@@ -133,8 +247,13 @@ export function MapPopup({ popupInfo, onClose }: MapPopupProps) {
             size="sm"
             className="h-8 w-full gap-2 text-[10px] font-bold uppercase shadow-sm transition-all active:scale-[0.98]"
             onClick={() => setShowStreetView(true)}
+            disabled={streetViewAvailable === false}
           >
-            <MapPinned className="h-3.5 w-3.5" />
+            {streetViewAvailable === null ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <MapPinned className="h-3.5 w-3.5" />
+            )}
             {t('streetView')}
           </Button>
         </div>
