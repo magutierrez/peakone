@@ -2,7 +2,7 @@
 
 import { Session } from 'next-auth';
 import { signOut } from 'next-auth/react';
-import { Mountain, Settings, LogOut, Menu, Sun, Moon } from 'lucide-react';
+import { Settings, LogOut, Menu, Sun, Moon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useTheme } from 'next-themes';
 
@@ -21,6 +21,7 @@ import { useState } from 'react';
 import { SettingsModal } from './settings-modal';
 import { LocaleSwitcher } from './locale-switcher';
 import Link from 'next/link';
+import { LogoIcon } from '@/app/_components/logo-icon';
 
 interface HeaderProps {
   session: Session | null;
@@ -41,7 +42,8 @@ export function Header({ session, mobileMenuContent }: HeaderProps) {
   return (
     <header className="border-border bg-background sticky top-0 z-40 flex h-14 items-center justify-between border-b px-4 lg:px-6">
       <Link href="/setup" className="flex items-center gap-2">
-        <span className="font-heading text-lg font-bold">zusTrack</span>
+        <LogoIcon className="text-primary h-6 w-6" />
+        <span className="font-heading text-lg font-bold">zustrack</span>
       </Link>
 
       <div className="flex items-center gap-2">
