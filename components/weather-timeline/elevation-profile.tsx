@@ -2,7 +2,6 @@
 
 import { TrendingUp, RefreshCcw, ArrowUp, ArrowDown } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useMemo, useRef, useState } from 'react';
 import {
   AreaChart,
   Area,
@@ -18,198 +17,29 @@ import { Button } from '@/components/ui/button';
 import { useSettings } from '@/hooks/use-settings';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { formatElevation, formatDistance } from '@/lib/utils';
-import { useRouteStore } from '@/store/route-store';
+import { useElevationChart } from '@/hooks/use-elevation-chart';
 
 export function AnalysisChart() {
   const t = useTranslations('WeatherTimeline');
   const { unitSystem } = useSettings();
   const isMobile = useIsMobile();
-  const lastUpdateRef = useRef<number>(0);
 
-  // Read all state from the store
-  const weatherPoints = useRouteStore((s) => s.weatherPoints);
-  const allPoints = useRouteStore((s) => s.gpxData?.points || []);
-  const elevationData = useRouteStore((s) => s.elevationData);
-  // mapHoverPoint (exactSelectedPoint) → set by map hover, read by chart for reference line
-  const mapHoverPoint = useRouteStore((s) => s.exactSelectedPoint);
-  // chartHoverPoint → set by chart/hazard hover, shown as cursor dot on map
-  const chartHoverPoint = useRouteStore((s) => s.chartHoverPoint);
-  const setChartHoverPoint = useRouteStore((s) => s.setChartHoverPoint);
-  const setSelectedRange = useRouteStore((s) => s.setSelectedRange);
-
-  // The active cursor for this chart: chart hover takes priority, fallback to map hover
-  const selectedPoint = chartHoverPoint ?? mapHoverPoint;
-
-  const [refAreaLeft, setRefAreaLeft] = useState<any>(null);
-  const [refAreaRight, setRefAreaRight] = useState<any>(null);
-  const [left, setLeft] = useState<any>('dataMin');
-  const [right, setRight] = useState<any>('dataMax');
-
-  const displayData = useMemo(() => {
-    const rawData =
-      elevationData && elevationData.length > 0
-        ? elevationData
-        : weatherPoints.map((wp) => ({
-            distance: wp.point.distanceFromStart,
-            elevation: wp.point.ele || 0,
-          }));
-
-    return rawData.map((d) => ({
-      ...d,
-      elevation: Math.round(d.elevation),
-    }));
-  }, [elevationData, weatherPoints]);
-
-  const stats = useMemo(() => {
-    if (!displayData.length) return { min: 0, max: 0 };
-    const elevations = displayData.map((d) => d.elevation);
-    return { min: Math.min(...elevations), max: Math.max(...elevations) };
-  }, [displayData]);
-
-  const getSlopeColorHex = (slope: number) => {
-    const absSlope = Math.abs(slope);
-    if (absSlope <= 1) return '#10b981';
-    if (absSlope < 5) return '#f59e0b';
-    if (absSlope < 10) return '#ef4444';
-    return '#991b1b';
-  };
-
-  const { chartData } = useMemo(() => {
-    const data = displayData.map((d, idx) => {
-      let slope = 0;
-      if (idx > 0) {
-        const prev = displayData[idx - 1];
-        const distDiff = (d.distance - prev.distance) * 1000;
-        const eleDiff = d.elevation - prev.elevation;
-        if (distDiff > 0.1) {
-          slope = (eleDiff / distDiff) * 100;
-        }
-      }
-
-      return {
-        ...d,
-        elevation: isNaN(d.elevation) ? 0 : d.elevation,
-        slope: Math.round(slope * 10) / 10,
-        color: getSlopeColorHex(slope),
-      };
-    });
-    return { chartData: data };
-  }, [displayData]);
-
-  const gradientId = useMemo(
-    () => `slope-${left}-${right}-${chartData.length}`,
-    [left, right, chartData.length],
-  );
-
-  const gradientStops = useMemo(() => {
-    if (!chartData.length) return [];
-
-    const actualMin = chartData[0].distance;
-    const actualMax = chartData[chartData.length - 1].distance;
-    const domainMin = left === 'dataMin' ? actualMin : left;
-    const domainMax = right === 'dataMax' ? actualMax : right;
-    const domainRange = domainMax - domainMin;
-
-    const stops: { offset: string; color: string }[] = [];
-    const firstIndex = chartData.findIndex((d) => d.distance >= domainMin);
-    const lastIndex = [...chartData].reverse().findIndex((d) => d.distance <= domainMax);
-    const actualLastIndex = chartData.length - 1 - lastIndex;
-
-    for (
-      let i = Math.max(0, firstIndex - 1);
-      i <= Math.min(chartData.length - 1, actualLastIndex + 1);
-      i++
-    ) {
-      const d = chartData[i];
-      const percentage = domainRange > 0 ? ((d.distance - domainMin) / domainRange) * 100 : 0;
-      stops.push({
-        offset: `${Math.max(0, Math.min(100, percentage))}%`,
-        color: d.color || '#10b981',
-      });
-    }
-
-    return stops.length
-      ? stops
-      : [
-          { offset: '0%', color: '#10b981' },
-          { offset: '100%', color: '#10b981' },
-        ];
-  }, [chartData, left, right]);
-
-  const handleMouseMove = (e: any) => {
-    if (e && e.chartX && e.viewBox && allPoints.length > 1 && chartData.length > 0) {
-      const { x, width } = e.viewBox;
-      const chartRatio = Math.max(0, Math.min(1, (e.chartX - x) / width));
-
-      const actualMin = chartData[0].distance;
-      const actualMax = chartData[chartData.length - 1].distance;
-      const domainMin = left === 'dataMin' ? actualMin : left;
-      const domainMax = right === 'dataMax' ? actualMax : right;
-      const activeDistance = domainMin + chartRatio * (domainMax - domainMin);
-
-      let p1 = allPoints[0];
-      let p2 = allPoints[1];
-
-      for (let i = 0; i < allPoints.length - 1; i++) {
-        if (
-          activeDistance >= allPoints[i].distanceFromStart &&
-          activeDistance <= allPoints[i + 1].distanceFromStart
-        ) {
-          p1 = allPoints[i];
-          p2 = allPoints[i + 1];
-          break;
-        }
-      }
-
-      const segmentDist = p2.distanceFromStart - p1.distanceFromStart;
-      const ratio = segmentDist > 0 ? (activeDistance - p1.distanceFromStart) / segmentDist : 0;
-
-      const interpolatedPoint = {
-        lat: p1.lat + (p2.lat - p1.lat) * ratio,
-        lon: p1.lon + (p2.lon - p1.lon) * ratio,
-        ele: (p1.ele || 0) + ((p2.ele || 0) - (p1.ele || 0)) * ratio,
-        distanceFromStart: activeDistance,
-      };
-
-      setChartHoverPoint(interpolatedPoint);
-    }
-    if (refAreaLeft !== null && e && e.activeLabel) setRefAreaRight(e.activeLabel);
-  };
-
-  const handleMouseLeave = () => {
-    setChartHoverPoint(null);
-    setRefAreaLeft(null);
-    setRefAreaRight(null);
-  };
-
-  const zoom = () => {
-    if (refAreaLeft === refAreaRight || !refAreaRight || !refAreaLeft) {
-      setRefAreaLeft(null);
-      setRefAreaRight(null);
-      return;
-    }
-
-    let [start, end] = [refAreaLeft, refAreaRight];
-    if (start > end) [start, end] = [end, start];
-
-    const filteredData = chartData.filter((d) => d.distance >= start && d.distance <= end);
-    if (filteredData.length > 0) {
-      setLeft(start);
-      setRight(end);
-      setSelectedRange({ start, end });
-    }
-
-    setRefAreaLeft(null);
-    setRefAreaRight(null);
-  };
-
-  const resetZoom = () => {
-    setLeft('dataMin');
-    setRight('dataMax');
-    setRefAreaLeft(null);
-    setRefAreaRight(null);
-    setSelectedRange(null);
-  };
+  const {
+    chartData,
+    stats,
+    gradientId,
+    gradientStops,
+    selectedPoint,
+    left,
+    right,
+    refAreaLeft,
+    refAreaRight,
+    setRefAreaLeft,
+    handleMouseMove,
+    handleMouseLeave,
+    zoom,
+    resetZoom,
+  } = useElevationChart();
 
   return (
     <div className="border-border bg-card rounded-xl border p-4 shadow-sm select-none md:p-6">
@@ -254,7 +84,7 @@ export function AnalysisChart() {
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
             data={chartData}
-            onMouseDown={(e) => e && setRefAreaLeft(e.activeLabel)}
+            onMouseDown={(e) => e && setRefAreaLeft(e.activeLabel as number)}
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
             onMouseUp={zoom}

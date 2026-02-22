@@ -2,26 +2,25 @@
 
 import { useTranslations } from 'next-intl';
 import { TrendingUp, TrendingDown, Flame, Zap, Activity, RefreshCcw, Map } from 'lucide-react';
-import type { RouteWeatherPoint } from '@/lib/types';
+import type { RouteWeatherPoint, RoutePoint } from '@/lib/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { analyzeRouteSegments } from '@/lib/utils';
 import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, ReferenceLine, Tooltip } from 'recharts';
-import { useRef } from 'react';
+import { useRouteHazards } from '@/hooks/use-route-hazards';
 
 interface RouteHazardsProps {
   weatherPoints: RouteWeatherPoint[];
-  allPoints?: any[];
+  allPoints?: RoutePoint[];
   onSelectSegment?: (range: { start: number; end: number } | null) => void;
-  onSelectPoint?: (point: any | null) => void;
+  onSelectPoint?: (point: RoutePoint | null) => void;
   setActiveFilter?: (
     filter: { key: 'pathType' | 'surface' | 'hazard'; value: string } | null,
   ) => void;
   onClearSelection?: () => void;
 }
 
-const segmentIcons: Record<string, any> = {
+const segmentIcons: Record<string, React.ReactNode> = {
   steepClimb: <TrendingUp className="h-4 w-4" />,
   steepDescent: <TrendingDown className="h-4 w-4" />,
   heatStress: <Flame className="h-4 w-4" />,
@@ -35,14 +34,6 @@ const segmentColors: Record<string, string> = {
   effort: 'text-blue-600 bg-blue-500/10 border-blue-200',
 };
 
-const getSlopeColorHex = (slope: number) => {
-  const absSlope = Math.abs(slope);
-  if (absSlope <= 1) return '#10b981';
-  if (absSlope < 5) return '#f59e0b';
-  if (absSlope < 10) return '#ef4444';
-  return '#991b1b';
-};
-
 export function RouteHazards({
   weatherPoints,
   allPoints = [],
@@ -53,66 +44,14 @@ export function RouteHazards({
 }: RouteHazardsProps) {
   const t = useTranslations('Hazards');
   const tRouteMap = useTranslations('RouteMap');
-  const lastUpdateRef = useRef<number>(0);
+
+  const { sortedSegments, buildChartData, handleMouseMove } = useRouteHazards(weatherPoints);
 
   if (weatherPoints.length === 0) return null;
-
-  const segments = analyzeRouteSegments(weatherPoints);
-
-  const sortedSegments = [...segments]
-    .sort((a, b) => {
-      const levels = ['low', 'medium', 'high'];
-      return (
-        levels.indexOf(b.dangerLevel) - levels.indexOf(a.dangerLevel) || b.maxSlope - a.maxSlope
-      );
-    })
-    .slice(0, 8);
 
   const handleCardClick = (seg: any) => {
     onSelectSegment?.({ start: seg.startDist, end: seg.endDist });
     setActiveFilter?.({ key: 'hazard', value: `${seg.startDist}-${seg.endDist}` });
-  };
-
-  const handleMouseMove = (e: any, segmentPoints: any[]) => {
-    if (e && e.chartX && e.viewBox && onSelectPoint && segmentPoints.length > 1) {
-      const now = Date.now();
-
-      if (now - lastUpdateRef.current > 8) {
-        const { x, width } = e.viewBox;
-        const chartRatio = Math.max(0, Math.min(1, (e.chartX - x) / width));
-        const startDist = segmentPoints[0].distanceFromStart;
-        const endDist = segmentPoints[segmentPoints.length - 1].distanceFromStart;
-        const activeDist = startDist + chartRatio * (endDist - startDist);
-
-        // Find the precise point in the dense list
-        let p1 = segmentPoints[0];
-        let p2 = segmentPoints[1];
-
-        for (let i = 0; i < segmentPoints.length - 1; i++) {
-          if (
-            activeDist >= segmentPoints[i].distanceFromStart &&
-            activeDist <= segmentPoints[i + 1].distanceFromStart
-          ) {
-            p1 = segmentPoints[i];
-            p2 = segmentPoints[i + 1];
-            break;
-          }
-        }
-
-        if (p1 && p2) {
-          const segmentDist = p2.distanceFromStart - p1.distanceFromStart;
-          const ratio = segmentDist > 0 ? (activeDist - p1.distanceFromStart) / segmentDist : 0;
-
-          onSelectPoint({
-            lat: p1.lat + (p2.lat - p1.lat) * ratio,
-            lon: p1.lon + (p2.lon - p1.lon) * ratio,
-            ele: (p1.ele || 0) + ((p2.ele || 0) - (p1.ele || 0)) * ratio,
-            distanceFromStart: activeDist,
-          });
-        }
-        lastUpdateRef.current = now;
-      }
-    }
   };
 
   return (
@@ -143,23 +82,7 @@ export function RouteHazards({
                 )
               : seg.points.map((wp) => wp.point);
 
-          const chartData = densePoints.map((p: any, pIdx: number) => {
-            let slope = 0;
-            if (pIdx > 0) {
-              const prev = densePoints[pIdx - 1];
-              const distDiff = (p.distanceFromStart - prev.distanceFromStart) * 1000;
-              const eleDiff = (p.ele || 0) - (prev.ele || 0);
-              if (distDiff > 0.1) {
-                slope = (eleDiff / distDiff) * 100;
-              }
-            }
-            return {
-              dist: p.distanceFromStart,
-              ele: p.ele || 0,
-              slope: Math.abs(slope),
-              color: getSlopeColorHex(slope),
-            };
-          });
+          const chartData = buildChartData(densePoints);
 
           const minEle = Math.min(...chartData.map((d) => d.ele));
           const maxEle = Math.max(...chartData.map((d) => d.ele));
@@ -220,7 +143,9 @@ export function RouteHazards({
                     <AreaChart
                       data={chartData}
                       margin={{ top: 10, right: 0, left: 0, bottom: 0 }}
-                      onMouseMove={(e) => handleMouseMove(e, densePoints)}
+                      onMouseMove={(e) =>
+                        onSelectPoint && handleMouseMove(e, densePoints, onSelectPoint)
+                      }
                       onMouseLeave={() => onSelectPoint?.(null)}
                     >
                       <defs>

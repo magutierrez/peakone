@@ -3,9 +3,10 @@
 import { Wind, Thermometer, Droplets, Sun, Clock, AlertTriangle } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import type { RouteWeatherPoint } from '@/lib/types';
-import { getSunPosition, formatTemperature, formatWindSpeed } from '@/lib/utils';
+import { formatTemperature, formatWindSpeed } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useSettings } from '@/hooks/use-settings';
+import { useWeatherSummary } from '@/hooks/use-weather-summary';
 
 interface WeatherSummaryProps {
   weatherPoints: RouteWeatherPoint[];
@@ -15,45 +16,23 @@ export function WeatherSummary({ weatherPoints }: WeatherSummaryProps) {
   const t = useTranslations('WeatherTimeline');
   const { unitSystem, windUnit } = useSettings();
 
+  const {
+    avgTemp,
+    maxWind,
+    maxGusts,
+    avgPrecipProb,
+    tailwindPct,
+    headwindPct,
+    intensePoints,
+    shadePoints,
+    total,
+    arrivesAtNight,
+    lastTime,
+  } = useWeatherSummary(weatherPoints);
+
   if (weatherPoints.length === 0) return null;
 
-  const avgTemp =
-    weatherPoints.reduce((s, w) => s + w.weather.temperature, 0) / weatherPoints.length;
-  const maxWind = Math.max(...weatherPoints.map((w) => w.weather.windSpeed));
-  const maxGusts = Math.max(...weatherPoints.map((w) => w.weather.windGusts));
-  const avgPrecipProb =
-    weatherPoints.reduce((s, w) => s + w.weather.precipitationProbability, 0) /
-    weatherPoints.length;
-  const tailwindPercent =
-    (weatherPoints.filter((w) => w.windEffect === 'tailwind').length / weatherPoints.length) * 100;
-  const headwindPercent =
-    (weatherPoints.filter((w) => w.windEffect === 'headwind').length / weatherPoints.length) * 100;
-
-  // Solar Summary
-  const intensePoints = weatherPoints.filter((w) => w.solarIntensity === 'intense').length;
-  const shadePoints = weatherPoints.filter((w) => w.solarIntensity === 'shade').length;
-  const total = weatherPoints.length;
   const getPercent = (count: number) => ((count / total) * 100).toFixed(0);
-
-  // Daylight remaining calculation
-  const lastPoint = weatherPoints[weatherPoints.length - 1];
-  const lastTime = new Date(lastPoint.weather.time);
-
-  // Find sunset time at the last location
-  // We approximate sunset by checking when altitude goes below -0.833 (standard sunset)
-  // But for simplicity, we can just use the last point's sun position vs current time
-  const now = new Date();
-  const sunPosAtLast = getSunPosition(lastTime, lastPoint.point.lat, lastPoint.point.lon);
-  const arrivesAtNight = sunPosAtLast.altitude < 0;
-
-  // Estimate remaining daylight from "now" until sunset at the current/route location
-  // This is a simplified version for the prototype
-  const firstPoint = weatherPoints[0];
-  const sunPosFirst = getSunPosition(now, firstPoint.point.lat, firstPoint.point.lon);
-
-  // Approximation of sunset: simplified for UI
-  // In a real app we would use a more robust sunset calc
-  const isNightSoon = sunPosAtLast.altitude < 5 && sunPosAtLast.altitude > -5;
 
   return (
     <div className="grid grid-cols-2 gap-2 lg:grid-cols-5">
@@ -170,11 +149,11 @@ export function WeatherSummary({ weatherPoints }: WeatherSummaryProps) {
         </div>
         <div className="mt-1 flex items-center gap-2">
           <span className="text-primary text-xs font-medium">
-            {t('summary.favor', { percent: tailwindPercent.toFixed(0) })}
+            {t('summary.favor', { percent: tailwindPct.toFixed(0) })}
           </span>
           <span className="text-muted-foreground text-xs">/</span>
           <span className="text-destructive text-xs font-medium">
-            {t('summary.contra', { percent: headwindPercent.toFixed(0) })}
+            {t('summary.contra', { percent: headwindPct.toFixed(0) })}
           </span>
         </div>
       </div>

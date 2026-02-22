@@ -9,12 +9,10 @@ import { RouteAdvice } from '@/components/route-advice';
 import { WeatherPointDetail } from '@/components/weather-timeline/weather-point-detail';
 import { RouteHazards } from '@/components/route-hazards';
 import { BestDepartureFinder } from '@/components/best-departure-finder';
-import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 
-import { analyzeRouteSegments, calculatePhysiologicalNeeds } from '@/lib/utils';
-import { useSettings } from '@/hooks/use-settings';
 import { useRouteStore } from '@/store/route-store';
+import { useAnalysisMetrics } from '@/hooks/use-analysis-metrics';
 
 interface AnalysisResultsProps {
   onFindBestWindow: () => void;
@@ -28,22 +26,17 @@ export function AnalysisResults({
   onAnalyzeBestWindow,
 }: AnalysisResultsProps) {
   const t = useTranslations('HomePage');
-  const tp = useTranslations('physiology');
   const th = useTranslations('Hazards');
-  const { unitSystem } = useSettings();
 
   // Read all state from store
   const weatherPoints = useRouteStore((s) => s.weatherPoints);
-  const routeInfoData = useRouteStore((s) => s.routeInfoData);
   const gpxData = useRouteStore((s) => s.gpxData);
-  const elevationData = useRouteStore((s) => s.elevationData);
   const activeFilter = useRouteStore((s) => s.activeFilter);
   const setActiveFilter = useRouteStore((s) => s.setActiveFilter);
   const selectedPointIndex = useRouteStore((s) => s.selectedPointIndex);
   const setSelectedPointIndex = useRouteStore((s) => s.setSelectedPointIndex);
   const setSelectedRange = useRouteStore((s) => s.setSelectedRange);
   const setChartHoverPoint = useRouteStore((s) => s.setChartHoverPoint);
-  const selectedRange = useRouteStore((s) => s.selectedRange);
   const activityType = useRouteStore((s) => s.fetchedActivityType);
   const showWaterSources = useRouteStore((s) => s.showWaterSources);
   const setShowWaterSources = useRouteStore((s) => s.setShowWaterSources);
@@ -56,39 +49,8 @@ export function AnalysisResults({
 
   const [tab, setTab] = useState('weather');
 
-  const routeDurationHours =
-    weatherPoints.length > 0 &&
-    weatherPoints[0].point.estimatedTime &&
-    weatherPoints[weatherPoints.length - 1].point.estimatedTime
-      ? (weatherPoints[weatherPoints.length - 1].point.estimatedTime!.getTime() -
-          weatherPoints[0].point.estimatedTime!.getTime()) /
-        (1000 * 60 * 60)
-      : 0;
-
-  const totalElevationGain =
-    elevationData.length > 0
-      ? elevationData[elevationData.length - 1].elevation - elevationData[0].elevation
-      : 0;
-
-  const totalDistanceKm =
-    elevationData.length > 0 ? elevationData[elevationData.length - 1].distance : 0;
-
-  const avgTemperatureCelsius =
-    weatherPoints.reduce((sum, wp) => sum + wp.weather.temperature, 0) / weatherPoints.length;
-
-  const { calories, waterLiters } = calculatePhysiologicalNeeds(
-    routeDurationHours,
-    totalDistanceKm,
-    totalElevationGain,
-    avgTemperatureCelsius,
-    activityType,
-  );
-
-  const routeSegments = analyzeRouteSegments(weatherPoints);
-  const totalSegments = routeSegments.length;
-  const highDangerSegments = routeSegments.filter((s) => s.dangerLevel === 'high').length;
-  const mediumDangerSegments = routeSegments.filter((s) => s.dangerLevel === 'medium').length;
-  const lowDangerSegments = routeSegments.filter((s) => s.dangerLevel === 'low').length;
+  const { totalSegments, highDangerSegments, mediumDangerSegments, lowDangerSegments } =
+    useAnalysisMetrics();
 
   useEffect(() => {
     // Ensure no point is pre-selected on mount

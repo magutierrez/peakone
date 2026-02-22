@@ -14,8 +14,8 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { useState, useEffect } from 'react';
 import { useRouteStore } from '@/store/route-store';
+import { useActivityConfig } from '@/hooks/use-activity-config';
 
 interface ActivityConfigSectionProps {
   onAnalyze: () => void;
@@ -29,33 +29,11 @@ export function ActivityConfigSection({ onAnalyze, onReverseRoute }: ActivityCon
   const setConfig = useRouteStore((s) => s.setConfig);
   const isLoading = useRouteStore((s) => s.isLoading);
   const gpxData = useRouteStore((s) => s.gpxData);
-  const totalDistance = useRouteStore((s) => s.recalculatedTotalDistance);
 
   const hasGpxData = !!gpxData;
 
-  const estimatedDuration =
-    totalDistance > 0 && config.speed > 0 ? (totalDistance / config.speed) * 60 : 0;
-  const initialHours = Math.floor(estimatedDuration / 60);
-  const initialMinutes = Math.round(estimatedDuration % 60);
-
-  const [manualHours, setManualHours] = useState(initialHours);
-  const [manualMinutes, setManualMinutes] = useState(initialMinutes);
-
-  useEffect(() => {
-    setManualHours(initialHours);
-    setManualMinutes(initialMinutes);
-  }, [config.speed, totalDistance]);
-
-  const handleDurationChange = (h: number, m: number) => {
-    const totalMinutes = h * 60 + m;
-    if (totalMinutes > 0 && totalDistance > 0) {
-      const newSpeed = (totalDistance / totalMinutes) * 60;
-      const clampedSpeed = Math.max(1, Math.min(60, Math.round(newSpeed * 10) / 10));
-      setConfig({ ...config, speed: clampedSpeed });
-    }
-    setManualHours(h);
-    setManualMinutes(m);
-  };
+  const { initialHours, initialMinutes, manualHours, manualMinutes, handleDurationChange } =
+    useActivityConfig();
 
   return (
     <section className="border-border bg-card rounded-lg border p-4">

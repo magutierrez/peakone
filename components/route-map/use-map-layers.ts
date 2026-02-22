@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import type { RoutePoint, RouteWeatherPoint } from '@/lib/types';
 import type { Feature, FeatureCollection, LineString, MultiLineString, Point } from 'geojson';
+import { getSlopeColorHex } from '@/lib/slope-colors';
 
 const PATH_TYPE_COLORS: Record<string, string> = {
   cycleway: '#3ecf8e',
@@ -66,15 +67,6 @@ export function useMapLayers(
   const highlightedData = useMemo<FeatureCollection<LineString> | null>(() => {
     if (!activeFilter || !weatherPoints || weatherPoints.length < 2 || points.length < 2) return null;
     
-    // Helper for slope colors (same as charts)
-    const getSlopeColorHex = (slope: number) => {
-      const absSlope = Math.abs(slope);
-      if (absSlope <= 1) return '#10b981';
-      if (absSlope < 5) return '#f59e0b';
-      if (absSlope < 10) return '#ef4444';
-      return '#991b1b';
-    };
-
     const features: Feature<LineString>[] = [];
 
     if (activeFilter.key === 'hazard') {
