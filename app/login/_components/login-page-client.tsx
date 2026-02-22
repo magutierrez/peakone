@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/card';
 import { useTranslations } from 'next-intl';
 import { LocaleSwitcher } from '../../_components/locale-switcher';
+import { LogoIcon } from '@/app/_components/logo-icon';
 
 export function LoginPageClient() {
   const t = useTranslations('Auth');
@@ -29,7 +30,7 @@ export function LoginPageClient() {
         <CardHeader className="space-y-4 text-center">
           <div className="flex justify-center">
             <div className="bg-primary/10 flex h-12 w-12 items-center justify-center rounded-xl">
-              <Mountain className="text-primary h-7 w-7" />
+              <LogoIcon className="text-primary h-6 w-6" />
             </div>
           </div>
           <div className="space-y-2">
