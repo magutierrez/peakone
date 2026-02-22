@@ -225,20 +225,22 @@ export function useRouteAnalysis() {
   ]);
 
   const handleAnalyze = useCallback(
-    async (overrideConfig?: {
-      date: string;
-      time: string;
-      speed: number;
-      activityType: 'cycling' | 'walking';
-    }) => {
+    async (overrideConfig?: any) => {
       const currentGpxData = useRouteStore.getState().gpxData;
       const currentRouteInfoData = useRouteStore.getState().routeInfoData;
       const storeConfig = useRouteStore.getState().config;
       const storeActivityType = useRouteStore.getState().fetchedActivityType;
-      const analysisConfig = overrideConfig ?? {
-        ...storeConfig,
-        activityType: storeActivityType,
-      };
+
+      // Guard against React MouseEvent being passed when used directly as onClick handler
+      const hasValidOverride =
+        overrideConfig &&
+        typeof overrideConfig === 'object' &&
+        'date' in overrideConfig &&
+        'time' in overrideConfig;
+
+      const analysisConfig = hasValidOverride
+        ? (overrideConfig as { date: string; time: string; speed: number; activityType: 'cycling' | 'walking' })
+        : { ...storeConfig, activityType: storeActivityType };
 
       if (!currentGpxData) return;
 
