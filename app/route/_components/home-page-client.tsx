@@ -282,7 +282,7 @@ export default function HomePageClient({ session: serverSession }: HomePageClien
                   </div>
 
                   {startPoint && endPoint && (
-                    <div className="mt-3 flex gap-2">
+                    <div className="mt-3 flex flex-col gap-2 lg:flex-row">
                       <a
                         href={mapsUrl(startPoint.lat, startPoint.lon)}
                         target="_blank"
@@ -354,9 +354,7 @@ export default function HomePageClient({ session: serverSession }: HomePageClien
             )}
           >
             <RouteLoadingOverlay isVisible={isRouteInfoLoading} />
-            <RouteMap
-              onResetToFullRouteView={(func) => (mapResetViewRef.current = func)}
-            />
+            <RouteMap onResetToFullRouteView={(func) => (mapResetViewRef.current = func)} />
           </div>
         </main>
       </div>
