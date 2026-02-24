@@ -56,7 +56,7 @@ export function WeatherSummary({ weatherPoints }: WeatherSummaryProps) {
     setFocusPoint({
       lat: nightPoint.point.lat,
       lon: nightPoint.point.lon,
-      name: t('summary.nightPointLabel'),
+      silent: true,
     });
   };
 

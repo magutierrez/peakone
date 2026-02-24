@@ -14,7 +14,7 @@ interface RouteState {
   exactSelectedPoint: any | null;
   /** Set by chart hover → map reads it to show the cursor dot */
   chartHoverPoint: any | null;
-  focusPoint: { lat: number; lon: number; name?: string } | null;
+  focusPoint: { lat: number; lon: number; name?: string; silent?: boolean } | null;
   showWaterSources: boolean;
   selectedPointIndex: number | null;
   config: RouteConfig;
@@ -49,7 +49,7 @@ interface RouteState {
   setSelectedRange: (range: { start: number; end: number } | null) => void;
   setExactSelectedPoint: (point: any | null) => void;
   setChartHoverPoint: (point: any | null) => void;
-  setFocusPoint: (point: { lat: number; lon: number; name?: string } | null) => void;
+  setFocusPoint: (point: { lat: number; lon: number; name?: string; silent?: boolean } | null) => void;
   setShowWaterSources: (show: boolean) => void;
   setSelectedPointIndex: (index: number | null) => void;
   setConfig: (config: RouteConfig) => void;
@@ -93,7 +93,7 @@ const initialState = {
   selectedRange: null as { start: number; end: number } | null,
   exactSelectedPoint: null,
   chartHoverPoint: null,
-  focusPoint: null as { lat: number; lon: number; name?: string } | null,
+  focusPoint: null as { lat: number; lon: number; name?: string; silent?: boolean } | null,
   showWaterSources: false,
   selectedPointIndex: null as number | null,
   config: { date: getDefaultDate(), time: '08:00', speed: 25 } as RouteConfig,

@@ -142,7 +142,8 @@ export default function RouteMap({ onResetToFullRouteView }: RouteMapProps) {
         const lat2 = toRad(p2.lat);
         const dLon = toRad(p2.lon - p1.lon);
         const y = Math.sin(dLon) * Math.cos(lat2);
-        const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
+        const x =
+          Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
         const bearing = (toDeg(Math.atan2(y, x)) + 360) % 360;
 
         return {
@@ -262,6 +263,7 @@ export default function RouteMap({ onResetToFullRouteView }: RouteMapProps) {
       const map = mapRef.current?.getMap();
       if (map) {
         map.flyTo({ center: [focusPoint.lon, focusPoint.lat], zoom: 14, duration: 2000 });
+        if (focusPoint.silent) return;
 
         const weatherIdx = weatherPoints.findIndex(
           (wp) =>

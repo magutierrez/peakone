@@ -18,7 +18,7 @@ interface MapMarkersProps {
   onHoverPoint: (index: number | null) => void;
   activityType?: 'cycling' | 'walking';
   showWaterSources?: boolean;
-  focusPoint?: { lat: number; lon: number; name?: string } | null;
+  focusPoint?: { lat: number; lon: number; name?: string; silent?: boolean } | null;
   nightPointIndex?: number | null;
 }
 
@@ -186,7 +186,10 @@ export function MapMarkers({
             anchor="bottom"
             style={{ zIndex: 150 }}
           >
-            <div className="animate-in fade-in slide-in-from-bottom-1 flex flex-col items-center">
+            <div
+              className="animate-in fade-in slide-in-from-bottom-1 flex flex-col items-center"
+              onClick={(e) => e.stopPropagation()}
+            >
               <div className="rounded-lg bg-slate-900/95 px-2 py-1 text-[10px] font-bold text-indigo-200 shadow-xl ring-1 ring-indigo-500/50 whitespace-nowrap">
                 🌙 {nightTime} · km {np.point.distanceFromStart.toFixed(1)}
               </div>
@@ -202,8 +205,8 @@ export function MapMarkers({
         );
       })()}
 
-      {/* Focus Point (Highlighted Evacuation) */}
-      {focusPoint && (
+      {/* Focus Point (Highlighted Evacuation) — hidden when silent (e.g. night trap nav) */}
+      {focusPoint && !focusPoint.silent && (
         <Marker longitude={focusPoint.lon} latitude={focusPoint.lat} anchor="bottom" z-index={200}>
           <div className="animate-in fade-in slide-in-from-bottom-2 flex flex-col items-center">
             <div className="rounded-lg bg-indigo-600 px-2.5 py-1.5 text-[10px] font-black tracking-wider text-white uppercase shadow-xl ring-2 ring-white">
