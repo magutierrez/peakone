@@ -13,12 +13,18 @@ import {
   Eye,
   EyeOff,
   Footprints,
+  Info,
+  CloudHail,
+  Layers,
+  Thermometer,
+  MountainSnow,
 } from 'lucide-react';
 import type { RouteWeatherPoint, MudRiskLevel } from '@/lib/types';
 import { getMudRiskSegments } from '@/lib/mud-risk';
 import { Card, CardContent } from '@/components/ui/card';
 import { calculatePhysiologicalNeeds, cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 interface RouteAdviceProps {
   weatherPoints: RouteWeatherPoint[];
@@ -88,6 +94,42 @@ export function RouteAdvice({
   }, 'none');
   // Show mud card if there's any precipitation data available (past72hPrecipMm defined on at least one point)
   const hasMudData = weatherPoints.some((wp) => wp.weather.past72hPrecipMm !== undefined);
+
+  // Summary inputs for the mud info popover
+  const mudInputs = hasMudData
+    ? (() => {
+        const withData = weatherPoints.filter((wp) => wp.weather.past72hPrecipMm !== undefined);
+        const avgPrecip =
+          Math.round(
+            (withData.reduce((s, wp) => s + (wp.weather.past72hPrecipMm ?? 0), 0) /
+              withData.length) *
+              10,
+          ) / 10;
+        const surfaceCounts: Record<string, number> = {};
+        weatherPoints.forEach((wp) => {
+          if (wp.surface) surfaceCounts[wp.surface] = (surfaceCounts[wp.surface] ?? 0) + 1;
+        });
+        const dominantSurface = Object.entries(surfaceCounts).sort((a, b) => b[1] - a[1])[0]?.[0];
+        const avgTemp =
+          Math.round(
+            (weatherPoints.reduce((s, wp) => s + wp.weather.temperature, 0) /
+              weatherPoints.length) *
+              10,
+          ) / 10;
+        const avgWind =
+          Math.round(
+            (weatherPoints.reduce((s, wp) => s + wp.weather.windSpeed, 0) /
+              weatherPoints.length) *
+              10,
+          ) / 10;
+        const shadedPct = Math.round(
+          (weatherPoints.filter((wp) => wp.solarExposure === 'shade').length /
+            weatherPoints.length) *
+            100,
+        );
+        return { avgPrecip, dominantSurface, avgTemp, avgWind, shadedPct };
+      })()
+    : null;
 
   const advices = [
     {
@@ -198,11 +240,12 @@ export function RouteAdvice({
       </div>
 
       {/* Mud Risk Card */}
-      {hasMudData && (
+      {hasMudData && mudInputs && (
         <MudRiskCard
           overallRisk={overallMudRisk}
           segments={mudSegments}
           activityType={activityType}
+          inputs={mudInputs}
         />
       )}
 
@@ -227,10 +270,19 @@ export function RouteAdvice({
 
 // ─── Mud Risk Traffic-Light Card ─────────────────────────────────────────────
 
+interface MudRiskInputs {
+  avgPrecip: number;
+  dominantSurface: string | undefined;
+  avgTemp: number;
+  avgWind: number;
+  shadedPct: number;
+}
+
 interface MudRiskCardProps {
   overallRisk: MudRiskLevel;
   segments: import('@/lib/mud-risk').MudRiskSegment[];
   activityType: 'cycling' | 'walking';
+  inputs: MudRiskInputs;
 }
 
 const MUD_LEVELS: MudRiskLevel[] = ['none', 'low', 'medium', 'high'];
@@ -256,7 +308,7 @@ const CARD_BG: Record<MudRiskLevel, string> = {
   high: 'bg-red-600/8',
 };
 
-function MudRiskCard({ overallRisk, segments, activityType }: MudRiskCardProps) {
+function MudRiskCard({ overallRisk, segments, activityType, inputs }: MudRiskCardProps) {
   const t = useTranslations('Advice');
   const typeKey = activityType === 'cycling' ? 'cycling' : 'hiking';
 
@@ -267,7 +319,6 @@ function MudRiskCard({ overallRisk, segments, activityType }: MudRiskCardProps) 
         ? 'mudLow'
         : `mud${overallRisk.charAt(0).toUpperCase() + overallRisk.slice(1)}${activityType.charAt(0).toUpperCase() + activityType.slice(1)}`;
 
-  // Translate the advice, falling back to a shared key for none/low
   const adviceText =
     overallRisk === 'none' || overallRisk === 'low'
       ? t(adviceKey as Parameters<typeof t>[0])
@@ -309,6 +360,52 @@ function MudRiskCard({ overallRisk, segments, activityType }: MudRiskCardProps) 
             >
               {t(`mudLevel.${overallRisk}` as Parameters<typeof t>[0])}
             </span>
+
+            {/* Info popover */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <button className="text-muted-foreground hover:text-foreground ml-auto transition-colors">
+                  <Info className="h-3.5 w-3.5" />
+                  <span className="sr-only">{t('mudInfoTitle')}</span>
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-72 p-0" align="end" side="top">
+                <div className="border-border bg-popover rounded-lg border p-3">
+                  <p className="text-foreground mb-2.5 text-xs font-semibold">
+                    {t('mudInfoTitle')}
+                  </p>
+                  <ul className="flex flex-col gap-2">
+                    <MudInfoRow
+                      icon={<CloudHail className="h-3.5 w-3.5 text-blue-500" />}
+                      label={t('mudInfoPrecipLabel')}
+                      value={`${inputs.avgPrecip} mm`}
+                      detail={t('mudInfoPrecipDetail')}
+                    />
+                    <MudInfoRow
+                      icon={<Layers className="h-3.5 w-3.5 text-amber-600" />}
+                      label={t('mudInfoSurfaceLabel')}
+                      value={inputs.dominantSurface ?? t('mudInfoSurfaceUnknown')}
+                      detail={t('mudInfoSurfaceDetail')}
+                    />
+                    <MudInfoRow
+                      icon={<Thermometer className="h-3.5 w-3.5 text-orange-500" />}
+                      label={t('mudInfoDryingLabel')}
+                      value={`${inputs.avgTemp}°C · ${inputs.avgWind} km/h`}
+                      detail={t('mudInfoDryingDetail')}
+                    />
+                    <MudInfoRow
+                      icon={<MountainSnow className="h-3.5 w-3.5 text-slate-500" />}
+                      label={t('mudInfoSlopeLabel')}
+                      value={inputs.shadedPct > 0 ? `${inputs.shadedPct}% ${t('mudInfoShaded')}` : t('mudInfoOpenTerrain')}
+                      detail={t('mudInfoSlopeDetail')}
+                    />
+                  </ul>
+                  <p className="text-muted-foreground mt-2.5 border-t pt-2 text-[10px] leading-relaxed">
+                    {t('mudInfoNote')}
+                  </p>
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
 
           <p className="text-foreground text-sm leading-relaxed">{adviceText}</p>
@@ -331,5 +428,30 @@ function MudRiskCard({ overallRisk, segments, activityType }: MudRiskCardProps) 
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+function MudInfoRow({
+  icon,
+  label,
+  value,
+  detail,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  detail: string;
+}) {
+  return (
+    <li className="flex items-start gap-2">
+      <span className="mt-0.5 flex-shrink-0">{icon}</span>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-baseline justify-between gap-1">
+          <span className="text-muted-foreground text-[10px] font-bold uppercase">{label}</span>
+          <span className="text-foreground font-mono text-[11px] font-semibold">{value}</span>
+        </div>
+        <p className="text-muted-foreground text-[10px] leading-relaxed">{detail}</p>
+      </div>
+    </li>
   );
 }
