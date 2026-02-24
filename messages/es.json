@@ -95,13 +95,25 @@
       "medium": "Media",
       "low": "Baja (Posible seca)"
     },
+    "mud": "Riesgo de Barro",
+    "mudNone": "Pista seca. No se espera barro significativo.",
+    "mudLow": "Posible barro ligero en tramos sin asfaltar tras las últimas lluvias.",
+    "mudKmRange": "Tramo afectado: km {start}–{end}",
+    "mudLevel": {
+      "none": "Seco",
+      "low": "Bajo",
+      "medium": "Moderado",
+      "high": "Alto"
+    },
     "cycling": {
       "rain": "Cuidado con las curvas y el asfalto mojado. Revisa tus frenos.",
       "wind": "Viento fuerte detectado. Sujeta con firmeza el manillar en zonas expuestas.",
       "heat": "Calor intenso. Hidrátate cada 15-20 minutos.",
       "cold": "Usa capas cortavientos. El descenso puede ser gélido.",
       "night": "Luz delantera y trasera obligatorias. Chaleco reflectante recomendado.",
-      "general": "Revisa la presión de los neumáticos y lleva un kit de reparación."
+      "general": "Revisa la presión de los neumáticos y lleva un kit de reparación.",
+      "mudMediumCycling": "Atención: tramos con barro por delante. Reduce la velocidad y evita frenadas bruscas.",
+      "mudHighCycling": "Aviso: riesgo serio de barro. Es posible que tengas que llevar la bici en algunos tramos."
     },
     "hiking": {
       "rain": "Terreno resbaladizo. Usa calzado con buen agarre y chubasquero.",
@@ -109,7 +121,9 @@
       "heat": "Busca sombras y lleva al menos 2L de agua.",
       "cold": "Riesgo de hipotermia si te detienes. Lleva manta térmica.",
       "night": "Frontal con pilas de repuesto. No abandones el sendero marcado.",
-      "general": "Avisa a alguien de tu ruta y hora estimada de llegada."
+      "general": "Avisa a alguien de tu ruta y hora estimada de llegada.",
+      "mudMediumWalking": "Atención: tramos de sendero con barro. Se recomienda bastones y botas impermeables.",
+      "mudHighWalking": "Aviso: barro intenso en el sendero. Espera un avance muy lento y barro hasta los tobillos."
     }
   },
   "RouteConfigPanel": {

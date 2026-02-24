@@ -86,13 +86,25 @@
       "medium": "Mitjana",
       "low": "Baixa (Possible seca)"
     },
+    "mud": "Risc de Fang",
+    "mudNone": "Pista seca. No s'espera fang significatiu.",
+    "mudLow": "Possible fang lleuger en trams sense asfaltar després de les darreres pluges.",
+    "mudKmRange": "Tram afectat: km {start}–{end}",
+    "mudLevel": {
+      "none": "Sec",
+      "low": "Baix",
+      "medium": "Moderat",
+      "high": "Alt"
+    },
     "cycling": {
       "rain": "Compte amb els corbes i l'asfalt mullat. Revisa els teus frens.",
       "wind": "Vent fort detectat. Agafa amb fermesa el manillar en zones exposades.",
       "heat": "Calor intensa. Hidrata't cada 15-20 minuts.",
       "cold": "Utilitza capes tallavent. El descens pot ser gèlid.",
       "night": "Llum davantera i posterior obligatòries. Armilla reflectant recomanada.",
-      "general": "Revisa la pressió dels pneumàtics i porta un kit de reparació."
+      "general": "Revisa la pressió dels pneumàtics i porta un kit de reparació.",
+      "mudMediumCycling": "Atenció: trams amb fang per davant. Redueix la velocitat i evita frenades brusques.",
+      "mudHighCycling": "Avís: risc seriós de fang. És possible que hagis de portar la bici en alguns trams."
     },
     "hiking": {
       "rain": "Terreny relliscós. Utilitza calçat amb bona subjecció i impermeable.",
@@ -100,7 +112,9 @@
       "heat": "Busca ombres i porta almenys 2L d'aigua.",
       "cold": "Risc d'hipotèrmia si t'atures. Porta manta tèrmica.",
       "night": "Frontal amb piles de recanvi. No abandonis el sender marcat.",
-      "general": "Avisa algú de la teva ruta i hora estimada d'arribada."
+      "general": "Avisa algú de la teva ruta i hora estimada d'arribada.",
+      "mudMediumWalking": "Atenció: trams de sender amb fang. Es recomanen bastons i botes impermeables.",
+      "mudHighWalking": "Avís: fang intens al sender. Espera un avanç molt lent i fang fins als turmells."
     }
   },
   "RouteConfigPanel": {

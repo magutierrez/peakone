@@ -9,6 +9,24 @@ export interface WeatherProvider {
   }) => Promise<Array<{ index: number; weather: WeatherData }>>;
 }
 
+/** Sums hourly precipitation in the 72-hour window before targetTime. */
+function computePast72hPrecip(
+  hourlyTimes: string[],
+  hourlyPrecip: (number | null)[],
+  targetTime: string,
+): number {
+  const target = new Date(targetTime).getTime();
+  const cutoff = target - 72 * 3_600_000;
+  let total = 0;
+  for (let i = 0; i < hourlyTimes.length; i++) {
+    const t = new Date(hourlyTimes[i]).getTime();
+    if (t >= cutoff && t < target) {
+      total += hourlyPrecip[i] ?? 0;
+    }
+  }
+  return Math.round(total * 10) / 10;
+}
+
 // Helper to find the closest hourly data point
 export function findClosestWeather(
   hourlyTimes: string[],
@@ -37,6 +55,11 @@ export function findClosestWeather(
 export const openMeteoProvider: WeatherProvider = {
   name: 'Open-Meteo',
   fetchWeather: async ({ locations, startDate, endDate }) => {
+    // Extend 3 days back to capture historical precipitation for mud-risk calculation
+    const historicalStart = new Date(new Date(startDate).getTime() - 3 * 86_400_000)
+      .toISOString()
+      .split('T')[0];
+
     const url = new URL('https://api.open-meteo.com/v1/forecast');
     url.searchParams.set('latitude', locations.map((l) => l.lat).join(','));
     url.searchParams.set('longitude', locations.map((l) => l.lon).join(','));
@@ -44,7 +67,7 @@ export const openMeteoProvider: WeatherProvider = {
       'hourly',
       'temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,precipitation_probability,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,cloud_cover,visibility,is_day,direct_radiation,diffuse_radiation',
     );
-    url.searchParams.set('start_date', startDate);
+    url.searchParams.set('start_date', historicalStart);
     url.searchParams.set('end_date', endDate);
     url.searchParams.set('timezone', 'auto');
 
@@ -60,12 +83,15 @@ export const openMeteoProvider: WeatherProvider = {
 
     resultsArray.forEach((locationData, locationIdx) => {
       const loc = locations[locationIdx];
+      const hourlyPrecip: number[] = locationData.hourly.precipitation;
+      const hourlyTimes: string[] = locationData.hourly.time;
+
       loc.indices.forEach((pointIndex, i) => {
-        const closest = findClosestWeather(locationData.hourly.time, loc.times[i], {
+        const closest = findClosestWeather(hourlyTimes, loc.times[i], {
           temperature: locationData.hourly.temperature_2m,
           apparentTemperature: locationData.hourly.apparent_temperature,
           humidity: locationData.hourly.relative_humidity_2m,
-          precipitation: locationData.hourly.precipitation,
+          precipitation: hourlyPrecip,
           precipitationProbability: locationData.hourly.precipitation_probability,
           weatherCode: locationData.hourly.weather_code,
           windSpeed: locationData.hourly.wind_speed_10m,
@@ -77,6 +103,8 @@ export const openMeteoProvider: WeatherProvider = {
           directRadiation: locationData.hourly.direct_radiation,
           diffuseRadiation: locationData.hourly.diffuse_radiation,
         });
+
+        closest.past72hPrecipMm = computePast72hPrecip(hourlyTimes, hourlyPrecip, loc.times[i]);
 
         weatherResults.push({ index: pointIndex, weather: closest });
       });

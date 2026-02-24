@@ -13,6 +13,8 @@ export interface RoutePoint {
   estimatedTime?: Date;
 }
 
+export type MudRiskLevel = 'none' | 'low' | 'medium' | 'high';
+
 export interface WeatherData {
   time: string;
   temperature: number;
@@ -29,6 +31,7 @@ export interface WeatherData {
   isDay?: number;
   directRadiation?: number;
   diffuseRadiation?: number;
+  past72hPrecipMm?: number;
 }
 
 export interface EscapePoint {
@@ -61,6 +64,8 @@ export interface RouteWeatherPoint {
   escapePoint?: EscapePoint;
   mobileCoverage?: 'none' | 'low' | 'full';
   waterSources?: WaterSource[];
+  mudRisk?: MudRiskLevel;
+  mudRiskScore?: number;
 }
 
 export interface RouteSegmentMetadata {

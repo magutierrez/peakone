@@ -12,8 +12,10 @@ import {
   Droplets,
   Eye,
   EyeOff,
+  Footprints,
 } from 'lucide-react';
-import type { RouteWeatherPoint } from '@/lib/types';
+import type { RouteWeatherPoint, MudRiskLevel } from '@/lib/types';
+import { getMudRiskSegments } from '@/lib/mud-risk';
 import { Card, CardContent } from '@/components/ui/card';
 import { calculatePhysiologicalNeeds, cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -73,6 +75,19 @@ export function RouteAdvice({
   const allWaterSources = weatherPoints.flatMap((wp) => wp.waterSources || []);
   const hasLowReliabilityWater = allWaterSources.some((ws) => ws.reliability === 'low');
   const hasWater = allWaterSources.length > 0;
+
+  // Mud risk analysis
+  const mudPoints = weatherPoints.map((wp) => ({
+    distanceFromStart: wp.point.distanceFromStart,
+    mudRisk: wp.mudRisk ?? 'none',
+  }));
+  const mudSegments = getMudRiskSegments(mudPoints);
+  const overallMudRisk: MudRiskLevel = mudSegments.reduce<MudRiskLevel>((worst, s) => {
+    const order: MudRiskLevel[] = ['none', 'low', 'medium', 'high'];
+    return order.indexOf(s.level) > order.indexOf(worst) ? s.level : worst;
+  }, 'none');
+  // Show mud card if there's any precipitation data available (past72hPrecipMm defined on at least one point)
+  const hasMudData = weatherPoints.some((wp) => wp.weather.past72hPrecipMm !== undefined);
 
   const advices = [
     {
@@ -182,6 +197,15 @@ export function RouteAdvice({
         </Card>
       </div>
 
+      {/* Mud Risk Card */}
+      {hasMudData && (
+        <MudRiskCard
+          overallRisk={overallMudRisk}
+          segments={mudSegments}
+          activityType={activityType}
+        />
+      )}
+
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
         {advices.map((advice, i) => (
           <Card key={i} className="overflow-hidden">
@@ -198,5 +222,114 @@ export function RouteAdvice({
         ))}
       </div>
     </div>
+  );
+}
+
+// ─── Mud Risk Traffic-Light Card ─────────────────────────────────────────────
+
+interface MudRiskCardProps {
+  overallRisk: MudRiskLevel;
+  segments: import('@/lib/mud-risk').MudRiskSegment[];
+  activityType: 'cycling' | 'walking';
+}
+
+const MUD_LEVELS: MudRiskLevel[] = ['none', 'low', 'medium', 'high'];
+
+const TRAFFIC_LIGHT_COLORS: Record<MudRiskLevel, string> = {
+  none: 'bg-emerald-500',
+  low: 'bg-yellow-400',
+  medium: 'bg-orange-500',
+  high: 'bg-red-600',
+};
+
+const CARD_BORDER: Record<MudRiskLevel, string> = {
+  none: 'border-emerald-500/30',
+  low: 'border-yellow-400/30',
+  medium: 'border-orange-500/40',
+  high: 'border-red-600/40',
+};
+
+const CARD_BG: Record<MudRiskLevel, string> = {
+  none: 'bg-emerald-500/5',
+  low: 'bg-yellow-400/5',
+  medium: 'bg-orange-500/8',
+  high: 'bg-red-600/8',
+};
+
+function MudRiskCard({ overallRisk, segments, activityType }: MudRiskCardProps) {
+  const t = useTranslations('Advice');
+  const typeKey = activityType === 'cycling' ? 'cycling' : 'hiking';
+
+  const adviceKey =
+    overallRisk === 'none'
+      ? 'mudNone'
+      : overallRisk === 'low'
+        ? 'mudLow'
+        : `mud${overallRisk.charAt(0).toUpperCase() + overallRisk.slice(1)}${activityType.charAt(0).toUpperCase() + activityType.slice(1)}`;
+
+  // Translate the advice, falling back to a shared key for none/low
+  const adviceText =
+    overallRisk === 'none' || overallRisk === 'low'
+      ? t(adviceKey as Parameters<typeof t>[0])
+      : t(`${typeKey}.${adviceKey}` as Parameters<typeof t>[0]);
+
+  const riskySegments = segments.filter((s) => s.level === 'medium' || s.level === 'high');
+
+  return (
+    <Card className={cn('overflow-hidden border', CARD_BORDER[overallRisk], CARD_BG[overallRisk])}>
+      <CardContent className="flex gap-4 p-4">
+        {/* Traffic Light */}
+        <div className="mt-0.5 flex flex-shrink-0 flex-col items-center gap-1">
+          {MUD_LEVELS.map((level) => (
+            <div
+              key={level}
+              className={cn(
+                'h-3 w-3 rounded-full transition-opacity',
+                level === overallRisk ? TRAFFIC_LIGHT_COLORS[level] : 'bg-muted-foreground/20',
+              )}
+            />
+          ))}
+        </div>
+
+        {/* Content */}
+        <div className="flex min-w-0 flex-col gap-1.5">
+          <div className="flex items-center gap-2">
+            <Footprints className="text-muted-foreground h-4 w-4 flex-shrink-0" />
+            <span className="text-muted-foreground text-[10px] font-bold tracking-wider uppercase">
+              {t('mud')}
+            </span>
+            <span
+              className={cn(
+                'rounded px-1.5 py-0.5 text-[10px] font-bold uppercase',
+                overallRisk === 'none' && 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400',
+                overallRisk === 'low' && 'bg-yellow-400/15 text-yellow-700 dark:text-yellow-400',
+                overallRisk === 'medium' && 'bg-orange-500/15 text-orange-700 dark:text-orange-400',
+                overallRisk === 'high' && 'bg-red-600/15 text-red-700 dark:text-red-400',
+              )}
+            >
+              {t(`mudLevel.${overallRisk}` as Parameters<typeof t>[0])}
+            </span>
+          </div>
+
+          <p className="text-foreground text-sm leading-relaxed">{adviceText}</p>
+
+          {riskySegments.length > 0 && (
+            <ul className="mt-0.5 flex flex-col gap-1">
+              {riskySegments.map((seg, i) => (
+                <li key={i} className="text-muted-foreground flex items-center gap-1.5 text-xs">
+                  <span
+                    className={cn(
+                      'inline-block h-2 w-2 flex-shrink-0 rounded-full',
+                      seg.level === 'high' ? 'bg-red-500' : 'bg-orange-400',
+                    )}
+                  />
+                  {t('mudKmRange', { start: seg.startKm, end: seg.endKm })}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 }

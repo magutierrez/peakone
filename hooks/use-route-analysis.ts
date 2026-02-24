@@ -10,6 +10,7 @@ import {
   reverseGPXData,
 } from '@/lib/gpx-parser';
 import type { RouteWeatherPoint, WeatherData } from '@/lib/types';
+import { computeMudRiskScore, scoreToRiskLevel } from '@/lib/mud-risk';
 import {
   getSunPosition,
   getSolarExposure,
@@ -378,6 +379,17 @@ export function useRouteAnalysis() {
           const solarExposure = getSolarExposure(weather, sunPos, Math.abs(slopeDeg), aspectDeg);
           const solarIntensity = getSolarIntensity(weather.directRadiation, solarExposure);
 
+          const slopePercent = distDiff > 0 ? (eleDiff / distDiff) * 100 : 0;
+          const mudScore = computeMudRiskScore({
+            past72hPrecipMm: weather.past72hPrecipMm ?? 0,
+            surface: info.surface,
+            temperature: weather.temperature,
+            windSpeed: weather.windSpeed,
+            cloudCover: weather.cloudCover ?? 0,
+            isShaded: solarExposure === 'shade',
+            slopePercent,
+          });
+
           return {
             point: { ...point, ele },
             weather,
@@ -391,6 +403,8 @@ export function useRouteAnalysis() {
             escapePoint: info.escapePoint,
             mobileCoverage: info.mobileCoverage,
             waterSources: info.waterSources,
+            mudRisk: scoreToRiskLevel(mudScore),
+            mudRiskScore: mudScore,
           };
         });
 
