@@ -70,7 +70,7 @@ export function SavedRoutesList({ onLoadRoute, selectedRouteId }: SavedRoutesLis
   }
 
   return (
-    <div className="flex w-full min-w-0 flex-col gap-3">
+    <div className="flex min-h-0 w-full flex-col gap-3">
       <div className="flex items-center gap-2 px-1">
         <Route className="text-primary h-4 w-4" />
         <h3 className="text-muted-foreground text-xs font-bold tracking-wider uppercase">
@@ -78,8 +78,8 @@ export function SavedRoutesList({ onLoadRoute, selectedRouteId }: SavedRoutesLis
         </h3>
       </div>
 
-      <ScrollArea className="max-h-[350px] min-h-[130px] w-full pr-4">
-        <div className="flex w-full flex-col gap-2">
+      <ScrollArea className="h-[350px]">
+        <div className="flex w-full flex-col gap-2 pr-4">
           {routes.map((route) => (
             <div
               key={route.id}
