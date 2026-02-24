@@ -104,22 +104,19 @@ export function useElevationChart() {
   }, [chartData, left, right]);
 
   const handleMouseMove = (e: any) => {
-    if (e && e.chartX && e.viewBox && allPoints.length > 1 && chartData.length > 0) {
-      const { x, width } = e.viewBox;
-      const chartRatio = Math.max(0, Math.min(1, (e.chartX - x) / width));
+    const activeDistance: number | undefined =
+      e?.activeLabel ?? e?.activePayload?.[0]?.payload?.distance;
 
-      const actualMin = chartData[0].distance;
-      const actualMax = chartData[chartData.length - 1].distance;
-      const domainMin = left === 'dataMin' ? actualMin : left;
-      const domainMax = right === 'dataMax' ? actualMax : right;
-      const activeDistance = domainMin + chartRatio * (domainMax - domainMin);
-
+    if (activeDistance !== undefined && allPoints.length > 1) {
       const interpolatedPoint = interpolatePointOnRoute(allPoints, activeDistance);
       if (interpolatedPoint) {
         setChartHoverPoint(interpolatedPoint);
       }
     }
-    if (refAreaLeft !== null && e && e.activeLabel) setRefAreaRight(e.activeLabel);
+
+    if (refAreaLeft !== null && e?.activeLabel !== undefined) {
+      setRefAreaRight(e.activeLabel);
+    }
   };
 
   const handleMouseLeave = () => {
