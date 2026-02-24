@@ -95,6 +95,24 @@
       "medium": "Media",
       "low": "Baja (Posible seca)"
     },
+    "snowTitle": "Material para la Nieve",
+    "snowDepthLabel": "Prof. máx.",
+    "snowEquip": {
+      "boots": "Botas impermeables",
+      "snowshoes": "Raquetas de nieve",
+      "crampons": "Crampones / Microspikes",
+      "mountaineering": "Crampones + piolet"
+    },
+    "snow": {
+      "bootsCycling": "Nieve ligera en el camino. Se recomiendan botas impermeables. Los tramos en bici pueden ser imposibles.",
+      "bootsWalking": "Nieve ligera en el camino. Se recomiendan botas impermeables con buen soporte de tobillo.",
+      "snowshoesCycling": "Nieve polvo profunda y fresca. La bici no es viable — raquetas imprescindibles para los tramos a pie.",
+      "snowshoesWalking": "Nieve polvo profunda y fresca (riesgo de hundirse). Las raquetas son imprescindibles para no hundirse hasta la rodilla.",
+      "cramponsCycling": "Nieve dura o costra de hielo detectada. La bici no es viable — crampones o microspikes necesarios para caminar.",
+      "cramponsWalking": "Nieve dura o superficie helada detectada. Crampones o microspikes imprescindibles. Se recomiendan bastones.",
+      "mountaineeringCycling": "Terreno alpino empinado con nieve (>30°). Extremadamente peligroso en bici. No intentar — se requiere material de alpinismo.",
+      "mountaineeringWalking": "Terreno alpino empinado con nieve (>30°). Las raquetas son insuficientes — crampones y piolet obligatorios."
+    },
     "mud": "Riesgo de Barro",
     "mudNone": "Pista seca. No se espera barro significativo.",
     "mudLow": "Posible barro ligero en tramos sin asfaltar tras las últimas lluvias.",

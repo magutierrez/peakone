@@ -95,6 +95,24 @@
       "medium": "Medium",
       "low": "Low (Possibly dry)"
     },
+    "snowTitle": "Snow Equipment",
+    "snowDepthLabel": "Max depth",
+    "snowEquip": {
+      "boots": "Waterproof boots",
+      "snowshoes": "Snowshoes",
+      "crampons": "Crampons / Microspikes",
+      "mountaineering": "Crampons + ice axe"
+    },
+    "snow": {
+      "bootsCycling": "Light snow on the trail. Waterproof boots recommended. Bike sections may be unrideable.",
+      "bootsWalking": "Light snow on the trail. Waterproof boots with good ankle support recommended.",
+      "snowshoesCycling": "Deep fresh powder snow. The bike is unrideable — snowshoes essential for any walking sections.",
+      "snowshoesWalking": "Deep fresh powder snow (postholing risk). Snowshoes are essential to avoid sinking knee-deep.",
+      "cramponsCycling": "Hard packed snow or icy crust detected. The bike is unrideable — crampons or microspikes needed for any walking.",
+      "cramponsWalking": "Hard packed snow or icy surface detected. Crampons or microspikes are essential. Poles strongly recommended.",
+      "mountaineeringCycling": "Steep alpine terrain with snow (>30°). Extremely dangerous on a bike. Do not attempt — mountaineering gear required.",
+      "mountaineeringWalking": "Steep alpine terrain with snow (>30°). Snowshoes are insufficient — crampons and ice axe mandatory."
+    },
     "mud": "Mud Risk",
     "mudNone": "Dry track expected. No significant mud risk.",
     "mudLow": "Light mud possible on unpaved sections after recent rain.",

@@ -11,6 +11,7 @@ import {
 } from '@/lib/gpx-parser';
 import type { RouteWeatherPoint, WeatherData } from '@/lib/types';
 import { computeMudRiskScore, scoreToRiskLevel } from '@/lib/mud-risk';
+import { computeSnowCondition } from '@/lib/snowshoe';
 import {
   getSunPosition,
   getSolarExposure,
@@ -380,6 +381,13 @@ export function useRouteAnalysis() {
           const solarIntensity = getSolarIntensity(weather.directRadiation, solarExposure);
 
           const slopePercent = distDiff > 0 ? (eleDiff / distDiff) * 100 : 0;
+          const snowCond = computeSnowCondition({
+            snowDepthCm: weather.snowDepthCm ?? 0,
+            recent48hSnowfallCm: weather.recent48hSnowfallCm ?? 0,
+            freezeThawCycle: weather.freezeThawCycle ?? false,
+            temperature: weather.temperature,
+            slopeDeg,
+          });
           const mudScore = computeMudRiskScore({
             past72hPrecipMm: weather.past72hPrecipMm ?? 0,
             surface: info.surface,
@@ -405,6 +413,7 @@ export function useRouteAnalysis() {
             waterSources: info.waterSources,
             mudRisk: scoreToRiskLevel(mudScore),
             mudRiskScore: mudScore,
+            snowCondition: snowCond,
           };
         });
 

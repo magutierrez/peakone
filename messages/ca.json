@@ -86,6 +86,24 @@
       "medium": "Mitjana",
       "low": "Baixa (Possible seca)"
     },
+    "snowTitle": "Material per a la Neu",
+    "snowDepthLabel": "Prof. màx.",
+    "snowEquip": {
+      "boots": "Botes impermeables",
+      "snowshoes": "Raquetes de neu",
+      "crampons": "Crampons / Microspikes",
+      "mountaineering": "Crampons + piolet"
+    },
+    "snow": {
+      "bootsCycling": "Neu lleugera al camí. Es recomanen botes impermeables. Els trams en bici poden ser intransitables.",
+      "bootsWalking": "Neu lleugera al camí. Es recomanen botes impermeables amb bon suport de turmell.",
+      "snowshoesCycling": "Neu polvo profunda i fresca. La bici no és viable — raquetes imprescindibles per als trams a peu.",
+      "snowshoesWalking": "Neu polvo profunda i fresca (risc d'enfonsar-se). Les raquetes són imprescindibles per no enfonsar-se fins als genolls.",
+      "cramponsCycling": "Neu dura o crosta de gel detectada. La bici no és viable — crampons o microspikes necessaris per caminar.",
+      "cramponsWalking": "Neu dura o superfície gelada detectada. Crampons o microspikes imprescindibles. Es recomanen bastons.",
+      "mountaineeringCycling": "Terreny alpí pronunciat amb neu (>30°). Extremadament perillós en bici. No intentar — es requereix material d'alpinisme.",
+      "mountaineeringWalking": "Terreny alpí pronunciat amb neu (>30°). Les raquetes són insuficients — crampons i piolet obligatoris."
+    },
     "mud": "Risc de Fang",
     "mudNone": "Pista seca. No s'espera fang significatiu.",
     "mudLow": "Possible fang lleuger en trams sense asfaltar després de les darreres pluges.",

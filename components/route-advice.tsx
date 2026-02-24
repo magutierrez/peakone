@@ -18,9 +18,11 @@ import {
   Layers,
   Thermometer,
   MountainSnow,
+  Snowflake,
 } from 'lucide-react';
-import type { RouteWeatherPoint, MudRiskLevel } from '@/lib/types';
+import type { RouteWeatherPoint, MudRiskLevel, SnowCondition } from '@/lib/types';
 import { getMudRiskSegments } from '@/lib/mud-risk';
+import { getSnowSegments, getOverallSnowCondition } from '@/lib/snowshoe';
 import { Card, CardContent } from '@/components/ui/card';
 import { calculatePhysiologicalNeeds, cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -118,8 +120,7 @@ export function RouteAdvice({
           ) / 10;
         const avgWind =
           Math.round(
-            (weatherPoints.reduce((s, wp) => s + wp.weather.windSpeed, 0) /
-              weatherPoints.length) *
+            (weatherPoints.reduce((s, wp) => s + wp.weather.windSpeed, 0) / weatherPoints.length) *
               10,
           ) / 10;
         const shadedPct = Math.round(
@@ -130,6 +131,18 @@ export function RouteAdvice({
         return { avgPrecip, dominantSurface, avgTemp, avgWind, shadedPct };
       })()
     : null;
+
+  // Snow / snowshoe analysis
+  const snowPoints = weatherPoints.map((wp) => ({
+    distanceFromStart: wp.point.distanceFromStart,
+    snowCondition: wp.snowCondition ?? 'none',
+  }));
+  const snowSegments = getSnowSegments(snowPoints);
+  const overallSnowCondition = getOverallSnowCondition(snowPoints.map((p) => p.snowCondition));
+  const hasSnow = overallSnowCondition !== 'none';
+  const maxSnowDepthCm = hasSnow
+    ? Math.max(...weatherPoints.map((wp) => wp.weather.snowDepthCm ?? 0))
+    : 0;
 
   const advices = [
     {
@@ -238,6 +251,16 @@ export function RouteAdvice({
           </CardContent>
         </Card>
       </div>
+
+      {/* Snow / Snowshoe Card — only rendered when there is meaningful snow */}
+      {hasSnow && (
+        <SnowshoeCard
+          overallCondition={overallSnowCondition}
+          segments={snowSegments}
+          activityType={activityType}
+          maxSnowDepthCm={maxSnowDepthCm}
+        />
+      )}
 
       {/* Mud Risk Card */}
       {hasMudData && mudInputs && (
@@ -352,7 +375,8 @@ function MudRiskCard({ overallRisk, segments, activityType, inputs }: MudRiskCar
             <span
               className={cn(
                 'rounded px-1.5 py-0.5 text-[10px] font-bold uppercase',
-                overallRisk === 'none' && 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400',
+                overallRisk === 'none' &&
+                  'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400',
                 overallRisk === 'low' && 'bg-yellow-400/15 text-yellow-700 dark:text-yellow-400',
                 overallRisk === 'medium' && 'bg-orange-500/15 text-orange-700 dark:text-orange-400',
                 overallRisk === 'high' && 'bg-red-600/15 text-red-700 dark:text-red-400',
@@ -396,7 +420,11 @@ function MudRiskCard({ overallRisk, segments, activityType, inputs }: MudRiskCar
                     <MudInfoRow
                       icon={<MountainSnow className="h-3.5 w-3.5 text-slate-500" />}
                       label={t('mudInfoSlopeLabel')}
-                      value={inputs.shadedPct > 0 ? `${inputs.shadedPct}% ${t('mudInfoShaded')}` : t('mudInfoOpenTerrain')}
+                      value={
+                        inputs.shadedPct > 0
+                          ? `${inputs.shadedPct}% ${t('mudInfoShaded')}`
+                          : t('mudInfoOpenTerrain')
+                      }
                       detail={t('mudInfoSlopeDetail')}
                     />
                   </ul>
@@ -420,6 +448,134 @@ function MudRiskCard({ overallRisk, segments, activityType, inputs }: MudRiskCar
                       seg.level === 'high' ? 'bg-red-500' : 'bg-orange-400',
                     )}
                   />
+                  {t('mudKmRange', { start: seg.startKm, end: seg.endKm })}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ─── Snowshoe / Snow Equipment Card ─────────────────────────────────────────
+
+const SNOW_CONDITIONS: SnowCondition[] = ['boots', 'snowshoes', 'crampons', 'mountaineering'];
+
+const SNOW_CONDITION_COLORS: Record<SnowCondition, string> = {
+  none: 'bg-muted-foreground/20',
+  boots: 'bg-sky-400',
+  snowshoes: 'bg-blue-500',
+  crampons: 'bg-indigo-600',
+  mountaineering: 'bg-red-600',
+};
+
+const SNOW_CARD_BORDER: Record<SnowCondition, string> = {
+  none: '',
+  boots: 'border-sky-400/30',
+  snowshoes: 'border-blue-500/40',
+  crampons: 'border-indigo-600/40',
+  mountaineering: 'border-red-600/50',
+};
+
+const SNOW_CARD_BG: Record<SnowCondition, string> = {
+  none: '',
+  boots: 'bg-sky-400/5',
+  snowshoes: 'bg-blue-500/5',
+  crampons: 'bg-indigo-600/5',
+  mountaineering: 'bg-red-600/8',
+};
+
+const SNOW_BADGE_CLASS: Record<SnowCondition, string> = {
+  none: '',
+  boots: 'bg-sky-400/15 text-sky-700 dark:text-sky-300',
+  snowshoes: 'bg-blue-500/15 text-blue-700 dark:text-blue-300',
+  crampons: 'bg-indigo-600/15 text-indigo-700 dark:text-indigo-300',
+  mountaineering: 'bg-red-600/15 text-red-700 dark:text-red-400',
+};
+
+interface SnowshoeCardProps {
+  overallCondition: SnowCondition;
+  segments: import('@/lib/snowshoe').SnowSegment[];
+  activityType: 'cycling' | 'walking';
+  maxSnowDepthCm: number;
+}
+
+function SnowshoeCard({
+  overallCondition,
+  segments,
+  activityType,
+  maxSnowDepthCm,
+}: SnowshoeCardProps) {
+  const t = useTranslations('Advice');
+
+  const equipmentKey = `snowEquip.${overallCondition}` as Parameters<typeof t>[0];
+  const adviceKey =
+    `snow.${overallCondition}${activityType === 'cycling' ? 'Cycling' : 'Walking'}` as Parameters<
+      typeof t
+    >[0];
+
+  return (
+    <Card
+      className={cn(
+        'overflow-hidden border',
+        SNOW_CARD_BORDER[overallCondition],
+        SNOW_CARD_BG[overallCondition],
+      )}
+    >
+      <CardContent className="flex gap-4 p-4">
+        {/* Severity ladder */}
+        <div className="mt-0.5 flex flex-shrink-0 flex-col items-center gap-1">
+          {SNOW_CONDITIONS.map((level) => (
+            <div
+              key={level}
+              className={cn(
+                'h-3 w-3 rounded-full transition-opacity',
+                level === overallCondition
+                  ? SNOW_CONDITION_COLORS[level]
+                  : 'bg-muted-foreground/20',
+              )}
+            />
+          ))}
+        </div>
+
+        {/* Content */}
+        <div className="flex min-w-0 flex-col gap-1.5">
+          <div className="flex flex-wrap items-center gap-2">
+            <Snowflake className="text-muted-foreground h-4 w-4 flex-shrink-0" />
+            <span className="text-muted-foreground text-[10px] font-bold tracking-wider uppercase">
+              {t('snowTitle')}
+            </span>
+            <span
+              className={cn(
+                'rounded px-1.5 py-0.5 text-[10px] font-bold uppercase',
+                SNOW_BADGE_CLASS[overallCondition],
+              )}
+            >
+              {t(equipmentKey)}
+            </span>
+            <span className="text-muted-foreground font-mono text-[10px]">
+              {t('snowDepthLabel')}: {maxSnowDepthCm} cm
+            </span>
+          </div>
+
+          <p className="text-foreground text-sm leading-relaxed">{t(adviceKey)}</p>
+
+          {segments.length > 0 && (
+            <ul className="mt-0.5 flex flex-col gap-1">
+              {segments.map((seg, i) => (
+                <li key={i} className="text-muted-foreground flex items-center gap-1.5 text-xs">
+                  <span
+                    className={cn(
+                      'inline-block h-2 w-2 flex-shrink-0 rounded-full',
+                      SNOW_CONDITION_COLORS[seg.condition],
+                    )}
+                  />
+                  <span className="font-mono">
+                    {t(`snowEquip.${seg.condition}` as Parameters<typeof t>[0])}
+                  </span>
+                  <span>·</span>
                   {t('mudKmRange', { start: seg.startKm, end: seg.endKm })}
                 </li>
               ))}

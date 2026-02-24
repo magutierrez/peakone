@@ -14,6 +14,7 @@ export interface RoutePoint {
 }
 
 export type MudRiskLevel = 'none' | 'low' | 'medium' | 'high';
+export type SnowCondition = 'none' | 'boots' | 'snowshoes' | 'crampons' | 'mountaineering';
 
 export interface WeatherData {
   time: string;
@@ -32,6 +33,9 @@ export interface WeatherData {
   directRadiation?: number;
   diffuseRadiation?: number;
   past72hPrecipMm?: number;
+  snowDepthCm?: number;
+  recent48hSnowfallCm?: number;
+  freezeThawCycle?: boolean;
 }
 
 export interface EscapePoint {
@@ -66,6 +70,7 @@ export interface RouteWeatherPoint {
   waterSources?: WaterSource[];
   mudRisk?: MudRiskLevel;
   mudRiskScore?: number;
+  snowCondition?: SnowCondition;
 }
 
 export interface RouteSegmentMetadata {

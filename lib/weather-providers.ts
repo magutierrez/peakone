@@ -9,6 +9,47 @@ export interface WeatherProvider {
   }) => Promise<Array<{ index: number; weather: WeatherData }>>;
 }
 
+/** Sums hourly values in a N-hour window strictly before targetTime. */
+function computeWindowSum(
+  hourlyTimes: string[],
+  hourlyValues: (number | null)[],
+  targetTime: string,
+  windowHours: number,
+): number {
+  const target = new Date(targetTime).getTime();
+  const cutoff = target - windowHours * 3_600_000;
+  let total = 0;
+  for (let i = 0; i < hourlyTimes.length; i++) {
+    const t = new Date(hourlyTimes[i]).getTime();
+    if (t >= cutoff && t < target) total += hourlyValues[i] ?? 0;
+  }
+  return Math.round(total * 10) / 10;
+}
+
+/**
+ * Returns true if within the last 48 h the temperature crossed both above +2 °C
+ * and below -2 °C — indicating a freeze/thaw cycle.
+ */
+function detectFreezeThaw(
+  hourlyTimes: string[],
+  hourlyTemps: (number | null)[],
+  targetTime: string,
+): boolean {
+  const target = new Date(targetTime).getTime();
+  const cutoff = target - 48 * 3_600_000;
+  let hadWarm = false;
+  let hadFreezing = false;
+  for (let i = 0; i < hourlyTimes.length; i++) {
+    const t = new Date(hourlyTimes[i]).getTime();
+    if (t >= cutoff && t < target) {
+      const temp = hourlyTemps[i] ?? 0;
+      if (temp > 2) hadWarm = true;
+      if (temp < -2) hadFreezing = true;
+    }
+  }
+  return hadWarm && hadFreezing;
+}
+
 /** Sums hourly precipitation in the 72-hour window before targetTime. */
 function computePast72hPrecip(
   hourlyTimes: string[],
@@ -65,7 +106,7 @@ export const openMeteoProvider: WeatherProvider = {
     url.searchParams.set('longitude', locations.map((l) => l.lon).join(','));
     url.searchParams.set(
       'hourly',
-      'temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,precipitation_probability,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,cloud_cover,visibility,is_day,direct_radiation,diffuse_radiation',
+      'temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,precipitation_probability,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,cloud_cover,visibility,is_day,direct_radiation,diffuse_radiation,snow_depth,snowfall',
     );
     url.searchParams.set('start_date', historicalStart);
     url.searchParams.set('end_date', endDate);
@@ -84,11 +125,15 @@ export const openMeteoProvider: WeatherProvider = {
     resultsArray.forEach((locationData, locationIdx) => {
       const loc = locations[locationIdx];
       const hourlyPrecip: number[] = locationData.hourly.precipitation;
+      const hourlyTemps: number[] = locationData.hourly.temperature_2m;
+      const hourlySnowfall: number[] = locationData.hourly.snowfall ?? [];
+      // snow_depth is in metres; convert to cm
+      const hourlySnowDepthM: number[] = locationData.hourly.snow_depth ?? [];
       const hourlyTimes: string[] = locationData.hourly.time;
 
       loc.indices.forEach((pointIndex, i) => {
-        const closest = findClosestWeather(hourlyTimes, loc.times[i], {
-          temperature: locationData.hourly.temperature_2m,
+        const raw = findClosestWeather(hourlyTimes, loc.times[i], {
+          temperature: hourlyTemps,
           apparentTemperature: locationData.hourly.apparent_temperature,
           humidity: locationData.hourly.relative_humidity_2m,
           precipitation: hourlyPrecip,
@@ -102,11 +147,18 @@ export const openMeteoProvider: WeatherProvider = {
           isDay: locationData.hourly.is_day,
           directRadiation: locationData.hourly.direct_radiation,
           diffuseRadiation: locationData.hourly.diffuse_radiation,
+          _snowDepthM: hourlySnowDepthM,
         });
 
-        closest.past72hPrecipMm = computePast72hPrecip(hourlyTimes, hourlyPrecip, loc.times[i]);
+        // Convert snow_depth from metres to cm and remove the internal key
+        raw.snowDepthCm = Math.round((raw._snowDepthM ?? 0) * 100);
+        delete raw._snowDepthM;
 
-        weatherResults.push({ index: pointIndex, weather: closest });
+        raw.past72hPrecipMm = computePast72hPrecip(hourlyTimes, hourlyPrecip, loc.times[i]);
+        raw.recent48hSnowfallCm = computeWindowSum(hourlyTimes, hourlySnowfall, loc.times[i], 48);
+        raw.freezeThawCycle = detectFreezeThaw(hourlyTimes, hourlyTemps, loc.times[i]);
+
+        weatherResults.push({ index: pointIndex, weather: raw });
       });
     });
 
