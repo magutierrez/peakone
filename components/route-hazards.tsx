@@ -45,7 +45,7 @@ export function RouteHazards({
   const t = useTranslations('Hazards');
   const tRouteMap = useTranslations('RouteMap');
 
-  const { sortedSegments, buildChartData, handleMouseMove } = useRouteHazards(weatherPoints);
+  const { sortedSegments, buildChartData, handleMouseMove, handleMouseLeave } = useRouteHazards(weatherPoints);
 
   if (weatherPoints.length === 0) return null;
 
@@ -143,10 +143,8 @@ export function RouteHazards({
                     <AreaChart
                       data={chartData}
                       margin={{ top: 10, right: 0, left: 0, bottom: 0 }}
-                      onMouseMove={(e) =>
-                        onSelectPoint && handleMouseMove(e, densePoints, onSelectPoint)
-                      }
-                      onMouseLeave={() => onSelectPoint?.(null)}
+                      onMouseMove={(e) => handleMouseMove(e, densePoints, onSelectPoint ?? (() => {}))}
+                      onMouseLeave={() => handleMouseLeave(onSelectPoint)}
                     >
                       <defs>
                         <linearGradient id={`grad-${idx}`} x1="0" y1="0" x2="1" y2="0">

@@ -5,9 +5,11 @@ import type { RouteWeatherPoint, RoutePoint } from '@/lib/types';
 import { analyzeRouteSegments } from '@/lib/utils';
 import { getSlopeColorHex } from '@/lib/slope-colors';
 import { interpolatePointOnRoute } from '@/lib/geometry';
+import { useRouteStore } from '@/store/route-store';
 
 export function useRouteHazards(weatherPoints: RouteWeatherPoint[]) {
   const lastUpdateRef = useRef<number>(0);
+  const setChartHoverPoint = useRouteStore((s) => s.setChartHoverPoint);
 
   const sortedSegments = useMemo(() => {
     const segments = analyzeRouteSegments(weatherPoints);
@@ -47,25 +49,30 @@ export function useRouteHazards(weatherPoints: RouteWeatherPoint[]) {
       segmentPoints: RoutePoint[],
       onSelectPoint: (point: RoutePoint | null) => void,
     ) => {
-      if (e && e.chartX && e.viewBox && segmentPoints.length > 1) {
+      const activeDistance: number | undefined =
+        e?.activeLabel ?? e?.activePayload?.[0]?.payload?.dist;
+      if (activeDistance !== undefined && segmentPoints.length > 1) {
         const now = Date.now();
         if (now - lastUpdateRef.current > 8) {
-          const { x, width } = e.viewBox;
-          const chartRatio = Math.max(0, Math.min(1, (e.chartX - x) / width));
-          const startDist = segmentPoints[0].distanceFromStart;
-          const endDist = segmentPoints[segmentPoints.length - 1].distanceFromStart;
-          const activeDist = startDist + chartRatio * (endDist - startDist);
-
-          const interpolated = interpolatePointOnRoute(segmentPoints, activeDist);
+          const interpolated = interpolatePointOnRoute(segmentPoints, activeDistance);
           if (interpolated) {
             onSelectPoint(interpolated);
+            setChartHoverPoint(interpolated);
           }
           lastUpdateRef.current = now;
         }
       }
     },
-    [],
+    [setChartHoverPoint],
   );
 
-  return { sortedSegments, buildChartData, handleMouseMove };
+  const handleMouseLeave = useCallback(
+    (onSelectPoint?: (point: RoutePoint | null) => void) => {
+      onSelectPoint?.(null);
+      setChartHoverPoint(null);
+    },
+    [setChartHoverPoint],
+  );
+
+  return { sortedSegments, buildChartData, handleMouseMove, handleMouseLeave };
 }
