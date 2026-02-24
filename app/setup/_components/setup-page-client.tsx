@@ -15,9 +15,10 @@ import { GPXUpload } from '@/components/gpx-upload';
 import { WikilocImport } from '@/components/wikiloc-import';
 import { SavedRoutesList } from '@/components/saved-routes-list';
 import { Button } from '@/components/ui/button';
-import { Bike, Footprints, ArrowRight, FileUp, History, Globe } from 'lucide-react';
+import { Bike, Footprints, ArrowRight, FileUp, History, Globe, Sun, Moon } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { LocaleSwitcher } from '@/app/_components/locale-switcher';
+import { useTheme } from 'next-themes';
 import { UserMenu } from '@/app/_components/user-menu';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -39,6 +40,7 @@ export function SetupPageClient({ session: serverSession }: SetupPageClientProps
   const [error, setError] = useState<string | null>(null);
 
   const [activityType, setActivityType] = useState<'cycling' | 'walking'>('cycling');
+  const { theme, setTheme } = useTheme();
 
   const { routes: savedRoutes, saveRoute, refresh } = useSavedRoutes(); // to show saved routes
 
@@ -137,6 +139,15 @@ export function SetupPageClient({ session: serverSession }: SetupPageClientProps
   return (
     <div className="bg-background flex min-h-screen flex-col items-center justify-center p-4">
       <div className="absolute top-4 right-4 flex items-center gap-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-9 w-9"
+          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+        >
+          {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          <span className="sr-only">Toggle theme</span>
+        </Button>
         <LocaleSwitcher />
         <UserMenu
           userName={session?.user?.name}
