@@ -15,6 +15,22 @@ export interface RoutePoint {
 
 export type MudRiskLevel = 'none' | 'low' | 'medium' | 'high';
 export type SnowCondition = 'none' | 'boots' | 'snowshoes' | 'crampons' | 'mountaineering';
+export type ViabilityRating = 'go' | 'caution' | 'danger';
+
+export interface ViabilityThreat {
+  type: 'wind' | 'storm' | 'temperature' | 'visibility';
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  deduction: number;
+  km: number;
+  value: number;
+  terrainFactor: number;
+}
+
+export interface ViabilityResult {
+  score: number;
+  rating: ViabilityRating;
+  threats: ViabilityThreat[];
+}
 
 export interface WeatherData {
   time: string;
