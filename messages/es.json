@@ -206,7 +206,10 @@
       "daylightFormat": "{hours}h {minutes}m",
       "maxSolarLabel": "{percent}% Sol Máx",
       "shadeLabel": "{percent}% Sombra",
-      "snowTitle": "Nieve media"
+      "snowTitle": "Nieve media",
+      "nightPointLabel": "Oscurece aquí",
+      "nightPointBtn": "Ver en mapa",
+      "valleyAdjusted": "Ajuste por valle"
     },
     "safety": {
       "escapeTitle": "Puntos de Escape",

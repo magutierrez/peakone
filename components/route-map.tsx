@@ -8,6 +8,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 
 import { useMapLayers } from './route-map/use-map-layers';
 import { MapMarkers } from './route-map/map-markers';
+import { findNightPointIndex } from '@/lib/utils';
 import { MapPopup } from './route-map/map-popup';
 import { MapLegend } from './route-map/map-legend';
 import { RouteLayers } from './route-map/route-layers';
@@ -43,6 +44,11 @@ export default function RouteMap({ onResetToFullRouteView }: RouteMapProps) {
   const { setSelectedPointIndex, setExactSelectedPoint, clearSelection } = useRouteStore();
 
   const points = gpxData?.points || [];
+
+  const nightPointIndex = useMemo(
+    () => (weatherPoints.length > 0 ? findNightPointIndex(weatherPoints).index : null),
+    [weatherPoints],
+  );
 
   const [hoveredPointIdx, setHoveredPointIdx] = useState<number | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -361,6 +367,7 @@ export default function RouteMap({ onResetToFullRouteView }: RouteMapProps) {
           activityType={activityType ?? undefined}
           showWaterSources={showWaterSources}
           focusPoint={focusPoint}
+          nightPointIndex={nightPointIndex}
         />
 
         {activePopupData && (

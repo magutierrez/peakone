@@ -206,7 +206,10 @@
       "daylightFormat": "{hours}h {minutes}m",
       "maxSolarLabel": "{percent}% Max Sun",
       "shadeLabel": "{percent}% Shade",
-      "snowTitle": "Avg. Snow Depth"
+      "snowTitle": "Avg. Snow Depth",
+      "nightPointLabel": "Gets dark here",
+      "nightPointBtn": "Show on map",
+      "valleyAdjusted": "Valley-adjusted"
     },
     "safety": {
       "escapeTitle": "Escape Points",

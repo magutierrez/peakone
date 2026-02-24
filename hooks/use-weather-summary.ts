@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import type { RouteWeatherPoint } from '@/lib/types';
-import { getSunPosition } from '@/lib/utils';
+import { getSunPosition, findNightPointIndex } from '@/lib/utils';
 
 export function useWeatherSummary(weatherPoints: RouteWeatherPoint[]) {
   return useMemo(() => {
@@ -20,6 +20,9 @@ export function useWeatherSummary(weatherPoints: RouteWeatherPoint[]) {
         lastTime: new Date(),
         avgSnowDepthCm: 0,
         hasSnow: false,
+        nightPoint: null,
+        nightPointIndex: null,
+        isValleyAdjusted: false,
       };
     }
 
@@ -50,6 +53,9 @@ export function useWeatherSummary(weatherPoints: RouteWeatherPoint[]) {
       weatherPoints.reduce((s, w) => s + (w.weather.snowDepthCm ?? 0), 0) / weatherPoints.length;
     const hasSnow = weatherPoints.some((w) => (w.weather.snowDepthCm ?? 0) > 0);
 
+    const { index: nightPointIndex, isValleyAdjusted } = findNightPointIndex(weatherPoints);
+    const nightPoint = nightPointIndex !== null ? weatherPoints[nightPointIndex] : null;
+
     return {
       avgTemp,
       maxWind,
@@ -65,6 +71,9 @@ export function useWeatherSummary(weatherPoints: RouteWeatherPoint[]) {
       lastTime,
       avgSnowDepthCm,
       hasSnow,
+      nightPoint,
+      nightPointIndex,
+      isValleyAdjusted,
     };
   }, [weatherPoints]);
 }

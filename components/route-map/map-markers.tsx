@@ -2,7 +2,7 @@
 
 import { Marker } from 'react-map-gl/maplibre';
 import { WindArrow } from '@/components/wind-arrow';
-import { MapPin, Droplets, Signpost } from 'lucide-react';
+import { MapPin, Droplets, Signpost, Moon } from 'lucide-react';
 import type { RoutePoint, RouteWeatherPoint } from '@/lib/types';
 import type { ActiveFilter } from '@/store/route-store';
 import { useTranslations } from 'next-intl';
@@ -19,6 +19,7 @@ interface MapMarkersProps {
   activityType?: 'cycling' | 'walking';
   showWaterSources?: boolean;
   focusPoint?: { lat: number; lon: number; name?: string } | null;
+  nightPointIndex?: number | null;
 }
 
 export function MapMarkers({
@@ -33,6 +34,7 @@ export function MapMarkers({
   activityType,
   showWaterSources,
   focusPoint,
+  nightPointIndex = null,
 }: MapMarkersProps) {
   const t = useTranslations('WeatherTimeline');
   const startPoint = points[0];
@@ -170,6 +172,36 @@ export function MapMarkers({
           </Marker>
         );
       })}
+      {/* Night Trap Marker */}
+      {nightPointIndex !== null && weatherPoints?.[nightPointIndex] && (() => {
+        const np = weatherPoints[nightPointIndex];
+        const nightTime = new Date(np.weather.time).toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+        return (
+          <Marker
+            longitude={np.point.lon}
+            latitude={np.point.lat}
+            anchor="bottom"
+            style={{ zIndex: 150 }}
+          >
+            <div className="animate-in fade-in slide-in-from-bottom-1 flex flex-col items-center">
+              <div className="rounded-lg bg-slate-900/95 px-2 py-1 text-[10px] font-bold text-indigo-200 shadow-xl ring-1 ring-indigo-500/50 whitespace-nowrap">
+                🌙 {nightTime} · km {np.point.distanceFromStart.toFixed(1)}
+              </div>
+              <div className="relative mt-0.5">
+                <div className="absolute inset-0 animate-ping rounded-full bg-indigo-500 opacity-30" />
+                <div className="relative flex h-8 w-8 items-center justify-center rounded-full border-2 border-indigo-400/60 bg-slate-900 shadow-lg">
+                  <Moon className="h-4 w-4 text-indigo-300" />
+                </div>
+              </div>
+              <div className="h-2 w-1 rounded-full bg-slate-700" />
+            </div>
+          </Marker>
+        );
+      })()}
+
       {/* Focus Point (Highlighted Evacuation) */}
       {focusPoint && (
         <Marker longitude={focusPoint.lon} latitude={focusPoint.lat} anchor="bottom" z-index={200}>

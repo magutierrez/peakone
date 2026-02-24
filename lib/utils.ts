@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import type { RouteWeatherPoint } from './types';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -137,6 +138,28 @@ export function getSolarIntensity(
   if (rad < 400) return 'weak';
   if (rad < 800) return 'moderate';
   return 'intense';
+}
+
+/**
+ * Returns the index of the first route point where effective darkness begins,
+ * accounting for a ~45-min (≈ 11°) earlier sunset in shaded/valley terrain.
+ */
+export function findNightPointIndex(weatherPoints: RouteWeatherPoint[]): {
+  index: number | null;
+  isValleyAdjusted: boolean;
+} {
+  for (let i = 0; i < weatherPoints.length; i++) {
+    const wp = weatherPoints[i];
+    const time = new Date(wp.weather.time);
+    const sunAlt = getSunPosition(time, wp.point.lat, wp.point.lon).altitude;
+    const isShaded = wp.solarExposure === 'shade';
+    // In enclosed valleys the effective darkness threshold is ~11° above the horizon
+    const threshold = isShaded ? 11 : 0;
+    if (sunAlt < threshold) {
+      return { index: i, isValleyAdjusted: isShaded && sunAlt >= 0 };
+    }
+  }
+  return { index: null, isValleyAdjusted: false };
 }
 
 /**

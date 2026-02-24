@@ -193,7 +193,10 @@
       "daylightFormat": "{hours}h {minutes}m",
       "maxSolarLabel": "{percent}% Sol Màx",
       "shadeLabel": "{percent}% Ombra",
-      "snowTitle": "Neu mitjana"
+      "snowTitle": "Neu mitjana",
+      "nightPointLabel": "Enfosqueix aquí",
+      "nightPointBtn": "Veure al mapa",
+      "valleyAdjusted": "Ajust per vall"
     },
     "safety": {
       "escapeTitle": "Punts d'Escapament",
