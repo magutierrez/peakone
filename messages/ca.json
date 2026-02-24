@@ -296,7 +296,9 @@
       "grass": "Herba",
       "unknown": "Desconegut",
       "sett": "Empedrat",
-      "paving_stones": "Adoquins"
+      "paving_stones": "Adoquins",
+      "rock": "Roca",
+      "scree": "Pedrera"
     }
   },
   "Auth": {

@@ -312,7 +312,9 @@
       "sand": "Sand",
       "grass": "Grass",
       "unknown": "Unknown",
-      "sett": "Sett/Cobblestone"
+      "sett": "Sett/Cobblestone",
+      "rock": "Rock",
+      "scree": "Scree"
     }
   },
   "Auth": {

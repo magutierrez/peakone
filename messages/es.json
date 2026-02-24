@@ -312,7 +312,9 @@
       "grass": "Hierba",
       "unknown": "Desconocido",
       "sett": "Empedrado",
-      "paving_stones": "Adoquines"
+      "paving_stones": "Adoquines",
+      "rock": "Roca",
+      "scree": "Pedrera"
     }
   },
   "Auth": {
