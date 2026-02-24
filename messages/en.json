@@ -205,7 +205,8 @@
       "nightArrival": "Night arrival!",
       "daylightFormat": "{hours}h {minutes}m",
       "maxSolarLabel": "{percent}% Max Sun",
-      "shadeLabel": "{percent}% Shade"
+      "shadeLabel": "{percent}% Shade",
+      "snowTitle": "Avg. Snow Depth"
     },
     "safety": {
       "escapeTitle": "Escape Points",

@@ -192,7 +192,8 @@
       "nightArrival": "Arribaràs de nit!",
       "daylightFormat": "{hours}h {minutes}m",
       "maxSolarLabel": "{percent}% Sol Màx",
-      "shadeLabel": "{percent}% Ombra"
+      "shadeLabel": "{percent}% Ombra",
+      "snowTitle": "Neu mitjana"
     },
     "safety": {
       "escapeTitle": "Punts d'Escapament",

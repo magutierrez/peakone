@@ -18,6 +18,8 @@ export function useWeatherSummary(weatherPoints: RouteWeatherPoint[]) {
         total: 0,
         arrivesAtNight: false,
         lastTime: new Date(),
+        avgSnowDepthCm: 0,
+        hasSnow: false,
       };
     }
 
@@ -44,6 +46,10 @@ export function useWeatherSummary(weatherPoints: RouteWeatherPoint[]) {
     const sunPosAtLast = getSunPosition(lastTime, lastPoint.point.lat, lastPoint.point.lon);
     const arrivesAtNight = sunPosAtLast.altitude < 0;
 
+    const avgSnowDepthCm =
+      weatherPoints.reduce((s, w) => s + (w.weather.snowDepthCm ?? 0), 0) / weatherPoints.length;
+    const hasSnow = weatherPoints.some((w) => (w.weather.snowDepthCm ?? 0) > 0);
+
     return {
       avgTemp,
       maxWind,
@@ -57,6 +63,8 @@ export function useWeatherSummary(weatherPoints: RouteWeatherPoint[]) {
       total,
       arrivesAtNight,
       lastTime,
+      avgSnowDepthCm,
+      hasSnow,
     };
   }, [weatherPoints]);
 }

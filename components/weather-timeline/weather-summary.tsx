@@ -1,6 +1,6 @@
 'use client';
 
-import { Wind, Thermometer, Droplets, Sun, Clock, AlertTriangle } from 'lucide-react';
+import { Wind, Thermometer, Droplets, Sun, Clock, AlertTriangle, Snowflake } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import type { RouteWeatherPoint } from '@/lib/types';
 import { formatTemperature, formatWindSpeed } from '@/lib/utils';
@@ -28,6 +28,8 @@ export function WeatherSummary({ weatherPoints }: WeatherSummaryProps) {
     total,
     arrivesAtNight,
     lastTime,
+    avgSnowDepthCm,
+    hasSnow,
   } = useWeatherSummary(weatherPoints);
 
   if (weatherPoints.length === 0) return null;
@@ -157,6 +159,18 @@ export function WeatherSummary({ weatherPoints }: WeatherSummaryProps) {
           </span>
         </div>
       </div>
+      {hasSnow && (
+        <div className="border-border bg-card rounded-lg border p-3">
+          <div className="text-muted-foreground flex items-center gap-2">
+            <Snowflake className="h-4 w-4 text-blue-400" />
+            <span className="text-xs">{t('summary.snowTitle')}</span>
+          </div>
+          <p className="text-foreground mt-1 font-mono text-xl font-bold">
+            {Math.round(avgSnowDepthCm)}{' '}
+            <span className="text-muted-foreground text-sm font-normal">cm</span>
+          </p>
+        </div>
+      )}
     </div>
   );
 }

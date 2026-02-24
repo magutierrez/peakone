@@ -205,7 +205,8 @@
       "nightArrival": "¡Llegarás de noche!",
       "daylightFormat": "{hours}h {minutes}m",
       "maxSolarLabel": "{percent}% Sol Máx",
-      "shadeLabel": "{percent}% Sombra"
+      "shadeLabel": "{percent}% Sombra",
+      "snowTitle": "Nieve media"
     },
     "safety": {
       "escapeTitle": "Puntos de Escape",
