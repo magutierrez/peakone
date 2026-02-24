@@ -79,6 +79,7 @@ export function RouteLayers({
         <Source id="highlight-source" type="geojson" data={highlightedData}>
           <Layer
             id="highlight-glow"
+            beforeId="route-direction-arrows"
             type="line"
             paint={{
               'line-color': '#4f86d1',
@@ -89,6 +90,7 @@ export function RouteLayers({
           />
           <Layer
             id="highlight-line"
+            beforeId="route-direction-arrows"
             type="line"
             paint={{
               'line-color': ['coalesce', ['get', 'color'], '#3ecf8e'],
