@@ -26,7 +26,7 @@ export function RouteSummary() {
 
   // IBP calculation for route summary
   const ibpIndex = gpxData
-    ? calculateIBP(recalculatedTotalDistance, recalculatedElevationGain, activityType)
+    ? calculateIBP(recalculatedTotalDistance, recalculatedElevationGain, activityType, recalculatedElevationLoss)
     : 0;
   const difficulty = getIBPDifficulty(ibpIndex, activityType);
 

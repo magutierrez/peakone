@@ -9,17 +9,24 @@ export function calculateIBP(
   distanceKm: number,
   elevationGainM: number,
   activityType: 'cycling' | 'walking' = 'cycling',
+  elevationLossM: number = 0,
 ): number {
   if (distanceKm === 0) return 0;
   const distanceM = distanceKm * 1000;
   let ibp = 0;
 
   if (activityType === 'cycling') {
-    // Simplified formula for cycling
-    ibp = ((elevationGainM * 100) / distanceM) * 2 + elevationGainM / 40 + distanceKm / 2;
+    ibp =
+      ((elevationGainM * 100) / distanceM) * 2 +
+      elevationGainM / 40 +
+      elevationLossM / 60 +
+      distanceKm / 2;
   } else {
-    // Simplified formula for walking/hiking
-    ibp = ((elevationGainM * 100) / distanceM) * 1.5 + elevationGainM / 50 + distanceKm / 2;
+    ibp =
+      ((elevationGainM * 100) / distanceM) * 1.5 +
+      elevationGainM / 50 +
+      elevationLossM / 80 +
+      distanceKm / 2;
   }
 
   return Math.round(ibp);

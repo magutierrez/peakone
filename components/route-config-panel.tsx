@@ -42,7 +42,7 @@ export function RouteConfigPanel({
   const { unitSystem } = useSettings();
 
   const ibpIndex = gpxData
-    ? calculateIBP(gpxData.totalDistance, gpxData.totalElevationGain, activityType)
+    ? calculateIBP(gpxData.totalDistance, gpxData.totalElevationGain, activityType, gpxData.totalElevationLoss)
     : 0;
   const difficulty = getIBPDifficulty(ibpIndex, activityType);
 
