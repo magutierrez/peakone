@@ -1,8 +1,5 @@
-import { auth } from '@/auth';
-import HomePageClient from './_components/home-page-client';
+import { redirect } from 'next/navigation';
 
-export default async function HomePage() {
-  const session = await auth();
-
-  return <HomePageClient session={session} />;
+export default function RootPage() {
+  redirect('/setup');
 }

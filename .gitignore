@@ -10,3 +10,6 @@ node_modules/
 .DS_Store
 certificates
 .idea/
+testing/
+next-env.d.ts
+tsconfig.tsbuildinfo

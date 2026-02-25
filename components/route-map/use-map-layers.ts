@@ -1,11 +1,14 @@
 import { useMemo } from 'react';
 import type { RoutePoint, RouteWeatherPoint } from '@/lib/types';
-import type { Feature, FeatureCollection, LineString, MultiLineString, Point } from 'geojson';
+import type { Feature, FeatureCollection, LineString, Point } from 'geojson';
+import { getSlopeColorHex } from '@/lib/slope-colors';
+import { PATH_TYPE_COLORS, SURFACE_COLORS } from '@/lib/route-colors';
+import type { ActiveFilter } from '@/store/route-store';
 
 export function useMapLayers(
   points: RoutePoint[],
   weatherPoints?: RouteWeatherPoint[],
-  activeFilter?: { key: 'pathType' | 'surface'; value: string } | null,
+  activeFilter?: ActiveFilter,
   selectedRange?: { start: number; end: number } | null,
 ) {
   const routeData = useMemo<Feature<LineString> | null>(() => {
@@ -26,34 +29,80 @@ export function useMapLayers(
     };
   }, [points]);
 
-  const highlightedData = useMemo<Feature<MultiLineString> | null>(() => {
-    if (!activeFilter || !weatherPoints || weatherPoints.length < 2) return null;
-    const segments: number[][][] = [];
-    let currentSegment: number[][] = [];
+  const highlightedData = useMemo<FeatureCollection<LineString> | null>(() => {
+    if (!activeFilter || !weatherPoints || weatherPoints.length < 2 || points.length < 2)
+      return null;
 
-    weatherPoints.forEach((wp, i) => {
-      const matches = (wp[activeFilter.key] || 'unknown') === activeFilter.value;
-      if (matches) {
-        currentSegment.push([wp.point.lon, wp.point.lat]);
-        if (i < weatherPoints.length - 1) {
-          currentSegment.push([weatherPoints[i + 1].point.lon, weatherPoints[i + 1].point.lat]);
-        }
-      } else {
-        if (currentSegment.length > 0) {
-          segments.push(currentSegment);
-          currentSegment = [];
+    const features: Feature<LineString>[] = [];
+
+    if (activeFilter.key === 'hazard') {
+      const [start, end] = activeFilter.value.split('-').map(Number);
+
+      for (let i = 0; i < points.length - 1; i++) {
+        const p1 = points[i];
+        const p2 = points[i + 1];
+
+        if (p1.distanceFromStart >= start && p2.distanceFromStart <= end) {
+          const distDiffM = (p2.distanceFromStart - p1.distanceFromStart) * 1000;
+          const eleDiffM = (p2.ele || 0) - (p1.ele || 0);
+          const slope = distDiffM > 0.1 ? (eleDiffM / distDiffM) * 100 : 0;
+
+          features.push({
+            type: 'Feature',
+            geometry: {
+              type: 'LineString',
+              coordinates: [
+                [p1.lon, p1.lat],
+                [p2.lon, p2.lat],
+              ],
+            },
+            properties: { color: getSlopeColorHex(slope) },
+          });
         }
       }
-    });
-    if (currentSegment.length > 0) segments.push(currentSegment);
-    return segments.length > 0
-      ? {
-          type: 'Feature',
-          properties: {},
-          geometry: { type: 'MultiLineString', coordinates: segments },
+    } else {
+      const filterKey = activeFilter.key;
+      const colorMap = filterKey === 'pathType' ? PATH_TYPE_COLORS : SURFACE_COLORS;
+      const segmentColor = colorMap[activeFilter.value] || colorMap.unknown;
+      let currentSegment: number[][] = [];
+
+      points.forEach((p) => {
+        let matchingWp = weatherPoints[0];
+        for (let j = 0; j < weatherPoints.length; j++) {
+          if (p.distanceFromStart <= weatherPoints[j].point.distanceFromStart) {
+            matchingWp = weatherPoints[j];
+            break;
+          }
+          if (j === weatherPoints.length - 1) matchingWp = weatherPoints[j];
         }
-      : null;
-  }, [activeFilter, weatherPoints]);
+
+        const currentFilterValue = matchingWp[filterKey] || 'unknown';
+
+        if (currentFilterValue === activeFilter.value) {
+          currentSegment.push([p.lon, p.lat]);
+        } else {
+          if (currentSegment.length > 1) {
+            features.push({
+              type: 'Feature',
+              geometry: { type: 'LineString', coordinates: currentSegment },
+              properties: { color: segmentColor },
+            });
+          }
+          currentSegment = [];
+        }
+      });
+
+      if (currentSegment.length > 1) {
+        features.push({
+          type: 'Feature',
+          geometry: { type: 'LineString', coordinates: currentSegment },
+          properties: { color: segmentColor },
+        });
+      }
+    }
+
+    return features.length > 0 ? { type: 'FeatureCollection', features } : null;
+  }, [activeFilter, weatherPoints, points]);
 
   const rangeHighlightData = useMemo<Feature<LineString> | null>(() => {
     if (!selectedRange || points.length < 2) return null;

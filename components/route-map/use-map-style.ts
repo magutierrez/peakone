@@ -5,11 +5,11 @@ import { useMemo } from 'react';
 export type MapLayerType = 'standard' | 'satellite' | 'hybrid' | 'topography';
 
 export function useMapStyle(mapType: MapLayerType, resolvedTheme: string | undefined) {
+  const maptilerKey = process.env.NEXT_PUBLIC_MAPTILER_KEY;
+
   return useMemo(() => {
     if (mapType === 'standard') {
-      return resolvedTheme === 'light'
-        ? 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json'
-        : 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json';
+      return `https://api.maptiler.com/maps/019c8145-75e2-716d-a93a-c5165bc0a7ad/style.json?key=${maptilerKey}`;
     }
 
     if (mapType === 'topography') {

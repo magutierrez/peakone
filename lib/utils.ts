@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import type { RouteWeatherPoint } from './types';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -9,17 +10,24 @@ export function calculateIBP(
   distanceKm: number,
   elevationGainM: number,
   activityType: 'cycling' | 'walking' = 'cycling',
+  elevationLossM: number = 0,
 ): number {
   if (distanceKm === 0) return 0;
   const distanceM = distanceKm * 1000;
   let ibp = 0;
 
   if (activityType === 'cycling') {
-    // Simplified formula for cycling
-    ibp = (elevationGainM * 100) / distanceM * 2 + elevationGainM / 40 + distanceKm / 2;
+    ibp =
+      ((elevationGainM * 100) / distanceM) * 2 +
+      elevationGainM / 40 +
+      elevationLossM / 60 +
+      distanceKm / 2;
   } else {
-    // Simplified formula for walking/hiking
-    ibp = (elevationGainM * 100) / distanceM * 1.5 + elevationGainM / 50 + distanceKm / 2;
+    ibp =
+      ((elevationGainM * 100) / distanceM) * 1.5 +
+      elevationGainM / 50 +
+      elevationLossM / 80 +
+      distanceKm / 2;
   }
 
   return Math.round(ibp);
@@ -53,7 +61,7 @@ const RAD = PI / 180;
 export function getSunPosition(date: Date, lat: number, lon: number) {
   const lw = RAD * -lon;
   const phi = RAD * lat;
-  const d = (date.getTime() / 86400000) - (new Date('2000-01-01T12:00:00Z').getTime() / 86400000);
+  const d = date.getTime() / 86400000 - new Date('2000-01-01T12:00:00Z').getTime() / 86400000;
 
   const n = d;
   const L = RAD * (280.46 + 0.9856474 * n);
@@ -125,11 +133,33 @@ export function getSolarIntensity(
 ): 'shade' | 'weak' | 'moderate' | 'intense' | 'night' {
   if (exposure === 'night') return 'night';
   if (exposure === 'shade' || (radiation !== undefined && radiation < 100)) return 'shade';
-  
+
   const rad = radiation || 0;
   if (rad < 400) return 'weak';
   if (rad < 800) return 'moderate';
   return 'intense';
+}
+
+/**
+ * Returns the index of the first route point where effective darkness begins,
+ * accounting for a ~45-min (≈ 11°) earlier sunset in shaded/valley terrain.
+ */
+export function findNightPointIndex(weatherPoints: RouteWeatherPoint[]): {
+  index: number | null;
+  isValleyAdjusted: boolean;
+} {
+  for (let i = 0; i < weatherPoints.length; i++) {
+    const wp = weatherPoints[i];
+    const time = new Date(wp.weather.time);
+    const sunAlt = getSunPosition(time, wp.point.lat, wp.point.lon).altitude;
+    const isShaded = wp.solarExposure === 'shade';
+    // In enclosed valleys the effective darkness threshold is ~11° above the horizon
+    const threshold = isShaded ? 11 : 0;
+    if (sunAlt < threshold) {
+      return { index: i, isValleyAdjusted: isShaded && sunAlt >= 0 };
+    }
+  }
+  return { index: null, isValleyAdjusted: false };
 }
 
 /**
@@ -153,10 +183,10 @@ export function calculateSmartSpeed(
     const totalTime = flatTimeHours + verticalPenaltyHours;
     return distanceKm / totalTime;
   } else {
-    // Cycling: Simplified speed reduction. 
+    // Cycling: Simplified speed reduction.
     // Every 100m of gain in 10km (1% grade) reduces speed by ~10%
     const grade = (elevationGainM / (distanceKm * 1000)) * 100;
-    const speedFactor = Math.max(0.4, 1 - (grade * 0.05)); 
+    const speedFactor = Math.max(0.4, 1 - grade * 0.05);
     return baseSpeed * speedFactor;
   }
 }
@@ -172,11 +202,11 @@ export function calculatePhysiologicalNeeds(
   activityType: 'cycling' | 'walking',
 ) {
   const isHiking = activityType === 'walking';
-  
+
   // 1. Calories (Metabolic Equivalent Task approximation)
   // Cycling ~ 8-12 METs, Hiking ~ 6-9 METs
   const baseMet = isHiking ? 7 : 10;
-  const effortCorrection = 1 + (elevationGainM / 1000); // More gain = more effort
+  const effortCorrection = 1 + elevationGainM / 1000; // More gain = more effort
   const calories = Math.round(baseMet * 75 * durationHours * effortCorrection); // 75kg avg human
 
   // 2. Hydration (ml)
@@ -208,12 +238,16 @@ export function calculateWaterReliability(
 export interface RouteSegment {
   type: 'steepClimb' | 'steepDescent' | 'heatStress' | 'effort';
   dangerLevel: 'low' | 'medium' | 'high';
+  climbCategory?: 'HC' | '1' | '2' | '3' | '4' | 'none';
   dangerColor: string;
   startDist: number;
   endDist: number;
   points: any[];
   maxSlope: number;
+  avgSlope: number;
   avgTemp: number;
+  lengthM: number;
+  score: number;
 }
 
 export function analyzeRouteSegments(weatherPoints: any[]): RouteSegment[] {
@@ -222,89 +256,127 @@ export function analyzeRouteSegments(weatherPoints: any[]): RouteSegment[] {
   const segments: RouteSegment[] = [];
   let currentSegment: any = null;
 
+  const getClimbCategory = (score: number): RouteSegment['climbCategory'] => {
+    if (score >= 80000) return 'HC';
+    if (score >= 64000) return '1';
+    if (score >= 32000) return '2';
+    if (score >= 16000) return '3';
+    if (score >= 8000) return '4';
+    return 'none';
+  };
+
   weatherPoints.forEach((wp, i) => {
     if (i === 0) return;
     const prev = weatherPoints[i - 1];
-    const dist = wp.point.distanceFromStart - prev.point.distanceFromStart;
+    const distKm = wp.point.distanceFromStart - prev.point.distanceFromStart;
     const eleDiff = (wp.point.ele || 0) - (prev.point.ele || 0);
-    const slope = dist > 0 ? (eleDiff / (dist * 1000)) * 100 : 0;
+    const slope = distKm > 0 ? (eleDiff / (distKm * 1000)) * 100 : 0;
 
     let type: RouteSegment['type'] | null = null;
-    let dangerLevel: RouteSegment['dangerLevel'] = 'low';
-    let dangerColor = 'text-blue-500';
 
-    // 1. Subidas
-    if (slope > 4) {
+    // Garmin-style thresholds:
+    // Climb: Slope > 3%
+    // Descent: Slope < -5%
+    if (slope >= 3) {
       type = 'steepClimb';
-      if (slope > 10) {
-        dangerLevel = 'high';
-        dangerColor = 'text-red-600';
-      } else if (slope > 7) {
-        dangerLevel = 'medium';
-        dangerColor = 'text-orange-500';
-      } else {
-        dangerLevel = 'low';
-        dangerColor = 'text-amber-500';
-      }
-    } 
-    // 2. Bajadas
-    else if (slope < -6) {
+    } else if (slope <= -5) {
       type = 'steepDescent';
-      if (slope < -15) {
-        dangerLevel = 'high';
-        dangerColor = 'text-red-600';
-      } else if (slope < -10) {
-        dangerLevel = 'medium';
-        dangerColor = 'text-orange-500';
-      } else {
-        dangerLevel = 'low';
-        dangerColor = 'text-blue-400';
-      }
-    }
-    // 3. Calor
-    else if (wp.weather.temperature > 26 && wp.solarIntensity === 'intense') {
+    } else if (wp.weather.temperature > 26 && wp.solarIntensity === 'intense') {
       type = 'heatStress';
-      if (wp.weather.temperature > 32) {
-        dangerLevel = 'high';
-        dangerColor = 'text-red-600';
-      } else {
-        dangerLevel = 'medium';
-        dangerColor = 'text-orange-500';
-      }
     }
 
     if (type) {
       if (!currentSegment || currentSegment.type !== type) {
-        if (currentSegment) segments.push(currentSegment);
+        if (currentSegment) {
+          // Finalize previous segment with Garmin logic
+          finalizeSegment(currentSegment, segments);
+        }
         currentSegment = {
           type,
-          dangerLevel,
-          dangerColor,
           startDist: prev.point.distanceFromStart,
           points: [prev, wp],
           maxSlope: Math.abs(slope),
           avgTemp: wp.weather.temperature,
-          endDist: wp.point.distanceFromStart
+          endDist: wp.point.distanceFromStart,
         };
       } else {
         currentSegment.points.push(wp);
         currentSegment.maxSlope = Math.max(currentSegment.maxSlope, Math.abs(slope));
         currentSegment.endDist = wp.point.distanceFromStart;
-        
-        // Upgrade danger level if a steeper part is found
-        const levels = ['low', 'medium', 'high'];
-        if (levels.indexOf(dangerLevel) > levels.indexOf(currentSegment.dangerLevel)) {
-          currentSegment.dangerLevel = dangerLevel;
-          currentSegment.dangerColor = dangerColor;
-        }
+        currentSegment.avgTemp = (currentSegment.avgTemp + wp.weather.temperature) / 2;
       }
     } else if (currentSegment) {
-      segments.push(currentSegment);
+      finalizeSegment(currentSegment, segments);
       currentSegment = null;
     }
   });
 
-  if (currentSegment) segments.push(currentSegment);
+  if (currentSegment) finalizeSegment(currentSegment, segments);
+
+  function finalizeSegment(seg: any, list: RouteSegment[]) {
+    const lengthM = (seg.endDist - seg.startDist) * 1000;
+    const firstPoint = seg.points[0].point;
+    const lastPoint = seg.points[seg.points.length - 1].point;
+    const totalEleDiff = (lastPoint.ele || 0) - (firstPoint.ele || 0);
+    const avgSlope = lengthM > 0 ? (totalEleDiff / lengthM) * 100 : 0;
+    const absAvgSlope = Math.abs(avgSlope);
+    const score = lengthM * absAvgSlope;
+
+    if (seg.type === 'steepClimb') {
+      // Garmin ClimbPro thresholds: length > 500m, avg slope > 3%, score > 3500
+      if (lengthM < 500 || absAvgSlope < 3 || score < 3500) return;
+
+      const cat = getClimbCategory(score);
+      seg.climbCategory = cat;
+      seg.avgSlope = absAvgSlope;
+      seg.lengthM = lengthM;
+      seg.score = score;
+
+      if (cat === 'HC' || cat === '1' || absAvgSlope > 12) {
+        seg.dangerLevel = 'high';
+        seg.dangerColor = 'text-red-600';
+      } else if (cat === '2' || cat === '3' || absAvgSlope > 8) {
+        seg.dangerLevel = 'medium';
+        seg.dangerColor = 'text-orange-500';
+      } else {
+        seg.dangerLevel = 'low';
+        seg.dangerColor = 'text-amber-500';
+      }
+    } else if (seg.type === 'steepDescent') {
+      // Technical/Steep descent: length > 300m and avg slope < -5%
+      if (lengthM < 300 || absAvgSlope < 5) return;
+
+      seg.avgSlope = absAvgSlope;
+      seg.lengthM = lengthM;
+      seg.score = score;
+
+      if (absAvgSlope > 15 || (absAvgSlope > 10 && lengthM > 2000)) {
+        seg.dangerLevel = 'high';
+        seg.dangerColor = 'text-red-600';
+      } else if (absAvgSlope > 10 || (absAvgSlope > 7 && lengthM > 1000)) {
+        seg.dangerLevel = 'medium';
+        seg.dangerColor = 'text-orange-500';
+      } else {
+        seg.dangerLevel = 'low';
+        seg.dangerColor = 'text-blue-400';
+      }
+    } else {
+      // Heat Stress
+      seg.avgSlope = absAvgSlope;
+      seg.lengthM = lengthM;
+      seg.score = score;
+      if (seg.avgTemp > 32) {
+        seg.dangerLevel = 'high';
+        seg.dangerColor = 'text-red-600';
+      } else {
+        seg.dangerLevel = 'medium';
+        seg.dangerColor = 'text-orange-500';
+      }
+    }
+
+    list.push(seg);
+  }
+
   return segments;
 }
 
@@ -342,4 +414,132 @@ export function formatWindSpeed(kmh: number, unit: 'kmh' | 'mph' | 'knots' | 'ms
     default:
       return `${Math.round(kmh)} km/h`;
   }
+}
+
+export function calculateElevationGainLoss(elevationPoints: { elevation: number }[]) {
+  let totalElevationGain = 0;
+  let totalElevationLoss = 0;
+
+  if (elevationPoints.length < 2) {
+    return { totalElevationGain, totalElevationLoss };
+  }
+
+  for (let i = 1; i < elevationPoints.length; i++) {
+    const eleDiff = elevationPoints[i].elevation - elevationPoints[i - 1].elevation;
+    if (eleDiff > 0) {
+      totalElevationGain += eleDiff;
+    } else {
+      totalElevationLoss += Math.abs(eleDiff);
+    }
+  }
+
+  return {
+    totalElevationGain: Math.round(totalElevationGain),
+    totalElevationLoss: Math.round(totalElevationLoss),
+  };
+}
+
+export interface WindowScoreResult {
+  startTime: string;
+  score: number;
+  reasons: string[];
+  avgTemp: number;
+  maxWind: number;
+  maxPrecipProb: number;
+  isNight: boolean;
+}
+
+export function calculateWindowScore(
+  scenarios: Array<{
+    point: any;
+    weather: any;
+    bearing: number;
+  }>,
+  activityType: 'cycling' | 'walking',
+): { score: number; reasons: string[] } {
+  let score = 100;
+  const reasons: string[] = [];
+
+  const maxPrecipProb = Math.max(...scenarios.map((s) => s.weather.precipitationProbability));
+  const maxWind = Math.max(...scenarios.map((s) => s.weather.windSpeed));
+  const avgTemp = scenarios.reduce((sum, s) => sum + s.weather.temperature, 0) / scenarios.length;
+  const isNight = scenarios.some((s) => s.weather.isDay === 0);
+
+  // 1. Precipitation
+  if (maxPrecipProb > 50) {
+    score -= (maxPrecipProb - 20) * 0.6;
+    reasons.push('rain_high');
+  } else if (maxPrecipProb > 20) {
+    score -= (maxPrecipProb - 20) * 0.3;
+    reasons.push('rain_low');
+  } else {
+    reasons.push('no_rain');
+  }
+
+  // 2. Wind
+  if (maxWind > 35) {
+    score -= (maxWind - 25) * 1.5;
+    reasons.push('wind_heavy');
+  } else if (maxWind > 20) {
+    reasons.push('wind_moderate');
+  } else {
+    reasons.push('wind_calm');
+  }
+
+  // 3. Temperature
+  if (avgTemp > 30) {
+    score -= (avgTemp - 30) * 3;
+    reasons.push('temp_hot');
+  } else if (avgTemp < 5) {
+    score -= (5 - avgTemp) * 4;
+    reasons.push('temp_cold');
+  } else if (avgTemp >= 12 && avgTemp <= 22) {
+    reasons.push('temp_perfect');
+  }
+
+  // 4. Night
+  if (isNight) {
+    score -= 25;
+    reasons.push('night_warning');
+  } else {
+    reasons.push('daylight_ok');
+  }
+
+  // 5. Wind Direction (for Cycling)
+  if (activityType === 'cycling') {
+    let tailwindPoints = 0;
+    let headwindPoints = 0;
+
+    scenarios.forEach((s) => {
+      const windTo = (s.weather.windDirection + 180) % 360;
+      let angleDiff = Math.abs(windTo - s.bearing);
+      if (angleDiff > 180) angleDiff = 360 - angleDiff;
+
+      if (angleDiff < 45) tailwindPoints++;
+      if (angleDiff > 135) headwindPoints++;
+    });
+
+    if (tailwindPoints > scenarios.length / 2) {
+      score += 5;
+      reasons.push('wind_favor');
+    } else if (headwindPoints > scenarios.length / 2) {
+      score -= 10;
+      reasons.push('wind_against');
+    }
+  }
+
+  return {
+    score: Math.max(0, Math.min(100, Math.round(score))),
+    reasons,
+  };
+}
+
+export function base64ToUint8Array(base64: string): Uint8Array<ArrayBuffer> {
+  return new Uint8Array(
+    atob(base64)
+      .split('')
+      .map(function (c) {
+        return c.charCodeAt(0);
+      }),
+  );
 }

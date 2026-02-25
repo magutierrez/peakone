@@ -1,12 +1,7 @@
-import { DefaultSession } from 'next-auth';
-
 declare module 'next-auth' {
   interface Session {
     accessToken?: string;
     provider?: string;
-    user: {
-      id?: string;
-    } & DefaultSession['user'];
   }
 }
 
@@ -16,6 +11,25 @@ export interface RoutePoint {
   ele?: number;
   distanceFromStart: number; // km
   estimatedTime?: Date;
+}
+
+export type MudRiskLevel = 'none' | 'low' | 'medium' | 'high';
+export type SnowCondition = 'none' | 'boots' | 'snowshoes' | 'crampons' | 'mountaineering';
+export type ViabilityRating = 'go' | 'caution' | 'danger';
+
+export interface ViabilityThreat {
+  type: 'wind' | 'storm' | 'temperature' | 'visibility';
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  deduction: number;
+  km: number;
+  value: number;
+  terrainFactor: number;
+}
+
+export interface ViabilityResult {
+  score: number;
+  rating: ViabilityRating;
+  threats: ViabilityThreat[];
 }
 
 export interface WeatherData {
@@ -34,13 +48,17 @@ export interface WeatherData {
   isDay?: number;
   directRadiation?: number;
   diffuseRadiation?: number;
+  past72hPrecipMm?: number;
+  snowDepthCm?: number;
+  recent48hSnowfallCm?: number;
+  freezeThawCycle?: boolean;
 }
 
 export interface EscapePoint {
   lat: number;
   lon: number;
   name: string;
-  type: 'town' | 'road';
+  type: 'town' | 'road' | 'shelter';
   distanceFromRoute: number;
 }
 
@@ -64,8 +82,11 @@ export interface RouteWeatherPoint {
   solarExposure?: 'sun' | 'shade' | 'night';
   solarIntensity?: 'shade' | 'weak' | 'moderate' | 'intense' | 'night';
   escapePoint?: EscapePoint;
-  mobileCoverage?: 'none' | 'low' | 'full';
+  mobileCoverage?: 'none' | 'low' | 'full' | 'unknown';
   waterSources?: WaterSource[];
+  mudRisk?: MudRiskLevel;
+  mudRiskScore?: number;
+  snowCondition?: SnowCondition;
 }
 
 export interface RouteSegmentMetadata {
@@ -83,7 +104,6 @@ export interface RouteConfig {
   date: string;
   time: string;
   speed: number;
-  activityType: 'cycling' | 'walking';
 }
 
 export interface GPXData {

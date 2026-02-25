@@ -9,3 +9,5 @@ export default getRequestConfig(async () => {
     messages: (await import(`../messages/${locale}.json`)).default,
   };
 });
+
+export const localePrefix = 'never';

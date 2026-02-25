@@ -1,91 +1,129 @@
 'use client';
 
 import useSWR, { mutate } from 'swr';
-import { getDb } from '@/lib/db';
-import { useSession } from 'next-auth/react';
+import { db, SavedRoute } from '@/lib/db';
 
-export interface SavedRoute {
-  id: string;
-  name: string;
-  gpx_content: string;
-  distance: number;
-  elevation_gain: number;
-  created_at: string;
-}
+export type { SavedRoute };
+import { useSession } from 'next-auth/react';
+import { parseGPX, sampleRoutePoints } from '@/lib/gpx-parser';
 
 const ROUTES_CACHE_KEY = 'local-saved-routes';
 
 export function useSavedRoutes() {
   const { data: session } = useSession();
-  const userId = session?.user?.id || session?.user?.email;
+  const userIdentifier = session?.user?.email || session?.user?.id;
 
   const {
     data: routes = [],
     isLoading,
     error,
-  } = useSWR(userId ? [ROUTES_CACHE_KEY, userId] : null, async ([, uid]) => {
-    const db = await getDb();
-    if (!db) return [];
-
-    const result = await db.query<SavedRoute>(
-      `SELECT * FROM saved_routes WHERE user_email = $1 ORDER BY created_at DESC`,
-      [uid],
-    );
-    return result.rows;
+  } = useSWR(userIdentifier ? [ROUTES_CACHE_KEY, userIdentifier] : null, async ([, identifier]) => {
+    try {
+      // Fetch routes for the user, ordered by creation date (newest first)
+      return await db.saved_routes
+        .where('user_email')
+        .equals(identifier)
+        .reverse()
+        .sortBy('created_at');
+    } catch (e) {
+      console.error('Error fetching routes:', e);
+      return [];
+    }
   });
 
-  const saveRoute = async (name: string, content: string, distance: number, elevation: number) => {
-    if (!userId) return;
+  const saveRoute = async (
+    name: string,
+    content: string,
+    activityType: 'cycling' | 'walking',
+    distance: number,
+    elevationGain: number,
+    elevationLoss: number,
+  ) => {
+    if (!userIdentifier) return null;
+
     try {
-      const db = await getDb();
-      if (!db) return;
+      // Check if a route with same name and similar distance already exists for this user
+      // We filter in memory because Dexie doesn't support complex SQL-like WHERE clauses directly
+      // combined with index ranges in a simple way for this specific logic.
+      const existing = await db.saved_routes
+        .where('user_email')
+        .equals(userIdentifier)
+        .filter((r) => r.name === name && Math.abs(r.distance - distance) < 0.01)
+        .first();
 
-      await db.query(
-        `INSERT INTO saved_routes (user_email, name, gpx_content, distance, elevation_gain) 
-         VALUES ($1, $2, $3, $4, $5)`,
-        [userId, name, content, distance, elevation],
-      );
+      if (existing) {
+        return existing.id;
+      }
 
-      mutate([ROUTES_CACHE_KEY, userId]);
+      // Extract elevation points for preview
+      let elevationPoints: number[] = [];
+      try {
+        const parsed = parseGPX(content);
+        const sampled = sampleRoutePoints(parsed.points, 30);
+        elevationPoints = sampled.map((p) => Math.round(p.ele || 0));
+      } catch (e) {
+        console.warn('Failed to extract elevation points for preview:', e);
+      }
+
+      let routeId: string;
+      try {
+        routeId = crypto.randomUUID();
+      } catch (e) {
+        routeId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+          const r = (Math.random() * 16) | 0,
+            v = c === 'x' ? r : (r & 0x3) | 0x8;
+          return v.toString(16);
+        });
+      }
+
+      await db.saved_routes.add({
+        id: routeId,
+        user_email: userIdentifier,
+        name,
+        gpx_content: content,
+        activity_type: activityType,
+        distance,
+        elevation_gain: elevationGain,
+        elevation_loss: elevationLoss,
+        elevation_points: elevationPoints,
+        created_at: new Date().toISOString(),
+      });
+
+      await mutate([ROUTES_CACHE_KEY, userIdentifier]);
+      return routeId;
     } catch (e) {
-      console.error('Failed to save route', e);
+      console.error('Error saving route:', e);
       throw e;
     }
   };
 
   const deleteRoute = async (id: string) => {
-    if (!userId) return;
+    if (!userIdentifier) return;
     try {
-      const db = await getDb();
-      if (!db) return;
-
-      await db.query(`DELETE FROM saved_routes WHERE id = $1`, [id]);
-      mutate([ROUTES_CACHE_KEY, userId]);
+      await db.saved_routes.delete(id);
+      mutate([ROUTES_CACHE_KEY, userIdentifier]);
     } catch (e) {
-      console.error('Failed to delete route', e);
+      console.error('Error deleting route:', e);
     }
   };
 
   const updateRouteName = async (id: string, newName: string) => {
-    if (!userId) return;
+    if (!userIdentifier) return;
     try {
-      const db = await getDb();
-      if (!db) return;
-
-      await db.query(`UPDATE saved_routes SET name = $1 WHERE id = $2`, [newName, id]);
-      mutate([ROUTES_CACHE_KEY, userId]);
+      await db.saved_routes.update(id, { name: newName });
+      mutate([ROUTES_CACHE_KEY, userIdentifier]);
     } catch (e) {
-      console.error('Failed to update route name', e);
+      console.error('Error updating route name:', e);
     }
   };
 
   return {
     routes,
-    isLoading: isLoading && !!userId,
+    isLoading: isLoading && !!userIdentifier,
     error,
     saveRoute,
     deleteRoute,
     updateRouteName,
-    refresh: () => mutate([ROUTES_CACHE_KEY, userId]),
+    refresh: () => mutate([ROUTES_CACHE_KEY, userIdentifier]),
   };
 }

@@ -45,20 +45,22 @@ export function GPXUpload({ onFileLoaded, fileName, onClear }: GPXUploadProps) {
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
-      if (file) handleFile(file);
+      if (file && file.name.toLowerCase().endsWith('.gpx')) {
+        handleFile(file);
+      }
     },
     [handleFile],
   );
 
   if (fileName) {
     return (
-      <div className="flex items-center gap-3 rounded-lg border border-primary/30 bg-primary/5 p-3">
-        <FileText className="h-5 w-5 shrink-0 text-primary" />
-        <span className="flex-1 truncate text-sm font-medium text-foreground">{fileName}</span>
+      <div className="border-primary/30 bg-primary/5 flex items-center gap-3 rounded-lg border p-3">
+        <FileText className="text-primary h-5 w-5 shrink-0" />
+        <span className="text-foreground flex-1 truncate text-sm font-medium">{fileName}</span>
         <Button
           variant="ghost"
           size="icon"
-          className="h-7 w-7 text-muted-foreground hover:text-destructive"
+          className="text-muted-foreground hover:text-destructive h-7 w-7"
           onClick={onClear}
         >
           <X className="h-4 w-4" />
@@ -73,7 +75,7 @@ export function GPXUpload({ onFileLoaded, fileName, onClear }: GPXUploadProps) {
       onDrop={handleDrop}
       onDragOver={handleDragOver}
       onClick={() => inputRef.current?.click()}
-      className="group flex cursor-pointer flex-col items-center gap-3 rounded-lg border-2 border-dashed border-border p-6 transition-colors hover:border-primary/50 hover:bg-primary/5"
+      className="group border-border hover:border-primary/50 hover:bg-primary/5 flex cursor-pointer flex-col items-center gap-3 rounded-lg border-2 border-dashed p-6 transition-colors"
       role="button"
       tabIndex={0}
       aria-label={t('uploadAriaLabel')}
@@ -84,12 +86,12 @@ export function GPXUpload({ onFileLoaded, fileName, onClear }: GPXUploadProps) {
         }
       }}
     >
-      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-secondary text-muted-foreground transition-colors group-hover:bg-primary/10 group-hover:text-primary">
+      <div className="bg-secondary text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary flex h-12 w-12 items-center justify-center rounded-full transition-colors">
         <Upload className="h-5 w-5" />
       </div>
       <div className="text-center">
-        <p className="text-sm font-medium text-foreground">{t('dragDrop')}</p>
-        <p className="mt-1 text-xs text-muted-foreground">{t('clickSelect')}</p>
+        <p className="text-foreground text-sm font-medium">{t('dragDrop')}</p>
+        <p className="text-muted-foreground mt-1 text-xs">{t('clickSelect')}</p>
       </div>
       <input
         ref={inputRef}

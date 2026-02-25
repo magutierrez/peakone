@@ -1,8 +1,7 @@
 'use client';
 
-import { TrendingUp, RefreshCcw } from 'lucide-react';
+import { TrendingUp, RefreshCcw, ArrowUp, ArrowDown } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useMemo, useRef, useState } from 'react';
 import {
   AreaChart,
   Area,
@@ -14,231 +13,83 @@ import {
   ReferenceLine,
   ReferenceArea,
 } from 'recharts';
-import type { RouteWeatherPoint } from '@/lib/types';
 import { Button } from '@/components/ui/button';
+import { useSettings } from '@/hooks/use-settings';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { formatElevation, formatDistance } from '@/lib/utils';
+import { useElevationChart } from '@/hooks/use-elevation-chart';
 
-interface ElevationProfileProps {
-  weatherPoints: RouteWeatherPoint[];
-  elevationData: { distance: number; elevation: number }[];
-  selectedIndex: number | null;
-  onSelect: (index: number) => void;
-  onRangeSelect?: (range: { start: number; end: number } | null) => void;
-}
-
-export function ElevationProfile({
-  weatherPoints,
-  elevationData,
-  selectedIndex,
-  onSelect,
-  onRangeSelect,
-}: ElevationProfileProps) {
+export function AnalysisChart() {
   const t = useTranslations('WeatherTimeline');
-  const lastUpdateRef = useRef<number>(0);
+  const { unitSystem } = useSettings();
+  const isMobile = useIsMobile();
 
-  const [refAreaLeft, setRefAreaLeft] = useState<any>(null);
-  const [refAreaRight, setRefAreaRight] = useState<any>(null);
-  const [left, setLeft] = useState<any>('dataMin');
-  const [right, setRight] = useState<any>('dataMax');
-  const [top, setTop] = useState<any>('dataMax');
-  const [bottom, setBottom] = useState<any>('dataMin');
-
-  const displayData = useMemo(() => {
-    const rawData =
-      elevationData && elevationData.length > 0
-        ? elevationData
-        : weatherPoints.map((wp) => ({
-            distance: wp.point.distanceFromStart,
-            elevation: wp.point.ele || 0,
-          }));
-
-    return rawData.map((d) => ({
-      ...d,
-      elevation: Math.round(d.elevation),
-    }));
-  }, [elevationData, weatherPoints]);
-
-  const getSlopeColorHex = (slope: number) => {
-    if (slope <= 1) return '#3ecf8e';
-    if (slope < 5) return '#f59e0b';
-    if (slope < 10) return '#ef4444';
-    return '#991b1b';
-  };
-
-  const { chartData } = useMemo(() => {
-    const data = displayData.map((d, idx) => {
-      let slope = 0;
-      if (idx > 0) {
-        const prev = displayData[idx - 1];
-        const distDiff = (d.distance - prev.distance) * 1000;
-        const eleDiff = d.elevation - prev.elevation;
-        if (distDiff > 0.1) { // Only calc slope if distance is relevant
-          slope = (eleDiff / distDiff) * 100;
-        }
-      }
-
-      // Ensure no NaN values
-      const safeSlope = isNaN(slope) ? 0 : slope;
-      const safeEle = isNaN(d.elevation) ? 0 : d.elevation;
-
-      return {
-        ...d,
-        elevation: safeEle,
-        slope: Math.round(safeSlope * 10) / 10,
-        color: getSlopeColorHex(safeSlope),
-      };
-    });
-    return { chartData: data };
-  }, [displayData]);
-
-  const gradientId = useMemo(() => `slope-${left}-${right}-${chartData.length}`, [left, right, chartData.length]);
-
-  const gradientStops = useMemo(() => {
-    if (!chartData.length) return [];
-    
-    const actualMin = chartData[0].distance;
-    const actualMax = chartData[chartData.length - 1].distance;
-    
-    const domainMin = left === 'dataMin' ? actualMin : left;
-    const domainMax = right === 'dataMax' ? actualMax : right;
-    const domainRange = domainMax - domainMin;
-
-    const stops: { offset: string; color: string }[] = [];
-
-    const firstIndex = chartData.findIndex(d => d.distance >= domainMin);
-    const lastIndex = [...chartData].reverse().findIndex(d => d.distance <= domainMax);
-    const actualLastIndex = chartData.length - 1 - lastIndex;
-
-    const startIndex = Math.max(0, firstIndex - 1);
-    const endIndex = Math.min(chartData.length - 1, actualLastIndex + 1);
-
-    for (let i = startIndex; i <= endIndex; i++) {
-      const d = chartData[i];
-      const distanceValue = d.distance;
-      const percentage = domainRange > 0 ? ((distanceValue - domainMin) / domainRange) * 100 : 0;
-      stops.push({
-        offset: `${Math.max(0, Math.min(100, percentage))}%`,
-        color: d.color || '#3ecf8e',
-      });
-    }
-
-    if (stops.length === 0) {
-      return [{ offset: '0%', color: '#3ecf8e' }, { offset: '100%', color: '#3ecf8e' }];
-    }
-
-    return stops;
-  }, [chartData, left, right]);
-
-  const handleMouseMove = (e: any) => {
-    if (e && e.activePayload && e.activePayload[0]) {
-      const activePoint = e.activePayload[0].payload;
-      const now = Date.now();
-
-      if (now - lastUpdateRef.current > 32 && weatherPoints.length > 0) {
-        let closestIdx = 0;
-        let minDiff = Infinity;
-
-        weatherPoints.forEach((wp, idx) => {
-          const diff = Math.abs(wp.point.distanceFromStart - activePoint.distance);
-          if (diff < minDiff) {
-            minDiff = diff;
-            closestIdx = idx;
-          }
-        });
-
-        onSelect(closestIdx);
-        lastUpdateRef.current = now;
-      }
-    }
-    if (refAreaLeft !== null && e) {
-      setRefAreaRight(e.activeLabel);
-    }
-  };
-
-  const zoom = () => {
-    if (refAreaLeft === refAreaRight || refAreaRight === null || refAreaLeft === null) {
-      setRefAreaLeft(null);
-      setRefAreaRight(null);
-      return;
-    }
-
-    let [start, end] = [refAreaLeft, refAreaRight];
-    if (start > end) [start, end] = [end, start];
-
-    const filteredData = chartData.filter((d) => d.distance >= start && d.distance <= end);
-    if (filteredData.length > 0) {
-      const elevations = filteredData.map((d) => d.elevation);
-      setLeft(start);
-      setRight(end);
-      setBottom(Math.min(...elevations) - 10);
-      setTop(Math.max(...elevations) + 10);
-      onRangeSelect?.({ start, end });
-    }
-
-    setRefAreaLeft(null);
-    setRefAreaRight(null);
-  };
-
-  const resetZoom = () => {
-    setLeft('dataMin');
-    setRight('dataMax');
-    setTop('dataMax');
-    setBottom('dataMin');
-    setRefAreaLeft(null);
-    setRefAreaRight(null);
-    onRangeSelect?.(null);
-  };
-
-  const selectedDataInChart =
-    selectedIndex !== null && weatherPoints[selectedIndex]
-      ? { distance: weatherPoints[selectedIndex].point.distanceFromStart }
-      : null;
+  const {
+    chartData,
+    stats,
+    gradientId,
+    gradientStops,
+    selectedPoint,
+    left,
+    right,
+    refAreaLeft,
+    refAreaRight,
+    setRefAreaLeft,
+    handleMouseMove,
+    handleMouseLeave,
+    zoom,
+    resetZoom,
+  } = useElevationChart();
 
   return (
-    <div className="rounded-xl border border-border bg-card p-4 select-none">
-      <div className="mb-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <TrendingUp className="h-4 w-4 text-primary" />
-          <h3 className="text-sm font-semibold text-foreground">{t('elevationTitle')}</h3>
+    <div className="border-border bg-card rounded-xl border p-4 shadow-sm select-none md:p-6">
+      <div className="mb-4 flex items-center justify-between md:mb-6">
+        <div className="flex items-center gap-2 md:gap-3">
+          <div className="bg-primary/10 rounded-lg p-1.5 md:p-2">
+            <TrendingUp className="text-primary h-3.5 w-3.5 md:h-4 md:w-4" />
+          </div>
+          <div>
+            <h3 className="text-foreground text-xs leading-none font-bold md:text-sm">
+              {t('elevationTitle')}
+            </h3>
+            {!isMobile && (
+              <p className="text-muted-foreground mt-1 text-[10px] font-semibold tracking-wider uppercase">
+                {formatDistance(chartData[chartData.length - 1]?.distance || 0, unitSystem)}
+              </p>
+            )}
+          </div>
           {(left !== 'dataMin' || right !== 'dataMax') && (
             <Button
-              variant="ghost"
+              variant="secondary"
               size="sm"
               onClick={resetZoom}
-              className="h-6 gap-1 px-2 text-[10px] text-muted-foreground hover:text-foreground bg-secondary/50"
+              className="h-6 gap-1 px-1.5 text-[9px] font-bold tracking-tight uppercase md:h-7 md:gap-1.5 md:px-2 md:text-[10px]"
             >
-              <RefreshCcw className="h-3 w-3" />
+              <RefreshCcw className="h-2.5 w-2.5 md:h-3 md:w-3" />
               {t('chart.resetZoom')}
             </Button>
           )}
         </div>
-        {selectedIndex !== null && weatherPoints[selectedIndex] && (
-          <div className="flex items-center gap-2">
-            <div
-              className="h-2.5 w-2.5 rounded-full animate-pulse"
-              style={{
-                backgroundColor:
-                  chartData.find(
-                    (d) =>
-                      Math.abs(d.distance - weatherPoints[selectedIndex].point.distanceFromStart) <
-                      0.1,
-                  )?.color || '#3ecf8e',
-              }}
-            />
-            <span className="text-xs font-bold font-mono text-foreground">
-              {Math.round(weatherPoints[selectedIndex].point.ele || 0)}m
+        {selectedPoint && (
+          <div className="bg-secondary/50 border-border/50 flex items-center gap-1.5 rounded-full border px-2 py-1 shadow-inner md:gap-2 md:px-3 md:py-1.5">
+            <div className="bg-primary h-1.5 w-1.5 animate-pulse rounded-full shadow-sm md:h-2 md:w-2" />
+            <span className="text-foreground font-mono text-[10px] font-black md:text-xs">
+              {formatElevation(selectedPoint.ele || 0, unitSystem)}
             </span>
           </div>
         )}
       </div>
 
-      <div className="h-48 w-full cursor-crosshair">
+      <div className={`${isMobile ? 'h-32' : 'h-56'} mb-4 w-full cursor-crosshair md:mb-6`}>
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
             data={chartData}
-            onMouseDown={(e) => e && setRefAreaLeft(e.activeLabel)}
+            onMouseDown={(e) => e && setRefAreaLeft(e.activeLabel as unknown as number)}
             onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
             onMouseUp={zoom}
             onDoubleClick={resetZoom}
+            margin={{ top: 5, right: isMobile ? 0 : 30, left: 0, bottom: 0 }}
           >
             <defs>
               <linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="0">
@@ -246,53 +97,83 @@ export function ElevationProfile({
                   <stop key={`line-${i}`} offset={stop.offset} stopColor={stop.color} />
                 ))}
               </linearGradient>
-              <linearGradient id={`${gradientId}-fill`} x1="0" y1="0" x2="1" y2="0">
-                {gradientStops.map((stop, i) => (
-                  <stop key={`fill-${i}`} offset={stop.offset} stopColor={stop.color} stopOpacity={0.2} />
-                ))}
+              <linearGradient id={`${gradientId}-fill`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.15} />
+                <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0.01} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+            {!isMobile && (
+              <CartesianGrid
+                strokeDasharray="3 3"
+                vertical={false}
+                stroke="currentColor"
+                opacity={0.1}
+              />
+            )}
             <XAxis
               dataKey="distance"
               type="number"
               domain={[left, right]}
-              tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
-              axisLine={{ stroke: 'hsl(var(--border))' }}
-              tickFormatter={(val) => `${val.toFixed(1)} km`}
-              minTickGap={30}
+              tick={
+                isMobile
+                  ? false
+                  : { fontSize: 10, fill: 'currentColor', opacity: 0.6, fontWeight: 500 }
+              }
+              axisLine={isMobile ? false : { stroke: 'currentColor', opacity: 0.1 }}
+              tickLine={false}
+              tickFormatter={(val) => formatDistance(val, unitSystem)}
+              minTickGap={40}
               allowDataOverflow
+              hide={isMobile}
             />
             <YAxis
               type="number"
               domain={['auto', 'auto']}
-              padding={{ top: 20, bottom: 20 }}
-              tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
-              axisLine={{ stroke: 'hsl(var(--border))' }}
-              tickFormatter={(val) => `${Math.round(val)}m`}
+              tick={
+                isMobile
+                  ? false
+                  : { fontSize: 10, fill: 'currentColor', opacity: 0.6, fontWeight: 500 }
+              }
+              axisLine={false}
+              tickLine={false}
+              tickFormatter={(val) => formatElevation(val, unitSystem)}
               allowDataOverflow
-              label={{ value: 'm', position: 'insideTopLeft', offset: -10, fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+              hide={isMobile}
             />
             <Tooltip
               content={({ active, payload }) => {
                 if (active && payload && payload.length) {
                   const data = payload[0].payload;
+                  const currentDist = data.distance;
+
+                  const displayEle =
+                    selectedPoint && Math.abs(selectedPoint.distanceFromStart - currentDist) < 0.05
+                      ? selectedPoint.ele
+                      : data.elevation;
+
                   return (
-                    <div className="rounded-lg border border-border bg-background p-2 shadow-md flex items-center gap-3">
-                      <div className="flex flex-col">
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase">
-                          km {data.distance.toFixed(1)}
+                    <div className="border-border bg-background/95 animate-in fade-in zoom-in flex items-center gap-3 rounded-xl border p-2 shadow-xl backdrop-blur-sm duration-200 md:gap-4 md:p-3">
+                      <div className="flex flex-col gap-0.5">
+                        <p className="text-muted-foreground text-[8px] font-black tracking-widest uppercase md:text-[9px]">
+                          {formatDistance(currentDist, unitSystem)}
                         </p>
-                        <span className="text-sm font-bold text-foreground">{data.elevation}m</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 border-l border-border pl-3">
-                        <div
-                          className="h-2 w-2 rounded-full"
-                          style={{ backgroundColor: data.color }}
-                        />
-                        <span className="text-xs font-bold font-mono text-foreground">
-                          {data.slope}%
+                        <span className="text-foreground text-xs font-black md:text-sm">
+                          {formatElevation(displayEle, unitSystem)}
                         </span>
+                      </div>
+                      <div className="border-border flex flex-col items-center gap-1 border-l pl-3 md:pl-4">
+                        <span className="text-muted-foreground text-[7px] font-bold tracking-tighter uppercase md:text-[8px]">
+                          {t('slope')}
+                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <div
+                            className="h-1.5 w-1.5 rounded-full shadow-sm md:h-2 md:w-2"
+                            style={{ backgroundColor: data.color }}
+                          />
+                          <span className="text-foreground font-mono text-[10px] font-black md:text-xs">
+                            {data.slope}%
+                          </span>
+                        </div>
                       </div>
                     </div>
                   );
@@ -303,19 +184,20 @@ export function ElevationProfile({
             <Area
               type="linear"
               dataKey="elevation"
-              stroke={gradientStops.length > 0 ? `url(#${gradientId})` : '#3ecf8e'}
-              strokeWidth={2}
+              stroke={gradientStops.length > 0 ? `url(#${gradientId})` : '#10b981'}
+              strokeWidth={isMobile ? 2 : 3}
               fillOpacity={1}
-              fill={gradientStops.length > 0 ? `url(#${gradientId}-fill)` : '#3ecf8e'}
+              fill={`url(#${gradientId}-fill)`}
               isAnimationActive={false}
               connectNulls
             />
 
-            {selectedDataInChart && (
+            {selectedPoint && (
               <ReferenceLine
-                x={selectedDataInChart.distance}
-                stroke="hsl(var(--foreground))"
-                strokeDasharray="3 3"
+                x={selectedPoint.distanceFromStart}
+                stroke="hsl(var(--primary))"
+                strokeWidth={isMobile ? 1 : 2}
+                strokeDasharray="4 4"
               />
             )}
 
@@ -323,13 +205,41 @@ export function ElevationProfile({
               <ReferenceArea
                 x1={refAreaLeft}
                 x2={refAreaRight}
-                strokeOpacity={0.3}
                 fill="hsl(var(--primary))"
-                fillOpacity={0.1}
+                fillOpacity={0.05}
               />
             )}
           </AreaChart>
         </ResponsiveContainer>
+      </div>
+
+      <div className="border-border/50 mt-2 grid grid-cols-2 gap-3 border-t pt-4 md:gap-4">
+        <div className="bg-secondary/20 border-border/30 flex items-center gap-2 rounded-lg border px-1.5 py-1 md:gap-3 md:px-2 md:py-1.5">
+          <div className="rounded-md bg-emerald-500/10 p-1 md:p-1.5">
+            <ArrowUp className="h-3 w-3 text-emerald-600 md:h-3.5 md:w-3.5" />
+          </div>
+          <div>
+            <p className="text-muted-foreground mb-0.5 text-[8px] leading-none font-black tracking-widest uppercase md:mb-1 md:text-[9px]">
+              {t('chart.highestPoint')}
+            </p>
+            <p className="text-foreground text-xs leading-none font-black md:text-sm">
+              {formatElevation(stats.max, unitSystem)}
+            </p>
+          </div>
+        </div>
+        <div className="bg-secondary/20 border-border/30 flex items-center gap-2 rounded-lg border px-1.5 py-1 md:gap-3 md:px-2 md:py-1.5">
+          <div className="rounded-md bg-rose-500/10 p-1 md:p-1.5">
+            <ArrowDown className="h-3 w-3 text-rose-600 md:h-3.5 md:w-3.5" />
+          </div>
+          <div>
+            <p className="text-muted-foreground mb-0.5 text-[8px] leading-none font-black tracking-widest uppercase md:mb-1 md:text-[9px]">
+              {t('chart.lowestPoint')}
+            </p>
+            <p className="text-foreground text-xs leading-none font-black md:text-sm">
+              {formatElevation(stats.min, unitSystem)}
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );

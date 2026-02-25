@@ -1,4 +1,5 @@
 import type { RoutePoint, GPXData } from './types';
+import { decodeTWKB, type Point } from './twkb-parser';
 
 function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371; // km
@@ -156,67 +157,6 @@ export function decodePolyline(encoded: string): [number, number][] {
   return points;
 }
 
-export function stravaToGPXData(activity: any): GPXData {
-  if (!activity.map?.summary_polyline) {
-    throw new Error('No path data in activity');
-  }
-
-  const coords = decodePolyline(activity.map.summary_polyline);
-  const points: RoutePoint[] = [];
-  let totalDistance = 0;
-
-  coords.forEach((coord, i) => {
-    if (i > 0) {
-      const prev = coords[i - 1];
-      totalDistance += haversineDistance(prev[0], prev[1], coord[0], coord[1]);
-    }
-    points.push({
-      lat: coord[0],
-      lon: coord[1],
-      distanceFromStart: totalDistance,
-    });
-  });
-
-  return {
-    points,
-    name: activity.name,
-    totalDistance: activity.distance / 1000, // Strava is in meters
-    totalElevationGain: activity.total_elevation_gain,
-    totalElevationLoss: 0, // Strava doesn't provide it in summary
-  };
-}
-
-export function stravaRouteToGPXData(route: any): GPXData {
-  const polyline = route.map?.polyline || route.map?.summary_polyline;
-  if (!polyline) {
-    throw new Error('No path data in route');
-  }
-
-  const coords = decodePolyline(polyline);
-  const points: RoutePoint[] = [];
-  let totalDistance = 0;
-
-  coords.forEach((coord, i) => {
-    if (i > 0) {
-      const prev = coords[i - 1];
-      totalDistance += haversineDistance(prev[0], prev[1], coord[0], coord[1]);
-    }
-    points.push({
-      lat: coord[0],
-      lon: coord[1],
-      distanceFromStart: totalDistance,
-    });
-  });
-
-  return {
-    points,
-    name: route.name,
-    totalDistance: route.distance / 1000,
-    totalElevationGain: route.elevation_gain,
-    totalElevationLoss: 0,
-  };
-}
-
 export function calculateBearing(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const dLon = ((lon2 - lon1) * Math.PI) / 180;
   const y = Math.sin(dLon) * Math.cos((lat2 * Math.PI) / 180);
@@ -270,4 +210,71 @@ export function sampleRoutePoints(points: RoutePoint[], numSamples: number = 20)
 
   sampled.push(points[points.length - 1]);
   return sampled;
+}
+
+// Decode Wikiloc custom geometry encoding (handles both legacy and new TWKB format)
+export function decodeWikilocGeom(encoded: string): Point[] {
+  if (!encoded) return [];
+
+  // Detect if it's TWKB (starts with 'w' is common for Wikiloc TWKB in Base64)
+  // or if it contains characters not in the legacy alphabet
+  if (encoded.startsWith('w') || encoded.length > 1000) {
+    try {
+      return decodeTWKB(encoded);
+    } catch (e) {
+      console.warn('Failed to decode as TWKB, falling back to legacy:', e);
+    }
+  }
+
+  // Legacy Wikiloc custom format
+  const points: Point[] = [];
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+  const charMap: { [key: string]: number } = {};
+  for (let i = 0; i < chars.length; i++) charMap[chars[i]] = i;
+
+  let lat = 0;
+  let lon = 0;
+  let i = 0;
+
+  const readInt = () => {
+    let result = 0;
+    let shift = 0;
+    let b: number;
+    do {
+      b = charMap[encoded[i++]];
+      if (b === undefined) break;
+      result |= (b & 31) << shift;
+      shift += 5;
+    } while (b >= 32);
+    return result & 1 ? ~(result >> 1) : result >> 1;
+  };
+
+  while (i < encoded.length) {
+    const dLat = readInt();
+    const dLon = readInt();
+    lat += dLat;
+    lon += dLon;
+    points.push({ lat: lat / 1e5, lon: lon / 1e5 });
+  }
+
+  return points;
+}
+
+export function pointsToGPX(points: { lat: number; lon: number }[], name: string): string {
+  const gpxPoints = points
+    .map((p) => `      <trkpt lat="${p.lat}" lon="${p.lon}"></trkpt>`)
+    .join('\n');
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="peakOne" xmlns="http://www.topografix.com/GPX/1/1">
+  <metadata>
+    <name>${name}</name>
+  </metadata>
+  <trk>
+    <name>${name}</name>
+    <trkseg>
+${gpxPoints}
+    </trkseg>
+  </trk>
+</gpx>`;
 }

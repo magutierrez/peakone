@@ -24,24 +24,24 @@ export function WeatherIcon({ code, className = 'h-5 w-5' }: WeatherIconProps) {
 
   switch (iconName) {
     case 'sun':
-      return <Sun className={`${className} text-accent`} />;
+      return <Sun className={`${className} text-amber-500`} />;
     case 'cloud-sun':
-      return <CloudSun className={`${className} text-accent`} />;
+      return <CloudSun className={`${className} text-amber-500`} />;
     case 'cloud':
-      return <Cloud className={`${className} text-muted-foreground`} />;
+      return <Cloud className={`${className} text-slate-400`} />;
     case 'cloud-fog':
-      return <CloudFog className={`${className} text-muted-foreground`} />;
+      return <CloudFog className={`${className} text-slate-400`} />;
     case 'cloud-drizzle':
-      return <CloudDrizzle className={`${className} text-chart-2`} />;
+      return <CloudDrizzle className={`${className} text-blue-400`} />;
     case 'cloud-rain':
-      return <CloudRain className={`${className} text-chart-2`} />;
+      return <CloudRain className={`${className} text-blue-500`} />;
     case 'cloud-rain-wind':
-      return <CloudRainWind className={`${className} text-chart-2`} />;
+      return <CloudRainWind className={`${className} text-blue-600`} />;
     case 'snowflake':
-      return <Snowflake className={`${className} text-foreground`} />;
+      return <Snowflake className={`${className} text-sky-300`} />;
     case 'cloud-lightning':
-      return <CloudLightning className={`${className} text-accent`} />;
+      return <CloudLightning className={`${className} text-yellow-500`} />;
     default:
-      return <Cloud className={`${className} text-muted-foreground`} />;
+      return <Cloud className={`${className} text-slate-400`} />;
   }
 }

@@ -1,41 +1,44 @@
 'use client';
 
-import { useTransition } from 'react';
-import { Languages } from 'lucide-react';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
+import { Globe } from 'lucide-react';
 import { setUserLocale } from '@/lib/i18n';
 
 export function LocaleSwitcher() {
-  const [isPending, startTransition] = useTransition();
+  const t = useTranslations('LocaleSwitcher');
   const locale = useLocale();
+  const router = useRouter();
 
-  function onSelectChange(value: string) {
-    startTransition(() => {
-      setUserLocale(value);
-    });
-  }
+  const onSelectChange = async (nextLocale: string) => {
+    await setUserLocale(nextLocale);
+    router.refresh();
+  };
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-9 w-9" disabled={isPending}>
-          <Languages className="h-[1.2rem] w-[1.2rem]" />
-          <span className="sr-only">Switch language</span>
+        <Button variant="ghost" size="icon" className="relative h-9 w-9">
+          <Globe className="h-5 w-5" />
+          <span className="sr-only">{t('switchLocale')}</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => onSelectChange('es')} className={locale === 'es' ? 'bg-accent' : ''}>
+      <DropdownMenuContent className="w-40" align="end" forceMount>
+        <DropdownMenuItem onClick={() => onSelectChange('en')} disabled={locale === 'en'}>
+          English
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => onSelectChange('es')} disabled={locale === 'es'}>
           Español
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onSelectChange('en')} className={locale === 'en' ? 'bg-accent' : ''}>
-          English
+        <DropdownMenuItem onClick={() => onSelectChange('ca')} disabled={locale === 'ca'}>
+          Català
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -1,157 +1,186 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { RouteSegments } from '@/components/weather-timeline/route-segments';
-import { ElevationProfile } from '@/components/weather-timeline/elevation-profile';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { WeatherSummary } from '@/components/weather-timeline/weather-summary';
 import { WeatherList } from '@/components/weather-timeline/weather-list';
-import { WeatherPointDetail } from '@/components/weather-timeline/weather-point-detail';
 import { RouteAdvice } from '@/components/route-advice';
+import { WeatherPointDetail } from '@/components/weather-timeline/weather-point-detail';
 import { RouteHazards } from '@/components/route-hazards';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import type { RouteWeatherPoint } from '@/lib/types';
-import { CloudSun, ShieldAlert, AlertTriangle, RefreshCcw } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { BestDepartureFinder } from '@/components/best-departure-finder';
+import { Progress } from '@/components/ui/progress';
+
+import { useRouteStore } from '@/store/route-store';
+import { useAnalysisMetrics } from '@/hooks/use-analysis-metrics';
 
 interface AnalysisResultsProps {
-  weatherPoints: RouteWeatherPoint[];
-  routeInfoData: any[];
-  elevationData: { distance: number; elevation: number }[];
-  activeFilter: { key: 'pathType' | 'surface'; value: string } | null;
-  setActiveFilter: (filter: { key: 'pathType' | 'surface'; value: string } | null) => void;
-  selectedPointIndex: number | null;
-  setSelectedPointIndex: (index: number | null) => void;
-  onRangeSelect?: (range: { start: number; end: number } | null) => void;
-  selectedRange?: { start: number; end: number } | null;
-  activityType: 'cycling' | 'walking';
-  showWaterSources?: boolean;
-  onToggleWaterSources?: () => void;
+  onFindBestWindow: () => void;
+  onSelectBestWindow: (time: string) => void;
+  onAnalyzeBestWindow: (time: string) => void;
 }
 
 export function AnalysisResults({
-  weatherPoints,
-  routeInfoData,
-  elevationData,
-  activeFilter,
-  setActiveFilter,
-  selectedPointIndex,
-  setSelectedPointIndex,
-  onRangeSelect,
-  selectedRange,
-  activityType,
-  showWaterSources,
-  onToggleWaterSources,
+  onFindBestWindow,
+  onSelectBestWindow,
+  onAnalyzeBestWindow,
 }: AnalysisResultsProps) {
-  const th = useTranslations('HomePage');
-  const tr = useTranslations('RouteMap');
+  const t = useTranslations('HomePage');
+  const th = useTranslations('Hazards');
+
+  // Read all state from store
+  const weatherPoints = useRouteStore((s) => s.weatherPoints);
+  const gpxData = useRouteStore((s) => s.gpxData);
+  const activeFilter = useRouteStore((s) => s.activeFilter);
+  const setActiveFilter = useRouteStore((s) => s.setActiveFilter);
+  const selectedPointIndex = useRouteStore((s) => s.selectedPointIndex);
+  const setSelectedPointIndex = useRouteStore((s) => s.setSelectedPointIndex);
+  const setSelectedRange = useRouteStore((s) => s.setSelectedRange);
+  const setChartHoverPoint = useRouteStore((s) => s.setChartHoverPoint);
+  const activityType = useRouteStore((s) => s.fetchedActivityType);
+  const showWaterSources = useRouteStore((s) => s.showWaterSources);
+  const setShowWaterSources = useRouteStore((s) => s.setShowWaterSources);
+  const showNoCoverageZones = useRouteStore((s) => s.showNoCoverageZones);
+  const setShowNoCoverageZones = useRouteStore((s) => s.setShowNoCoverageZones);
+  const showEscapePoints = useRouteStore((s) => s.showEscapePoints);
+  const setShowEscapePoints = useRouteStore((s) => s.setShowEscapePoints);
+  const bestWindows = useRouteStore((s) => s.bestWindows);
+  const isFindingWindow = useRouteStore((s) => s.isFindingWindow);
+  const setFocusPoint = useRouteStore((s) => s.setFocusPoint);
+  const clearSelection = useRouteStore((s) => s.clearSelection);
+
+  const allPoints = gpxData?.points || [];
+
+  const [tab, setTab] = useState('weather');
+
+  const { totalSegments, highDangerSegments, mediumDangerSegments, lowDangerSegments } =
+    useAnalysisMetrics();
+
+  useEffect(() => {
+    // Ensure no point is pre-selected on mount
+    setSelectedPointIndex(null);
+  }, [setSelectedPointIndex]);
+
+  useEffect(() => {
+    const resultsContainer = document.getElementById('analysis-results-container');
+    if (resultsContainer) {
+      resultsContainer.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [tab]);
 
   return (
-    <>
-      <section className="flex flex-col gap-4">
-        <div className="flex items-center gap-2 border-b border-border pb-2">
-          <div className="h-4 w-1 rounded-full bg-primary" />
-          <h3 className="text-sm font-bold uppercase tracking-wider text-foreground/80">
-            {th('sections.terrain')}
-          </h3>
-        </div>
-        <RouteSegments
-          weatherPoints={
-            weatherPoints.length > 0
-              ? weatherPoints
-              : routeInfoData.map((d) => ({ ...d, point: d }))
-          }
-          activeFilter={activeFilter}
-          onFilterChange={setActiveFilter}
-        />
-      </section>
+    <div id="analysis-results-container">
+      <Tabs value={tab} onValueChange={setTab}>
+        <TabsList className="custom-scrollbar bg-secondary/50 mb-8 flex w-full items-center justify-start overflow-x-auto overflow-y-hidden md:grid md:grid-cols-3 md:justify-center">
+          <TabsTrigger value="weather" className="min-w-fit md:w-full">
+            {t('sections.weatherAnalysis')}
+          </TabsTrigger>
+          <TabsTrigger value="advice" className="min-w-fit md:w-full">
+            {t('sections.advice')}
+          </TabsTrigger>
+          <TabsTrigger value="hazards" className="min-w-fit md:w-full">
+            {t('sections.hazards')}
+          </TabsTrigger>
+        </TabsList>
 
-      <section className="flex flex-col gap-4">
-        <div className="flex items-center gap-2 border-b border-border pb-2">
-          <div className="h-4 w-1 rounded-full bg-primary" />
-          <h3 className="text-sm font-bold uppercase tracking-wider text-foreground/80">
-            {th('sections.altitude')}
-          </h3>
-        </div>
-        <ElevationProfile
-          weatherPoints={weatherPoints}
-          elevationData={elevationData}
-          selectedIndex={selectedPointIndex}
-          onSelect={setSelectedPointIndex}
-          onRangeSelect={onRangeSelect}
-        />
-      </section>
+        <TabsContent value="weather" className="mt-6 flex flex-col gap-6">
+          <WeatherSummary weatherPoints={weatherPoints} />
+          <WeatherList
+            weatherPoints={weatherPoints}
+            selectedIndex={selectedPointIndex}
+            onSelect={setSelectedPointIndex}
+          />
+          {selectedPointIndex !== null &&
+            (() => {
+              const selectedWeatherPoint = weatherPoints[selectedPointIndex];
+              if (selectedWeatherPoint) {
+                return (
+                  <WeatherPointDetail
+                    weatherPoint={selectedWeatherPoint}
+                    activityType={activityType ?? 'cycling'}
+                    onShowOnMap={(lat, lon, name) => setFocusPoint({ lat, lon, name })}
+                  />
+                );
+              }
+              return null;
+            })()}
+          <BestDepartureFinder
+            windows={bestWindows}
+            isLoading={isFindingWindow}
+            onFind={onFindBestWindow}
+            onSelect={onSelectBestWindow}
+            onAnalyze={onAnalyzeBestWindow}
+          />{' '}
+        </TabsContent>
 
-      {weatherPoints.length > 0 && (
-        <Tabs defaultValue="weather" className="w-full mt-8">
-          <TabsList className="grid w-full grid-cols-3 mb-8 bg-secondary/50 p-1">
-            <TabsTrigger value="weather" className="gap-2">
-              <CloudSun className="h-4 w-4" />
-              {th('sections.weatherAnalysis')}
-            </TabsTrigger>
-            <TabsTrigger value="advice" className="gap-2">
-              <ShieldAlert className="h-4 w-4" />
-              {th('sections.advice')}
-            </TabsTrigger>
-            <TabsTrigger value="hazards" className="gap-2">
-              <AlertTriangle className="h-4 w-4" />
-              {th('sections.hazards')}
-            </TabsTrigger>
-          </TabsList>
+        <TabsContent value="advice" className="mt-6 flex flex-col gap-6">
+          <RouteAdvice
+            weatherPoints={weatherPoints}
+            activityType={activityType ?? 'cycling'}
+            showWaterSources={showWaterSources}
+            onToggleWaterSources={() => setShowWaterSources(!showWaterSources)}
+            showNoCoverageZones={showNoCoverageZones}
+            onToggleNoCoverageZones={() => setShowNoCoverageZones(!showNoCoverageZones)}
+            showEscapePoints={showEscapePoints}
+            onToggleEscapePoints={() => setShowEscapePoints(!showEscapePoints)}
+          />
+        </TabsContent>
 
-          <TabsContent value="weather" className="space-y-8 animate-in fade-in-50 duration-500 outline-none">
-            <WeatherSummary weatherPoints={weatherPoints} />
-            <WeatherList
-              weatherPoints={weatherPoints}
-              selectedIndex={selectedPointIndex}
-              onSelect={setSelectedPointIndex}
-            />
-            {selectedPointIndex !== null && weatherPoints[selectedPointIndex] && (
-              <WeatherPointDetail point={weatherPoints[selectedPointIndex]} />
-            )}
-          </TabsContent>
+        <TabsContent value="hazards" className="mt-6 flex flex-col gap-6">
+          <RouteHazards
+            weatherPoints={weatherPoints}
+            allPoints={allPoints}
+            onSelectSegment={(segment) =>
+              segment && setSelectedRange({ start: segment?.start, end: segment?.end })
+            }
+            onSelectPoint={setChartHoverPoint}
+            setActiveFilter={setActiveFilter}
+            onClearSelection={clearSelection}
+          />
 
-          <TabsContent value="advice" className="animate-in slide-in-from-right-2 fade-in-50 duration-500 outline-none">
-            <div className="mb-6">
-              <h3 className="text-lg font-bold text-foreground mb-1">{th('sections.advice')}</h3>
-              <p className="text-sm text-muted-foreground">
-                {activityType === 'cycling' 
-                  ? th('sections.adviceCycling') 
-                  : th('sections.adviceHiking')}
-              </p>
-            </div>
-            <RouteAdvice 
-              weatherPoints={weatherPoints} 
-              activityType={activityType} 
-              showWaterSources={showWaterSources}
-              onToggleWaterSources={onToggleWaterSources}
-            />
-          </TabsContent>
-
-          <TabsContent value="hazards" className="animate-in slide-in-from-right-2 fade-in-50 duration-500 outline-none">
-            <div className="mb-6 flex items-start justify-between">
-              <div>
-                <h3 className="text-lg font-bold text-foreground mb-1">{th('sections.hazards')}</h3>
-                <p className="text-sm text-muted-foreground">{th('sections.hazardsDesc')}</p>
+          {totalSegments > 0 && (
+            <div className="border-border bg-card/50 flex flex-col gap-4 rounded-xl border p-6">
+              <div className="border-border flex items-center gap-2 border-b pb-2">
+                <div className="bg-primary h-4 w-1 rounded-full" />
+                <h3 className="text-foreground/80 text-sm font-bold tracking-wider uppercase">
+                  {th('effortLevel')}
+                </h3>
               </div>
-              {selectedRange && (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => onRangeSelect?.(null)}
-                  className="h-8 gap-2 bg-secondary/50 border-primary/20 hover:bg-secondary"
-                >
-                  <RefreshCcw className="h-3 w-3" />
-                  <span className="text-[10px] font-bold uppercase tracking-tight">{tr('resetView')}</span>
-                </Button>
-              )}
+
+              <div className="flex flex-col gap-2">
+                <div className="text-foreground flex items-center justify-between text-sm">
+                  <p>{th('levels.high')}</p>
+                  <p>{highDangerSegments}</p>
+                </div>
+                <Progress
+                  value={(highDangerSegments / totalSegments) * 100}
+                  className="h-2 bg-red-500"
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <div className="text-foreground flex items-center justify-between text-sm">
+                  <p>{th('levels.medium')}</p>
+                  <p>{mediumDangerSegments}</p>
+                </div>
+                <Progress
+                  value={(mediumDangerSegments / totalSegments) * 100}
+                  className="h-2 bg-orange-500"
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <div className="text-foreground flex items-center justify-between text-sm">
+                  <p>{th('levels.low')}</p>
+                  <p>{lowDangerSegments}</p>
+                </div>
+                <Progress
+                  value={(lowDangerSegments / totalSegments) * 100}
+                  className="h-2 bg-amber-500"
+                />
+              </div>
             </div>
-            <RouteHazards 
-              weatherPoints={weatherPoints} 
-              onSelectSegment={onRangeSelect}
-            />
-          </TabsContent>
-        </Tabs>
-      )}
-    </>
+          )}
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }
