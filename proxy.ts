@@ -1,40 +1,46 @@
 import { auth } from './auth';
 import createMiddleware from 'next-intl/middleware';
 import { NextRequest, NextResponse } from 'next/server';
+import { routing } from './i18n/routing';
 
-const nextIntlMiddleware = createMiddleware({
-  locales: ['en', 'es'],
-  defaultLocale: 'en',
-  localePrefix: 'never',
-});
+const intlMiddleware = createMiddleware(routing);
 
 export async function proxy(request: NextRequest) {
-  const session = await auth();
   const { pathname } = request.nextUrl;
 
-  // Redirect unauthenticated users to login
-  const isPublicPath =
-    pathname.startsWith('/login') ||
-    pathname.startsWith('/terms') ||
-    pathname.startsWith('/privacy') ||
-    pathname.startsWith('/landing') ||
-    pathname.startsWith('/api/auth');
-
-  if (!session?.user && !isPublicPath) {
-    return NextResponse.redirect(new URL('/login', request.url));
+  // Always let Next.js auth callbacks pass through
+  if (pathname.startsWith('/api/auth')) {
+    return NextResponse.next();
   }
 
-  // Apply next-intl middleware for i18n
+  // Detect locale segment at the start of the path
+  const locale = routing.locales.find(
+    (l) => pathname.startsWith(`/${l}/`) || pathname === `/${l}`
+  );
 
-  // if (pathname.startsWith('/login')) { // Temporarily skip nextIntlMiddleware for /login
+  // No locale prefix yet → let intl middleware redirect to add it (e.g. / → /en/)
+  // Auth will be checked on the next request once the locale is in the URL
+  if (!locale) {
+    return intlMiddleware(request);
+  }
 
-  //   return NextResponse.next();
+  // Strip locale prefix to get the clean path for auth checks
+  const cleanPath = pathname.slice(locale.length + 1) || '/';
 
-  // }
+  const isPublicPath =
+    cleanPath === '/' ||
+    cleanPath.startsWith('/terms') ||
+    cleanPath.startsWith('/privacy') ||
+    cleanPath.startsWith('/app/login');
 
-  // return nextIntlMiddleware(request); // Temporarily disabled completely
+  if (!isPublicPath) {
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.redirect(new URL(`/${locale}/app/login`, request.url));
+    }
+  }
 
-  return NextResponse.next();
+  return intlMiddleware(request);
 }
 
 export const config = {

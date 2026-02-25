@@ -47,7 +47,7 @@ export function UserMenu({ userName, userEmail, userImage }: UserMenuProps) {
             <span>{t('settings')}</span>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => signOut({ callbackUrl: '/login' })}>
+          <DropdownMenuItem onClick={() => signOut({ redirectTo: '/app/login' })}>
             <LogOut className="mr-2 h-4 w-4" />
             <span>{t('logout')}</span>
           </DropdownMenuItem>

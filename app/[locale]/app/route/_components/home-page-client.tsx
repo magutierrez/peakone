@@ -3,7 +3,8 @@
 import { useEffect, useRef, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import { useTranslations } from 'next-intl';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from '@/i18n/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useRouteAnalysis } from '@/hooks/use-route-analysis';
 import { useRouteStore } from '@/store/route-store';
@@ -11,12 +12,12 @@ import { getRouteFromDb } from '@/lib/db';
 import { cn } from '@/lib/utils';
 import { Session } from 'next-auth';
 
-import { Header } from '../../_components/header';
-import { EmptyState } from '../../_components/empty-state';
-import { ActivityConfigSection } from '../../_components/activity-config-section';
-import { RouteLoadingOverlay } from '../../_components/route-loading-overlay';
-import { AnalysisResults } from '../../_components/analysis-results';
-import { AnalysisSkeleton } from '../../_components/analysis-skeleton';
+import { Header } from '@/app/_components/header';
+import { EmptyState } from '@/app/_components/empty-state';
+import { ActivityConfigSection } from '@/app/_components/activity-config-section';
+import { RouteLoadingOverlay } from '@/app/_components/route-loading-overlay';
+import { AnalysisResults } from '@/app/_components/analysis-results';
+import { AnalysisSkeleton } from '@/app/_components/analysis-skeleton';
 
 import { RouteSummary } from './route-summary';
 import { ElevationTerrainTabs } from './elevation-terrain-tabs';
@@ -83,12 +84,12 @@ export default function HomePageClient({ session: serverSession }: HomePageClien
             elevationLoss: route.elevation_loss,
           });
         } else {
-          router.replace('/setup');
+          router.replace('/app/setup');
         }
       };
       fetchRoute();
     } else if (!routeId) {
-      router.replace('/setup');
+      router.replace('/app/setup');
     }
   }, [routeId, session?.user?.email, session?.user?.id, setFetchedRoute, router]);
 

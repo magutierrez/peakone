@@ -1,7 +1,7 @@
 'use client';
 
 import { signIn } from 'next-auth/react';
-import { Mountain, Facebook } from 'lucide-react';
+import { Facebook } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,12 +12,13 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { useTranslations } from 'next-intl';
-import { LocaleSwitcher } from '../../_components/locale-switcher';
+import { useLocale, useTranslations } from 'next-intl';
+import { LocaleSwitcher } from '@/app/_components/locale-switcher';
 import { LogoIcon } from '@/app/_components/logo-icon';
 
 export function LoginPageClient() {
   const t = useTranslations('Auth');
+  const locale = useLocale();
 
   return (
     <div className="bg-background flex min-h-screen items-center justify-center p-4">
@@ -42,7 +43,7 @@ export function LoginPageClient() {
           <Button
             variant="outline"
             className="border-border bg-card hover:bg-muted h-12"
-            onClick={() => signIn('google', { redirectTo: '/' })}
+            onClick={() => signIn('google', { redirectTo: `/${locale}/app/setup` })}
           >
             <svg
               className="mr-2 h-5 w-5"
@@ -65,7 +66,7 @@ export function LoginPageClient() {
           <Button
             variant="outline"
             className="border-border bg-card text-foreground hover:bg-muted h-12"
-            onClick={() => signIn('strava', { redirectTo: '/' })}
+            onClick={() => signIn('strava', { redirectTo: `/${locale}/app/setup` })}
           >
             <svg
               className="mr-2 h-5 w-5 fill-current text-[#FC6719]"
@@ -80,7 +81,7 @@ export function LoginPageClient() {
           <Button
             variant="outline"
             className="h-12"
-            onClick={() => signIn('facebook', { redirectTo: '/' })}
+            onClick={() => signIn('facebook', { redirectTo: `/${locale}/app/setup` })}
           >
             <Facebook className="mr-2 h-5 w-5 fill-current text-[#1877F2]" />
             {t('continueFacebook')}
@@ -89,7 +90,7 @@ export function LoginPageClient() {
           <Button
             variant="outline"
             className="border-border bg-card text-foreground hover:bg-muted h-12"
-            onClick={() => signIn('twitter', { redirectTo: '/' })}
+            onClick={() => signIn('twitter', { redirectTo: `/${locale}/app/setup` })}
           >
             <svg className="mr-2 h-4 w-4 fill-current" viewBox="0 0 24 24" aria-hidden="true">
               <path d="M18.244 2.25h3.308l-7.227 7.717 8.502 11.25h-6.657l-5.214-6.817L4.99 21.25H1.68l7.73-8.235L1.25 2.25h6.826l4.717 6.176L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z"></path>

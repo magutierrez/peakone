@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/i18n/navigation';
 import { Session } from 'next-auth';
 import { useSession } from 'next-auth/react';
 import { useSavedRoutes } from '@/hooks/use-saved-routes';
@@ -136,7 +136,7 @@ export function SetupPageClient({ session: serverSession }: SetupPageClientProps
         params.set('routeId', routeId);
         params.set('name', selectedGpxFileName || 'Unnamed Route');
         params.set('activity', activityType);
-        router.push(`/route?${params.toString()}`);
+        router.push(`/app/route?${params.toString()}`);
       } else {
         setError(t('errors.saveError'));
       }

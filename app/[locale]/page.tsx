@@ -26,7 +26,7 @@ import {
   Globe,
 } from 'lucide-react';
 import { LogoIcon } from '@/app/_components/logo-icon';
-import { LandingThemeToggle } from './_components/landing-theme-toggle';
+import { LandingThemeToggle } from './landing/_components/landing-theme-toggle';
 import { LocaleSwitcher } from '@/app/_components/locale-switcher';
 
 /* ─── NAV ─────────────────────────────────────────────────── */
@@ -637,7 +637,7 @@ function Footer() {
           {[
             { label: t('privacy'), href: '/privacy' },
             { label: t('terms'), href: '/terms' },
-            { label: t('login'), href: '/login' },
+            { label: t('login'), href: '/app/login' },
           ].map((l) => (
             <Link key={l.href} href={l.href} className="text-xs text-slate-400 transition-colors hover:text-slate-700 dark:text-white/35 dark:hover:text-white/70">{l.label}</Link>
           ))}

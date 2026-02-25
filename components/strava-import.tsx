@@ -59,10 +59,7 @@ export function StravaImport({ onRouteLoaded }: StravaImportProps) {
       .finally(() => setLoadingList(false));
   }, [isStravaConnected, t]);
 
-  const handleImport = async (
-    type: 'activity' | 'route',
-    item: StravaActivity | StravaRoute,
-  ) => {
+  const handleImport = async (type: 'activity' | 'route', item: StravaActivity | StravaRoute) => {
     setImportingId(String(item.id));
     setError(null);
 
@@ -92,7 +89,7 @@ export function StravaImport({ onRouteLoaded }: StravaImportProps) {
         <p className="text-muted-foreground max-w-xs text-center text-sm">
           {t('stravaConnectDesc')}
         </p>
-        <Button onClick={() => signIn('strava', { callbackUrl: '/setup' })} className="gap-2">
+        <Button onClick={() => signIn('strava', { redirectTo: '/app/setup' })} className="gap-2">
           {t('stravaConnect')}
         </Button>
       </div>

@@ -20,8 +20,8 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useState } from 'react';
 import { SettingsModal } from './settings-modal';
 import { LocaleSwitcher } from './locale-switcher';
-import Link from 'next/link';
 import { LogoIcon } from '@/app/_components/logo-icon';
+import { Link } from '@/i18n/navigation';
 
 interface HeaderProps {
   session: Session | null;
@@ -41,7 +41,7 @@ export function Header({ session, mobileMenuContent }: HeaderProps) {
 
   return (
     <header className="border-border bg-background sticky top-0 z-40 flex h-14 items-center justify-between border-b px-4 lg:px-6">
-      <Link href="/setup" className="flex items-center gap-2">
+      <Link href="/app/setup" className="flex items-center gap-2">
         <LogoIcon className="text-primary h-6 w-6" />
         <span className="font-heading text-lg font-bold">zustrack</span>
       </Link>
@@ -92,7 +92,7 @@ export function Header({ session, mobileMenuContent }: HeaderProps) {
                 <span>{t('settings')}</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => signOut({ callbackUrl: '/login' })}>
+              <DropdownMenuItem onClick={() => signOut({ redirectTo: '/app/login' })}>
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>{t('logout')}</span>
               </DropdownMenuItem>

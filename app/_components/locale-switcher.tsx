@@ -1,7 +1,8 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from '@/i18n/navigation';
+import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -10,16 +11,30 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Globe } from 'lucide-react';
-import { setUserLocale } from '@/lib/i18n';
+import { routing } from '@/i18n/routing';
+import { useTransition, Suspense } from 'react';
 
-export function LocaleSwitcher() {
+type Locale = (typeof routing.locales)[number];
+
+function LocaleSwitcherContent() {
   const t = useTranslations('LocaleSwitcher');
   const locale = useLocale();
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [, startTransition] = useTransition();
 
-  const onSelectChange = async (nextLocale: string) => {
-    await setUserLocale(nextLocale);
-    router.refresh();
+  const onSelectChange = (nextLocale: Locale) => {
+    const params = new URLSearchParams(searchParams.toString());
+    startTransition(() => {
+      router.replace(
+        {
+          pathname,
+          query: Object.fromEntries(params.entries()),
+        },
+        { locale: nextLocale },
+      );
+    });
   };
 
   return (
@@ -42,5 +57,19 @@ export function LocaleSwitcher() {
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+  );
+}
+
+export function LocaleSwitcher() {
+  return (
+    <Suspense
+      fallback={
+        <Button variant="ghost" size="icon" className="relative h-9 w-9" disabled>
+          <Globe className="h-5 w-5 opacity-50" />
+        </Button>
+      }
+    >
+      <LocaleSwitcherContent />
+    </Suspense>
   );
 }
