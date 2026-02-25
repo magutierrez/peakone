@@ -111,6 +111,10 @@
     "waterOk": "Reliable water sources available on route.",
     "showOnMap": "Show on map",
     "hideFromMap": "Hide from map",
+    "coverage": "Mobile Coverage",
+    "coverageUnavailable": "Coverage data is not available at this time. The cell tower service could not be reached.",
+    "coverageGaps": "Zones with limited or no mobile coverage detected on this route.",
+    "coverageGood": "Good mobile coverage throughout the route.",
     "reliability": {
       "high": "High",
       "medium": "Medium",

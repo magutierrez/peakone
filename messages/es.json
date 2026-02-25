@@ -111,6 +111,10 @@
     "waterOk": "Fuentes fiables disponibles durante la ruta.",
     "showOnMap": "Ver en el mapa",
     "hideFromMap": "Quitar del mapa",
+    "coverage": "Cobertura Móvil",
+    "coverageUnavailable": "Los datos de cobertura no están disponibles en este momento. No se pudo contactar con el servicio de antenas.",
+    "coverageGaps": "Se han detectado zonas con cobertura limitada o sin cobertura en esta ruta.",
+    "coverageGood": "Buena cobertura móvil en toda la ruta.",
     "reliability": {
       "high": "Alta",
       "medium": "Media",

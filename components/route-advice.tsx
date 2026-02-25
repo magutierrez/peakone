@@ -20,6 +20,7 @@ import {
   Thermometer,
   MountainSnow,
   Snowflake,
+  Signal,
 } from 'lucide-react';
 import type { RouteWeatherPoint, MudRiskLevel, SnowCondition, ViabilityThreat, ViabilityResult } from '@/lib/types';
 import { getMudRiskSegments } from '@/lib/mud-risk';
@@ -35,6 +36,8 @@ interface RouteAdviceProps {
   activityType: 'cycling' | 'walking';
   showWaterSources?: boolean;
   onToggleWaterSources?: () => void;
+  showNoCoverageZones?: boolean;
+  onToggleNoCoverageZones?: () => void;
 }
 
 export function RouteAdvice({
@@ -42,6 +45,8 @@ export function RouteAdvice({
   activityType,
   showWaterSources,
   onToggleWaterSources,
+  showNoCoverageZones,
+  onToggleNoCoverageZones,
 }: RouteAdviceProps) {
   const t = useTranslations('Advice');
   const tp = useTranslations('physiology');
@@ -150,6 +155,14 @@ export function RouteAdvice({
     ? Math.max(...weatherPoints.map((wp) => wp.weather.snowDepthCm ?? 0))
     : 0;
 
+  // Coverage analysis
+  const hasCoverageData = weatherPoints.some(
+    (wp) => wp.mobileCoverage && wp.mobileCoverage !== 'unknown',
+  );
+  const hasNoCoverageZones = weatherPoints.some(
+    (wp) => wp.mobileCoverage === 'none' || wp.mobileCoverage === 'low',
+  );
+
   const advices = [
     {
       condition: hasWater,
@@ -174,6 +187,41 @@ export function RouteAdvice({
         </div>
       ),
       category: t('water'),
+    },
+    {
+      condition: true,
+      icon: (
+        <Signal
+          className={cn(
+            'h-5 w-5',
+            !hasCoverageData ? 'text-muted-foreground' : hasNoCoverageZones ? 'text-amber-500' : 'text-emerald-500',
+          )}
+        />
+      ),
+      text: !hasCoverageData ? (
+        <p className="text-muted-foreground">{t('coverageUnavailable')}</p>
+      ) : hasNoCoverageZones ? (
+        <div className="flex flex-col gap-3">
+          <p>{t('coverageGaps')}</p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onToggleNoCoverageZones}
+            className={cn(
+              'h-7 w-fit gap-2 text-[10px] font-bold uppercase transition-all',
+              showNoCoverageZones
+                ? 'bg-amber-500 text-white hover:bg-amber-600 hover:text-white'
+                : 'bg-card border-border hover:bg-muted',
+            )}
+          >
+            {showNoCoverageZones ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+            {showNoCoverageZones ? t('hideFromMap') : t('showOnMap')}
+          </Button>
+        </div>
+      ) : (
+        <p>{t('coverageGood')}</p>
+      ),
+      category: t('coverage'),
     },
     {
       condition: hasRain,

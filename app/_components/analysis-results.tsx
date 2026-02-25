@@ -10,9 +10,6 @@ import { WeatherPointDetail } from '@/components/weather-timeline/weather-point-
 import { RouteHazards } from '@/components/route-hazards';
 import { BestDepartureFinder } from '@/components/best-departure-finder';
 import { Progress } from '@/components/ui/progress';
-import { Button } from '@/components/ui/button';
-import { Signal, Eye, EyeOff, Info } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 import { useRouteStore } from '@/store/route-store';
 import { useAnalysisMetrics } from '@/hooks/use-analysis-metrics';
@@ -120,6 +117,8 @@ export function AnalysisResults({
             activityType={activityType ?? 'cycling'}
             showWaterSources={showWaterSources}
             onToggleWaterSources={() => setShowWaterSources(!showWaterSources)}
+            showNoCoverageZones={showNoCoverageZones}
+            onToggleNoCoverageZones={() => setShowNoCoverageZones(!showNoCoverageZones)}
           />
         </TabsContent>
 
@@ -134,66 +133,6 @@ export function AnalysisResults({
             setActiveFilter={setActiveFilter}
             onClearSelection={clearSelection}
           />
-
-          {weatherPoints.length > 0 &&
-            (() => {
-              const hasCoverageData = weatherPoints.some(
-                (wp) => wp.mobileCoverage && wp.mobileCoverage !== 'unknown',
-              );
-
-              const hasNoCoverageZones = weatherPoints.some(
-                (wp) => wp.mobileCoverage === 'none' || wp.mobileCoverage === 'low',
-              );
-
-              return (
-                <div className="border-border bg-card/50 flex flex-col gap-4 rounded-xl border p-6">
-                  <div className="border-border flex items-center gap-2 border-b pb-2">
-                    <div className="bg-primary h-4 w-1 rounded-full" />
-                    <h3 className="text-foreground/80 text-sm font-bold tracking-wider uppercase">
-                      {th('coverage.title')}
-                    </h3>
-                  </div>
-                  {!hasCoverageData ? (
-                    <div className="flex items-start gap-2 text-sm">
-                      <Info className="text-muted-foreground mt-0.5 h-4 w-4 shrink-0" />
-                      <p className="text-muted-foreground">{th('coverage.unavailable')}</p>
-                    </div>
-                  ) : hasNoCoverageZones ? (
-                    <div className="flex flex-col gap-3">
-                      <div className="flex items-start gap-2 text-sm">
-                        <Signal className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
-                        <p className="text-foreground/80">{th('coverage.hasGaps')}</p>
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowNoCoverageZones(!showNoCoverageZones)}
-                        className={cn(
-                          'h-7 w-fit gap-2 text-[10px] font-bold uppercase transition-all',
-                          showNoCoverageZones
-                            ? 'bg-amber-500 text-white hover:bg-amber-600 hover:text-white'
-                            : 'bg-card border-border hover:bg-muted',
-                        )}
-                      >
-                        {showNoCoverageZones ? (
-                          <EyeOff className="h-3 w-3" />
-                        ) : (
-                          <Eye className="h-3 w-3" />
-                        )}
-                        {showNoCoverageZones
-                          ? th('coverage.hideFromMap')
-                          : th('coverage.showOnMap')}
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="flex items-start gap-2 text-sm">
-                      <Signal className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
-                      <p className="text-foreground/80">{th('coverage.good')}</p>
-                    </div>
-                  )}
-                </div>
-              );
-            })()}
 
           {totalSegments > 0 && (
             <div className="border-border bg-card/50 flex flex-col gap-4 rounded-xl border p-6">
