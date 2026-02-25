@@ -106,6 +106,13 @@
     "coverageUnavailable": "Les dades de cobertura no estan disponibles en aquest moment. No s'ha pogut contactar amb el servei d'antenes.",
     "coverageGaps": "S'han detectat zones amb cobertura limitada o sense cobertura en aquesta ruta.",
     "coverageGood": "Bona cobertura mòbil a tota la ruta.",
+    "escapePointsFound": "{count} punt(s) d'evacuació identificats a la ruta.",
+    "escapePointsNone": "No s'han detectat punts d'evacuació a prop d'aquesta ruta.",
+    "escapePointsTooltipTitle": "Què és un punt d'evacuació?",
+    "escapePointsTooltipDesc": "Un lloc proper a la ruta on pots abandonar, demanar ajuda o arribar a una carretera. Es calcula a partir de dades OSM:",
+    "escapePointsTooltipItem1": "Pobles, ciutats o llogarets a menys de 2,5 km",
+    "escapePointsTooltipItem2": "Carreteres primàries o secundàries a menys de 2,5 km",
+    "escapePointsTooltipItem3": "Es mostra el punt més proper per zona al mapa",
     "reliability": {
       "high": "Alta",
       "medium": "Mitjana",

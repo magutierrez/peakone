@@ -17,6 +17,7 @@ interface RouteState {
   focusPoint: { lat: number; lon: number; name?: string; silent?: boolean } | null;
   showWaterSources: boolean;
   showNoCoverageZones: boolean;
+  showEscapePoints: boolean;
   selectedPointIndex: number | null;
   config: RouteConfig;
 
@@ -53,6 +54,7 @@ interface RouteState {
   setFocusPoint: (point: { lat: number; lon: number; name?: string; silent?: boolean } | null) => void;
   setShowWaterSources: (show: boolean) => void;
   setShowNoCoverageZones: (show: boolean) => void;
+  setShowEscapePoints: (show: boolean) => void;
   setSelectedPointIndex: (index: number | null) => void;
   setConfig: (config: RouteConfig) => void;
   setFetchedRoute: (data: {
@@ -98,6 +100,7 @@ const initialState = {
   focusPoint: null as { lat: number; lon: number; name?: string; silent?: boolean } | null,
   showWaterSources: false,
   showNoCoverageZones: false,
+  showEscapePoints: false,
   selectedPointIndex: null as number | null,
   config: { date: getDefaultDate(), time: '08:00', speed: 25 } as RouteConfig,
 
@@ -152,6 +155,7 @@ export const useRouteStore = create<RouteState>()((set) => ({
   setFocusPoint: (point) => set({ focusPoint: point }),
   setShowWaterSources: (show) => set({ showWaterSources: show }),
   setShowNoCoverageZones: (show) => set({ showNoCoverageZones: show }),
+  setShowEscapePoints: (show) => set({ showEscapePoints: show }),
   setSelectedPointIndex: (index) => set({ selectedPointIndex: index }),
   setConfig: (config) => set({ config }),
 

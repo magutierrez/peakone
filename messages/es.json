@@ -115,6 +115,13 @@
     "coverageUnavailable": "Los datos de cobertura no están disponibles en este momento. No se pudo contactar con el servicio de antenas.",
     "coverageGaps": "Se han detectado zonas con cobertura limitada o sin cobertura en esta ruta.",
     "coverageGood": "Buena cobertura móvil en toda la ruta.",
+    "escapePointsFound": "{count} punto(s) de evacuación identificados en la ruta.",
+    "escapePointsNone": "No se han detectado puntos de evacuación cerca de esta ruta.",
+    "escapePointsTooltipTitle": "¿Qué es un punto de evacuación?",
+    "escapePointsTooltipDesc": "Un lugar cercano a la ruta donde puedes abortar, pedir ayuda o alcanzar una carretera. Se calcula a partir de datos OSM:",
+    "escapePointsTooltipItem1": "Pueblos, ciudades o aldeas a menos de 2,5 km",
+    "escapePointsTooltipItem2": "Carreteras primarias o secundarias a menos de 2,5 km",
+    "escapePointsTooltipItem3": "Se muestra el punto más cercano por zona en el mapa",
     "reliability": {
       "high": "Alta",
       "medium": "Media",

@@ -115,6 +115,13 @@
     "coverageUnavailable": "Coverage data is not available at this time. The cell tower service could not be reached.",
     "coverageGaps": "Zones with limited or no mobile coverage detected on this route.",
     "coverageGood": "Good mobile coverage throughout the route.",
+    "escapePointsFound": "{count} evacuation point(s) identified along the route.",
+    "escapePointsNone": "No evacuation points detected near this route.",
+    "escapePointsTooltipTitle": "What is an evacuation point?",
+    "escapePointsTooltipDesc": "A location near the route where you can abort, seek help or reach a road. Calculated from OSM data:",
+    "escapePointsTooltipItem1": "Villages, towns or hamlets within 2.5 km",
+    "escapePointsTooltipItem2": "Primary or secondary roads within 2.5 km",
+    "escapePointsTooltipItem3": "The closest point per zone is shown on the map",
     "reliability": {
       "high": "High",
       "medium": "Medium",

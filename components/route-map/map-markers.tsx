@@ -18,6 +18,7 @@ interface MapMarkersProps {
   onHoverPoint: (index: number | null) => void;
   activityType?: 'cycling' | 'walking';
   showWaterSources?: boolean;
+  showEscapePoints?: boolean;
   focusPoint?: { lat: number; lon: number; name?: string; silent?: boolean } | null;
   nightPointIndex?: number | null;
 }
@@ -33,6 +34,7 @@ export function MapMarkers({
   onHoverPoint,
   activityType,
   showWaterSources,
+  showEscapePoints,
   focusPoint,
   nightPointIndex = null,
 }: MapMarkersProps) {
@@ -43,13 +45,12 @@ export function MapMarkers({
   const currentTrackPoint =
     exactSelectedPoint || (fullSelectedPointIndex !== null ? points[fullSelectedPointIndex] : null);
 
-  // Unique escape points to avoid clutter
-  const escapePoints =
-    activityType === 'walking'
-      ? Array.from(new Set(weatherPoints?.map((wp) => wp.escapePoint?.name).filter(Boolean))).map(
-          (name) => weatherPoints?.find((wp) => wp.escapePoint?.name === name)?.escapePoint,
-        )
-      : [];
+  // Unique escape points (deduplicated by name, shown when toggled on)
+  const escapePoints = showEscapePoints
+    ? Array.from(new Set(weatherPoints?.map((wp) => wp.escapePoint?.name).filter(Boolean))).map(
+        (name) => weatherPoints?.find((wp) => wp.escapePoint?.name === name)?.escapePoint,
+      )
+    : [];
 
   // Unique water sources
   const waterSources =

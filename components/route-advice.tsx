@@ -21,6 +21,7 @@ import {
   MountainSnow,
   Snowflake,
   Signal,
+  LifeBuoy,
 } from 'lucide-react';
 import type { RouteWeatherPoint, MudRiskLevel, SnowCondition, ViabilityThreat, ViabilityResult } from '@/lib/types';
 import { getMudRiskSegments } from '@/lib/mud-risk';
@@ -38,6 +39,8 @@ interface RouteAdviceProps {
   onToggleWaterSources?: () => void;
   showNoCoverageZones?: boolean;
   onToggleNoCoverageZones?: () => void;
+  showEscapePoints?: boolean;
+  onToggleEscapePoints?: () => void;
 }
 
 export function RouteAdvice({
@@ -47,6 +50,8 @@ export function RouteAdvice({
   onToggleWaterSources,
   showNoCoverageZones,
   onToggleNoCoverageZones,
+  showEscapePoints,
+  onToggleEscapePoints,
 }: RouteAdviceProps) {
   const t = useTranslations('Advice');
   const tp = useTranslations('physiology');
@@ -155,6 +160,16 @@ export function RouteAdvice({
     ? Math.max(...weatherPoints.map((wp) => wp.weather.snowDepthCm ?? 0))
     : 0;
 
+  // Escape points — unique by name, deduplicated
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const uniqueEscapePoints = useMemo(
+    () =>
+      Array.from(new Set(weatherPoints.map((wp) => wp.escapePoint?.name).filter(Boolean))).map(
+        (name) => weatherPoints.find((wp) => wp.escapePoint?.name === name)!.escapePoint!,
+      ),
+    [weatherPoints],
+  );
+
   // Coverage analysis
   const hasCoverageData = weatherPoints.some(
     (wp) => wp.mobileCoverage && wp.mobileCoverage !== 'unknown',
@@ -187,6 +202,61 @@ export function RouteAdvice({
         </div>
       ),
       category: t('water'),
+    },
+    {
+      condition: true,
+      icon: (
+        <LifeBuoy
+          className={cn(
+            'h-5 w-5',
+            uniqueEscapePoints.length > 0 ? 'text-indigo-500' : 'text-muted-foreground',
+          )}
+        />
+      ),
+      text: (
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center gap-2">
+            <span>
+              {uniqueEscapePoints.length > 0
+                ? t('escapePointsFound', { count: uniqueEscapePoints.length })
+                : t('escapePointsNone')}
+            </span>
+            <Popover>
+              <PopoverTrigger asChild>
+                <button className="text-muted-foreground hover:text-foreground shrink-0 transition-colors">
+                  <Info className="h-3.5 w-3.5" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-72 text-xs" side="top">
+                <p className="font-semibold">{t('escapePointsTooltipTitle')}</p>
+                <p className="text-muted-foreground mt-1">{t('escapePointsTooltipDesc')}</p>
+                <ul className="text-muted-foreground mt-2 list-inside list-disc space-y-1">
+                  <li>{t('escapePointsTooltipItem1')}</li>
+                  <li>{t('escapePointsTooltipItem2')}</li>
+                  <li>{t('escapePointsTooltipItem3')}</li>
+                </ul>
+              </PopoverContent>
+            </Popover>
+          </div>
+          {uniqueEscapePoints.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onToggleEscapePoints}
+              className={cn(
+                'h-7 w-fit gap-2 text-[10px] font-bold uppercase transition-all',
+                showEscapePoints
+                  ? 'bg-indigo-500 text-white hover:bg-indigo-600 hover:text-white'
+                  : 'bg-card border-border hover:bg-muted',
+              )}
+            >
+              {showEscapePoints ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+              {showEscapePoints ? t('hideFromMap') : t('showOnMap')}
+            </Button>
+          )}
+        </div>
+      ),
+      category: t('safety'),
     },
     {
       condition: true,

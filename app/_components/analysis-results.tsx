@@ -42,6 +42,8 @@ export function AnalysisResults({
   const setShowWaterSources = useRouteStore((s) => s.setShowWaterSources);
   const showNoCoverageZones = useRouteStore((s) => s.showNoCoverageZones);
   const setShowNoCoverageZones = useRouteStore((s) => s.setShowNoCoverageZones);
+  const showEscapePoints = useRouteStore((s) => s.showEscapePoints);
+  const setShowEscapePoints = useRouteStore((s) => s.setShowEscapePoints);
   const bestWindows = useRouteStore((s) => s.bestWindows);
   const isFindingWindow = useRouteStore((s) => s.isFindingWindow);
   const setFocusPoint = useRouteStore((s) => s.setFocusPoint);
@@ -119,6 +121,8 @@ export function AnalysisResults({
             onToggleWaterSources={() => setShowWaterSources(!showWaterSources)}
             showNoCoverageZones={showNoCoverageZones}
             onToggleNoCoverageZones={() => setShowNoCoverageZones(!showNoCoverageZones)}
+            showEscapePoints={showEscapePoints}
+            onToggleEscapePoints={() => setShowEscapePoints(!showEscapePoints)}
           />
         </TabsContent>
 

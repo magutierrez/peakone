@@ -42,6 +42,7 @@ export default function RouteMap({ onResetToFullRouteView }: RouteMapProps) {
   const activityType = useRouteStore((s) => s.fetchedActivityType);
   const showWaterSources = useRouteStore((s) => s.showWaterSources);
   const showNoCoverageZones = useRouteStore((s) => s.showNoCoverageZones);
+  const showEscapePoints = useRouteStore((s) => s.showEscapePoints);
   const focusPoint = useRouteStore((s) => s.focusPoint);
   const { setSelectedPointIndex, setExactSelectedPoint, clearSelection } = useRouteStore();
 
@@ -391,6 +392,7 @@ export default function RouteMap({ onResetToFullRouteView }: RouteMapProps) {
           onHoverPoint={setHoveredPointIdx}
           activityType={activityType ?? undefined}
           showWaterSources={showWaterSources}
+          showEscapePoints={showEscapePoints}
           focusPoint={focusPoint}
           nightPointIndex={nightPointIndex}
         />
