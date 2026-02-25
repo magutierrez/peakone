@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
         body: `data=${encodeURIComponent(overpassQuery)}`,
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
-          'User-Agent': 'peakoneapp/1.0',
+          'User-Agent': 'zustrackapp/1.0',
         },
       }),
       fetch(

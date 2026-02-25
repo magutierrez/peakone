@@ -1,4 +1,4 @@
-# Coding Conventions - PeakOne
+# Coding Conventions - Zustrack
 
 ## Naming
 - Components & Component Files: `PascalCase` (e.g., `MapContainer.tsx`).

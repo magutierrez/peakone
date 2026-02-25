@@ -20,7 +20,7 @@ export default function TermsPage() {
           </Link>
           <div className="flex items-center gap-2">
             <Mountain className="text-primary h-6 w-6" />
-            <span className="text-xl font-bold">peakOne</span>
+            <span className="text-xl font-bold">zustrack</span>
           </div>
           <div className="w-20" /> {/* Spacer */}
         </div>
@@ -55,7 +55,7 @@ export default function TermsPage() {
         </Card>
 
         <footer className="text-muted-foreground py-8 text-center text-sm">
-          {new Date().getFullYear()} peakOne.
+          {new Date().getFullYear()} zustrack.
         </footer>
       </div>
     </div>

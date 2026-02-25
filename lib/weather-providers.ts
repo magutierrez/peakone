@@ -113,7 +113,7 @@ export const openMeteoProvider: WeatherProvider = {
     url.searchParams.set('timezone', 'auto');
 
     const res = await fetch(url.toString(), {
-      headers: { Accept: 'application/json', 'User-Agent': 'peakOne/1.0' },
+      headers: { Accept: 'application/json', 'User-Agent': 'zustrack/1.0' },
     });
 
     if (!res.ok) throw new Error(`Open-Meteo error: ${res.status}`);
@@ -252,7 +252,7 @@ export const metNorwayProvider: WeatherProvider = {
         url.searchParams.set('lon', loc.lon.toString());
 
         const res = await fetch(url.toString(), {
-          headers: { 'User-Agent': 'peakOne/1.0 github.com/magutierrez/peakone' },
+          headers: { 'User-Agent': 'zustrack/1.0 github.com/magutierrez/peakone' },
         });
 
         if (!res.ok) throw new Error(`MET Norway error: ${res.status}`);

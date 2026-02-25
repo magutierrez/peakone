@@ -14,7 +14,7 @@
       "unknownError": "Error desconegut"
     },
     "header": {
-      "title": "peakOne",
+      "title": "zustrack",
       "subtitle": "Forecast per a rutes outdoor",
       "apiVersion": "Open-Meteo API"
     },
@@ -363,7 +363,7 @@
     }
   },
   "Auth": {
-    "welcome": "Benvingut a peakOne",
+    "welcome": "Benvingut a zustrack",
     "loginDescription": "Inicia sessió per analitzar les teves rutes i veure el pronòstic meteorològic detallat.",
     "continueGoogle": "Continuar amb Google",
     "continueFacebook": "Continuar amb Facebook",
@@ -388,7 +388,7 @@
   },
   "Privacy": {
     "title": "Política de Privadesa",
-    "introduction": "A peakOne, la teva privadesa és la nostra prioritat. Com a aplicació Local-First, gestionem les teves dades de manera diferent a les apps web tradicionals.",
+    "introduction": "A zustrack, la teva privadesa és la nostra prioritat. Com a aplicació Local-First, gestionem les teves dades de manera diferent a les apps web tradicionals.",
     "localDataTitle": "Emmagatzematge Local-First",
     "localDataContent": "Totes les dades de rutes, arxius GPX i configuració s'emmagatzemen localment al teu navegador usant PGLite (WASM Postgres) i IndexedDB. No tenim cap base de dades central on es guardin els teus tracks.",
     "noServerStorageTitle": "Sense Emmagatzematge en Servidor",
@@ -396,15 +396,15 @@
     "authenticationTitle": "Autenticació",
     "authenticationContent": "Fem servir proveïdors de tercers (Google, Strava, etc.) únicament per identificar-te i permetre l'accés a l'aplicació. No venem ni compartim les teves dades de perfil amb ningú.",
     "openSourceTitle": "Codi Obert",
-    "openSourceContent": "peakOne és de codi obert. Pots auditar el nostre codi per verificar com es gestionen les teves dades."
+    "openSourceContent": "zustrack és de codi obert. Pots auditar el nostre codi per verificar com es gestionen les teves dades."
   },
   "Terms": {
     "title": "Termes de Servei",
-    "acceptance": "En fer servir peakOne, acceptes aquests termes.",
+    "acceptance": "En fer servir zustrack, acceptes aquests termes.",
     "noResponsibilityTitle": "Sense Responsabilitat",
-    "noResponsibilityContent": "peakOne es proporciona 'tal com és', sense cap garantia. No som responsables de cap inexactitud en els pronòstics meteorològics, dades del terreny o incidents que puguin ocórrer durant les teves activitats.",
+    "noResponsibilityContent": "zustrack es proporciona 'tal com és', sense cap garantia. No som responsables de cap inexactitud en els pronòstics meteorològics, dades del terreny o incidents que puguin ocórrer durant les teves activitats.",
     "userResponsibilityTitle": "La teva Responsabilitat",
-    "userResponsibilityContent": "Les activitats a l'aire lliure comporten riscos inherents. Consulta sempre diverses fonts d'informació i usa el teu propi criteri. Les dades de peakOne són únicament per a planificació.",
+    "userResponsibilityContent": "Les activitats a l'aire lliure comporten riscos inherents. Consulta sempre diverses fonts d'informació i usa el teu propi criteri. Les dades de zustrack són únicament per a planificació.",
     "openSourceTitle": "Llicència",
     "openSourceContent": "El codi de l'aplicació és de codi obert. Ets lliure d'usar-lo d'acord amb la seva llicència, però no oferim cap garantia sobre el seu funcionament.",
     "dataLossTitle": "Pèrdua de Dades",
@@ -543,7 +543,7 @@
       "badge": "Anàlisi meteorològica de ruta · Open-Meteo API",
       "title1": "Coneix cada quilòmetre",
       "title2": "abans de sortir",
-      "subtitleBefore": "Puja la teva ruta GPX o importa des de Strava. peakOne analitza el temps, el terreny i els riscos",
+      "subtitleBefore": "Puja la teva ruta GPX o importa des de Strava. zustrack analitza el temps, el terreny i els riscos",
       "subtitleStrong": "punt a punt",
       "subtitleAfter": "— temperatura, vent, pluja, pendents, cobertura mòbil i molt més.",
       "cta1": "Analitzar la meva ruta",
@@ -628,7 +628,7 @@
       "step1Title": "Importa la teva ruta",
       "step1Desc": "Puja un arxiu GPX, importa directament des de Strava (activitats i rutes guardades) o enganxa un enllaç de Wikiloc.",
       "step2Title": "Configura la sortida",
-      "step2Desc": "Tria data i hora d'inici, velocitat mitjana i tipus d'activitat. peakOne calcula el temps a cada punt.",
+      "step2Desc": "Tria data i hora d'inici, velocitat mitjana i tipus d'activitat. zustrack calcula el temps a cada punt.",
       "step3Title": "Analitza i surt amb confiança",
       "step3Desc": "Obté l'informe complet: temps per quilòmetre, riscos, consells, cobertura i punts d'evacuació al mapa."
     },
@@ -636,7 +636,7 @@
       "sectionLabel": "Importació",
       "title1": "Les teves rutes,",
       "title2": "on vulguis",
-      "description": "Importa des de les plataformes que ja fas servir. peakOne es connecta amb Strava per portar les teves activitats i rutes, accepta qualsevol GPX i llegeix rutes de Wikiloc enganxant l'enllaç.",
+      "description": "Importa des de les plataformes que ja fas servir. zustrack es connecta amb Strava per portar les teves activitats i rutes, accepta qualsevol GPX i llegeix rutes de Wikiloc enganxant l'enllaç.",
       "gpxLabel": "Arxiu GPX",
       "gpxSub": "Qualsevol format GPX estàndard",
       "stravaLabel": "Strava",

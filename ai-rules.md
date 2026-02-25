@@ -1,4 +1,4 @@
-# AI Base Rules - PeakOne Project
+# AI Base Rules - Zustrack Project
 
 ## Core Stack
 - Framework: Next.js 16 (App Router exclusively).

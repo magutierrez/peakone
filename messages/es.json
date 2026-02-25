@@ -14,7 +14,7 @@
       "unknownError": "Error desconocido"
     },
     "header": {
-      "title": "peakOne",
+      "title": "zustrack",
       "subtitle": "Forecast para rutas outdoor",
       "apiVersion": "Open-Meteo API"
     },
@@ -363,7 +363,7 @@
     }
   },
   "Auth": {
-    "welcome": "Bienvenido a peakOne",
+    "welcome": "Bienvenido a zustrack",
     "loginDescription": "Inicia sesión para analizar tus rutas y ver el pronóstico meteorológico detallado.",
     "continueGoogle": "Continuar con Google",
     "continueFacebook": "Continuar con Facebook",
@@ -388,7 +388,7 @@
   },
   "Privacy": {
     "title": "Política de Privacidad",
-    "introduction": "En peakOne, tu privacidad es nuestra prioridad. Como aplicación Local-First, gestionamos tus datos de forma diferente a las aplicaciones web tradicionales.",
+    "introduction": "En zustrack, tu privacidad es nuestra prioridad. Como aplicación Local-First, gestionamos tus datos de forma diferente a las aplicaciones web tradicionales.",
     "localDataTitle": "Almacenamiento Local",
     "localDataContent": "Todos los datos de tus rutas, archivos GPX y ajustes se guardan localmente en tu navegador usando PGLite (WASM Postgres) e IndexedDB. No disponemos de una base de datos central donde se almacenen tus tracks.",
     "noServerStorageTitle": "Sin Almacenamiento en Servidor",
@@ -396,15 +396,15 @@
     "authenticationTitle": "Autenticación",
     "authenticationContent": "Utilizamos proveedores de terceros (Google, Strava, etc.) únicamente para identificarte y permitirte el acceso a la aplicación. No vendemos ni compartimos tus datos de perfil con nadie.",
     "openSourceTitle": "Código Abierto",
-    "openSourceContent": "peakOne es de código abierto. Puedes auditar nuestro código para verificar cómo se gestionan tus datos."
+    "openSourceContent": "zustrack es de código abierto. Puedes auditar nuestro código para verificar cómo se gestionan tus datos."
   },
   "Terms": {
     "title": "Términos de Servicio",
-    "acceptance": "Al utilizar peakOne, aceptas estos términos.",
+    "acceptance": "Al utilizar zustrack, aceptas estos términos.",
     "noResponsibilityTitle": "Sin Responsabilidad",
-    "noResponsibilityContent": "peakOne se proporciona 'tal cual', sin ninguna garantía. No somos responsables de cualquier inexactitud en los pronósticos meteorológicos, datos de terreno o cualquier incidente que pueda ocurrir durante tus actividades.",
+    "noResponsibilityContent": "zustrack se proporciona 'tal cual', sin ninguna garantía. No somos responsables de cualquier inexactitud en los pronósticos meteorológicos, datos de terreno o cualquier incidente que pueda ocurrir durante tus actividades.",
     "userResponsibilityTitle": "Tu Responsabilidad",
-    "userResponsibilityContent": "Las actividades al aire libre son intrínsecamente arriesgadas. Consulta siempre múltiples fuentes de información y usa tu propio criterio. Los datos de peakOne son solo para fines de planificación.",
+    "userResponsibilityContent": "Las actividades al aire libre son intrínsecamente arriesgadas. Consulta siempre múltiples fuentes de información y usa tu propio criterio. Los datos de zustrack son solo para fines de planificación.",
     "openSourceTitle": "Licencia",
     "openSourceContent": "El código de la aplicación es abierto. Eres libre de usarlo según su licencia, pero no ofrecemos garantías sobre su funcionamiento.",
     "dataLossTitle": "Pérdida de Datos",
@@ -543,7 +543,7 @@
       "badge": "Análisis meteorológico de ruta · Open-Meteo API",
       "title1": "Conoce cada kilómetro",
       "title2": "antes de salir",
-      "subtitleBefore": "Sube tu ruta GPX o importa desde Strava. peakOne analiza el tiempo, el terreno y los riesgos",
+      "subtitleBefore": "Sube tu ruta GPX o importa desde Strava. zustrack analiza el tiempo, el terreno y los riesgos",
       "subtitleStrong": "punto a punto",
       "subtitleAfter": "— temperatura, viento, lluvia, pendientes, cobertura móvil y mucho más.",
       "cta1": "Analizar mi ruta",
@@ -628,7 +628,7 @@
       "step1Title": "Importa tu ruta",
       "step1Desc": "Sube un archivo GPX, importa directamente desde Strava (actividades y rutas guardadas) o pega un enlace de Wikiloc.",
       "step2Title": "Configura la salida",
-      "step2Desc": "Elige fecha y hora de inicio, velocidad media y tipo de actividad. peakOne calcula el tiempo en cada punto.",
+      "step2Desc": "Elige fecha y hora de inicio, velocidad media y tipo de actividad. zustrack calcula el tiempo en cada punto.",
       "step3Title": "Analiza y sal con confianza",
       "step3Desc": "Obtén el informe completo: tiempo por kilómetro, riesgos, consejos, cobertura y puntos de evacuación en el mapa."
     },
@@ -636,7 +636,7 @@
       "sectionLabel": "Importación",
       "title1": "Tus rutas,",
       "title2": "donde quieras",
-      "description": "Importa desde las plataformas que ya usas. peakOne se conecta con Strava para traer tus actividades y rutas, acepta cualquier GPX y lee rutas de Wikiloc con solo pegar el enlace.",
+      "description": "Importa desde las plataformas que ya usas. zustrack se conecta con Strava para traer tus actividades y rutas, acepta cualquier GPX y lee rutas de Wikiloc con solo pegar el enlace.",
       "gpxLabel": "Archivo GPX",
       "gpxSub": "Cualquier formato GPX estándar",
       "stravaLabel": "Strava",

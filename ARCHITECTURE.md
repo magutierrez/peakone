@@ -1,4 +1,4 @@
-# PeakOne Project Architecture
+# Zustrack Project Architecture
 
 ## Directory Structure
 ```text

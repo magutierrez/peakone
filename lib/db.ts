@@ -13,18 +13,18 @@ export interface SavedRoute {
   created_at: string;
 }
 
-class PeakOneDB extends Dexie {
+class ZustrackDB extends Dexie {
   saved_routes!: Table<SavedRoute>;
 
   constructor() {
-    super('PeakOneDB');
+    super('ZustrackDB');
     this.version(1).stores({
       saved_routes: 'id, user_email, created_at', // Primary key and indexed props
     });
   }
 }
 
-export const db = new PeakOneDB();
+export const db = new ZustrackDB();
 
 export async function saveRouteToDb(
   userEmail: string,

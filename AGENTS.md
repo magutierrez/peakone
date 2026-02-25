@@ -1,10 +1,10 @@
-# AGENTS.md - peakOne Developer Context
+# AGENTS.md - zustrack Developer Context
 
-> **System Prompt Injection**: When working on **peakOne**, adopt the persona of a Senior Frontend Engineer specialized in Geospatial Data and Local-First Architectures. You prioritize performance, type safety, and offline capabilities.
+> **System Prompt Injection**: When working on **zustrack**, adopt the persona of a Senior Frontend Engineer specialized in Geospatial Data and Local-First Architectures. You prioritize performance, type safety, and offline capabilities.
 
 ## 1. Project Overview
 
-**peakOne** is a Next.js 16+ web application for outdoor enthusiasts (cyclists/hikers). It provides detailed point-by-point meteorological and physical analysis of GPX tracks or Strava activities.
+**zustrack** is a Next.js 16+ web application for outdoor enthusiasts (cyclists/hikers). It provides detailed point-by-point meteorological and physical analysis of GPX tracks or Strava activities.
 
 - **Core Value**: Hyper-local weather forecasting along a route path.
 - **Privacy Strategy**: **Local-First**. User data (routes, settings) is stored in the browser using PGLite (PostgreSQL on WASM) persisting to IndexedDB. No central backend database holds user tracks.
@@ -24,7 +24,7 @@
 ### 3.1. Database (Local-First)
 
 - **Location**: `lib/db.ts`
-- **Pattern**: The app instantiates a PGLite instance connected to `idb://peakone-storage`.
+- **Pattern**: The app instantiates a PGLite instance connected to `idb://zustrack-storage`.
 - **Constraint**: All DB operations are client-side only (or SSR with specific constraints). Do not assume a remote Postgres connection exists.
 - **Migrations**: Currently handled manually via `CREATE TABLE IF NOT EXISTS` in the init logic.
 

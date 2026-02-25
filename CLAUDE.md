@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**peakOne** is a Next.js 16 (App Router) application that provides point-by-point meteorological and physical analysis for cyclists and hikers along GPX tracks. See `AGENTS.md` for the full developer context and persona.
+**zustrack** is a Next.js 16 (App Router) application that provides point-by-point meteorological and physical analysis for cyclists and hikers along GPX tracks. See `AGENTS.md` for the full developer context and persona.
 
 ## Commands
 

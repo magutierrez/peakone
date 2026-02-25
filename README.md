@@ -1,6 +1,6 @@
-# peakOne - Pro Outdoor Route Forecast
+# zustrack - Pro Outdoor Route Forecast
 
-**peakOne** is a high-performance web application designed for cyclists and hikers who need more than a generic weather forecast. By analyzing GPX tracks or Strava activities, the app provides a point-by-point meteorological and physical analysis, allowing for safer and more prepared outdoor sessions.
+**zustrack** is a high-performance web application designed for cyclists and hikers who need more than a generic weather forecast. By analyzing GPX tracks or Strava activities, the app provides a point-by-point meteorological and physical analysis, allowing for safer and more prepared outdoor sessions.
 
 ## 🚀 Core Features
 
@@ -43,7 +43,7 @@
 
 ## 📡 External Services & Reliability
 
-To provide professional-grade analysis, **peakOne** aggregates data from world-class specialized providers.
+To provide professional-grade analysis, **zustrack** aggregates data from world-class specialized providers.
 
 ### 🌤 Meteorological Data (Open-Meteo)
 
@@ -67,7 +67,7 @@ To provide professional-grade analysis, **peakOne** aggregates data from world-c
 
 ## 🔒 Privacy & Data Security
 
-**peakOne is built with a "Privacy First" philosophy:**
+**zustrack is built with a "Privacy First" philosophy:**
 
 - **No Persistent Route Storage**: Your uploaded GPX files and Strava tracks are processed in real-time. We **do not store** your geographic tracks in any permanent database.
 - **Local Processing**: Analysis is performed on-the-fly. Once you clear the route or close the session, the track data is cleared from the application state.
