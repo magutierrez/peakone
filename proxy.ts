@@ -17,6 +17,7 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith('/login') ||
     pathname.startsWith('/terms') ||
     pathname.startsWith('/privacy') ||
+    pathname.startsWith('/landing') ||
     pathname.startsWith('/api/auth');
 
   if (!session?.user && !isPublicPath) {
