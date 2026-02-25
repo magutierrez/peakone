@@ -13,9 +13,10 @@ import { cn } from '@/lib/utils';
 // UI Components from main app
 import { GPXUpload } from '@/components/gpx-upload';
 import { WikilocImport } from '@/components/wikiloc-import';
+import { StravaImport } from '@/components/strava-import';
 import { SavedRoutesList } from '@/components/saved-routes-list';
 import { Button } from '@/components/ui/button';
-import { Bike, Footprints, ArrowRight, FileUp, History, Globe, Sun, Moon } from 'lucide-react';
+import { Bike, Footprints, ArrowRight, FileUp, History, Globe, Activity, Sun, Moon } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { LocaleSwitcher } from '@/app/_components/locale-switcher';
 import { useTheme } from 'next-themes';
@@ -65,6 +66,15 @@ export function SetupPageClient({ session: serverSession }: SetupPageClientProps
     } catch {
       setError(t('errors.readError'));
     }
+  };
+
+  const handleStravaRouteLoaded = (
+    content: string,
+    fileName: string,
+    detectedActivityType?: 'cycling' | 'walking',
+  ) => {
+    handleGPXLoaded(content, fileName);
+    if (detectedActivityType) setActivityType(detectedActivityType);
   };
 
   const handleClearGPX = () => {
@@ -160,7 +170,7 @@ export function SetupPageClient({ session: serverSession }: SetupPageClientProps
         <h1 className="text-foreground mb-6 text-center text-2xl font-bold">{t('title')}</h1>
 
         <Tabs defaultValue="gpx" className="mb-8 w-full">
-          <TabsList className="custom-scrollbar mb-6 flex w-full items-center justify-start overflow-x-auto overflow-y-hidden md:grid md:grid-cols-3 md:justify-center">
+          <TabsList className="custom-scrollbar mb-6 flex w-full items-center justify-start overflow-x-auto overflow-y-hidden md:grid md:grid-cols-4 md:justify-center">
             <TabsTrigger value="gpx" className="min-w-fit gap-2 md:w-full">
               <FileUp className="h-4 w-4" />
               <span>{t('uploadGPX')}</span>
@@ -172,6 +182,10 @@ export function SetupPageClient({ session: serverSession }: SetupPageClientProps
             <TabsTrigger value="wikiloc" className="min-w-fit gap-2 md:w-full">
               <Globe className="h-4 w-4" />
               <span>{t('wikiloc')}</span>
+            </TabsTrigger>
+            <TabsTrigger value="strava" className="min-w-fit gap-2 md:w-full">
+              <Activity className="h-4 w-4" />
+              <span>{t('strava')}</span>
             </TabsTrigger>
           </TabsList>
 
@@ -202,6 +216,10 @@ export function SetupPageClient({ session: serverSession }: SetupPageClientProps
                 selectedRouteId={selectedSavedRouteId}
               />
             </div>
+          </TabsContent>
+
+          <TabsContent value="strava" className="flex flex-col gap-4">
+            <StravaImport onRouteLoaded={handleStravaRouteLoaded} />
           </TabsContent>
         </Tabs>
 
