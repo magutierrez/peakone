@@ -74,7 +74,10 @@ export async function GET(request: Request) {
     const altitude: number[] = streams?.altitude?.data ?? [];
 
     if (latlng.length === 0) {
-      return NextResponse.json({ error: 'No GPS data available for this activity' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'No GPS data available for this activity' },
+        { status: 404 },
+      );
     }
 
     const points = latlng.map(([lat, lon], i) => ({ lat, lon, ele: altitude[i] }));
