@@ -126,23 +126,21 @@ export function RouteLayers({
       {noCoverageData && (
         <Source id="no-coverage-source" type="geojson" data={noCoverageData}>
           <Layer
-            id="no-coverage-glow"
-            type="line"
+            id="no-coverage-heat"
+            type="heatmap"
             paint={{
-              'line-color': '#f59e0b',
-              'line-width': 10,
-              'line-opacity': 0.25,
-              'line-blur': 4,
-            }}
-          />
-          <Layer
-            id="no-coverage-line"
-            type="line"
-            paint={{
-              'line-color': '#f59e0b',
-              'line-width': 4,
-              'line-opacity': 0.9,
-              'line-dasharray': [4, 3],
+              'heatmap-weight': ['coalesce', ['get', 'weight'], 1],
+              'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 8, 0.4, 14, 1.5],
+              'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 8, 12, 12, 20, 16, 35],
+              'heatmap-color': [
+                'interpolate', ['linear'], ['heatmap-density'],
+                0,   'rgba(0,0,0,0)',
+                0.2, 'rgba(251,191,36,0.25)',
+                0.5, 'rgba(245,158,11,0.55)',
+                0.8, 'rgba(239,68,68,0.75)',
+                1,   'rgba(185,28,28,0.9)',
+              ],
+              'heatmap-opacity': 0.85,
             }}
           />
         </Source>
