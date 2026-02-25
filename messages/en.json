@@ -71,6 +71,14 @@
       "low": "LOW",
       "medium": "MEDIUM",
       "high": "HIGH"
+    },
+    "coverage": {
+      "title": "Mobile Coverage",
+      "unavailable": "Coverage data is not available at this time. The cell tower service could not be reached.",
+      "hasGaps": "Zones with limited or no mobile coverage detected on this route.",
+      "good": "Good mobile coverage throughout the route.",
+      "showOnMap": "Show on map",
+      "hideFromMap": "Hide from map"
     }
   },
   "physiology": {

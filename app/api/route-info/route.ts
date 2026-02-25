@@ -163,15 +163,13 @@ export async function POST(request: NextRequest) {
         })
         .filter(Boolean);
 
-      // Improved Coverage logic
-      let coverage: 'none' | 'low' | 'full' = 'full';
-      if (cellTowers.length > 0) {
+      // Coverage logic: only report real values when we have actual tower data.
+      // If no API key or no towers were returned, mark as 'unknown' (data unavailable).
+      let coverage: 'none' | 'low' | 'full' | 'unknown' = 'unknown';
+      if (process.env.OPENCELLID_API_KEY && cellTowers.length > 0) {
+        coverage = 'full';
         if (minCellDist > 5) coverage = 'none';
         else if (minCellDist > 2.5) coverage = 'low';
-      } else {
-        // Fallback to OSM heuristic
-        if (nearbyInfraCount === 0) coverage = 'none';
-        else if (nearbyInfraCount < 3) coverage = 'low';
       }
 
       return {

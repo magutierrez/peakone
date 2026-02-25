@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import type { Feature, FeatureCollection, LineString } from 'geojson';
 import { useTheme } from 'next-themes';
 import Map, { NavigationControl, MapRef } from 'react-map-gl/maplibre';
 import maplibregl from 'maplibre-gl';
@@ -40,6 +41,7 @@ export default function RouteMap({ onResetToFullRouteView }: RouteMapProps) {
   const selectedRange = useRouteStore((s) => s.selectedRange);
   const activityType = useRouteStore((s) => s.fetchedActivityType);
   const showWaterSources = useRouteStore((s) => s.showWaterSources);
+  const showNoCoverageZones = useRouteStore((s) => s.showNoCoverageZones);
   const focusPoint = useRouteStore((s) => s.focusPoint);
   const { setSelectedPointIndex, setExactSelectedPoint, clearSelection } = useRouteStore();
 
@@ -49,6 +51,26 @@ export default function RouteMap({ onResetToFullRouteView }: RouteMapProps) {
     () => (weatherPoints.length > 0 ? findNightPointIndex(weatherPoints).index : null),
     [weatherPoints],
   );
+
+  const noCoverageData = useMemo((): FeatureCollection | null => {
+    if (!showNoCoverageZones || weatherPoints.length === 0) return null;
+    const features: Feature<LineString>[] = [];
+    let segment: [number, number][] = [];
+    for (const wp of weatherPoints) {
+      if (wp.mobileCoverage === 'none' || wp.mobileCoverage === 'low') {
+        segment.push([wp.point.lon, wp.point.lat]);
+      } else {
+        if (segment.length >= 2) {
+          features.push({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: segment } });
+        }
+        segment = [];
+      }
+    }
+    if (segment.length >= 2) {
+      features.push({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: segment } });
+    }
+    return features.length > 0 ? { type: 'FeatureCollection', features } : null;
+  }, [showNoCoverageZones, weatherPoints]);
 
   const [hoveredPointIdx, setHoveredPointIdx] = useState<number | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -355,6 +377,7 @@ export default function RouteMap({ onResetToFullRouteView }: RouteMapProps) {
           rangeHighlightData={rangeHighlightData}
           activeFilter={activeFilter}
           selectedRange={selectedRange}
+          noCoverageData={noCoverageData}
         />
 
         <MapMarkers

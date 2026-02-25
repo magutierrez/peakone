@@ -82,7 +82,7 @@ export interface RouteWeatherPoint {
   solarExposure?: 'sun' | 'shade' | 'night';
   solarIntensity?: 'shade' | 'weak' | 'moderate' | 'intense' | 'night';
   escapePoint?: EscapePoint;
-  mobileCoverage?: 'none' | 'low' | 'full';
+  mobileCoverage?: 'none' | 'low' | 'full' | 'unknown';
   waterSources?: WaterSource[];
   mudRisk?: MudRiskLevel;
   mudRiskScore?: number;

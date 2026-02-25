@@ -71,6 +71,14 @@
       "low": "BAJO",
       "medium": "MEDIO",
       "high": "ALTO"
+    },
+    "coverage": {
+      "title": "Cobertura Móvil",
+      "unavailable": "Los datos de cobertura no están disponibles en este momento. No se pudo contactar con el servicio de antenas.",
+      "hasGaps": "Se han detectado zonas con cobertura limitada o sin cobertura en esta ruta.",
+      "good": "Buena cobertura móvil en toda la ruta.",
+      "showOnMap": "Ver en el mapa",
+      "hideFromMap": "Ocultar del mapa"
     }
   },
   "physiology": {

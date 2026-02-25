@@ -9,6 +9,7 @@ interface RouteLayersProps {
   rangeHighlightData: any;
   activeFilter: any;
   selectedRange: any;
+  noCoverageData?: any;
 }
 
 export function RouteLayers({
@@ -18,6 +19,7 @@ export function RouteLayers({
   rangeHighlightData,
   activeFilter,
   selectedRange,
+  noCoverageData,
 }: RouteLayersProps) {
   return (
     <>
@@ -117,6 +119,31 @@ export function RouteLayers({
             id="range-line"
             type="line"
             paint={{ 'line-color': '#007aff', 'line-width': 5, 'line-opacity': 1 }}
+          />
+        </Source>
+      )}
+
+      {noCoverageData && (
+        <Source id="no-coverage-source" type="geojson" data={noCoverageData}>
+          <Layer
+            id="no-coverage-glow"
+            type="line"
+            paint={{
+              'line-color': '#f59e0b',
+              'line-width': 10,
+              'line-opacity': 0.25,
+              'line-blur': 4,
+            }}
+          />
+          <Layer
+            id="no-coverage-line"
+            type="line"
+            paint={{
+              'line-color': '#f59e0b',
+              'line-width': 4,
+              'line-opacity': 0.9,
+              'line-dasharray': [4, 3],
+            }}
           />
         </Source>
       )}

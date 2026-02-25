@@ -16,6 +16,7 @@ interface RouteState {
   chartHoverPoint: any | null;
   focusPoint: { lat: number; lon: number; name?: string; silent?: boolean } | null;
   showWaterSources: boolean;
+  showNoCoverageZones: boolean;
   selectedPointIndex: number | null;
   config: RouteConfig;
 
@@ -51,6 +52,7 @@ interface RouteState {
   setChartHoverPoint: (point: any | null) => void;
   setFocusPoint: (point: { lat: number; lon: number; name?: string; silent?: boolean } | null) => void;
   setShowWaterSources: (show: boolean) => void;
+  setShowNoCoverageZones: (show: boolean) => void;
   setSelectedPointIndex: (index: number | null) => void;
   setConfig: (config: RouteConfig) => void;
   setFetchedRoute: (data: {
@@ -95,6 +97,7 @@ const initialState = {
   chartHoverPoint: null,
   focusPoint: null as { lat: number; lon: number; name?: string; silent?: boolean } | null,
   showWaterSources: false,
+  showNoCoverageZones: false,
   selectedPointIndex: null as number | null,
   config: { date: getDefaultDate(), time: '08:00', speed: 25 } as RouteConfig,
 
@@ -148,6 +151,7 @@ export const useRouteStore = create<RouteState>()((set) => ({
   setChartHoverPoint: (point) => set({ chartHoverPoint: point }),
   setFocusPoint: (point) => set({ focusPoint: point }),
   setShowWaterSources: (show) => set({ showWaterSources: show }),
+  setShowNoCoverageZones: (show) => set({ showNoCoverageZones: show }),
   setSelectedPointIndex: (index) => set({ selectedPointIndex: index }),
   setConfig: (config) => set({ config }),
 
