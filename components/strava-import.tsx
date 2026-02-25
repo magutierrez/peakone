@@ -18,7 +18,8 @@ interface StravaActivity {
 }
 
 interface StravaRoute {
-  id: number;
+  // id_str from Strava API — kept as string to avoid 64-bit precision loss
+  id: string;
   name: string;
   activityType: 'cycling' | 'walking';
   distance: number;
@@ -37,7 +38,7 @@ export function StravaImport({ onRouteLoaded }: StravaImportProps) {
   const [activities, setActivities] = useState<StravaActivity[]>([]);
   const [routes, setRoutes] = useState<StravaRoute[]>([]);
   const [loadingList, setLoadingList] = useState(false);
-  const [importingId, setImportingId] = useState<number | null>(null);
+  const [importingId, setImportingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -62,7 +63,7 @@ export function StravaImport({ onRouteLoaded }: StravaImportProps) {
     type: 'activity' | 'route',
     item: StravaActivity | StravaRoute,
   ) => {
-    setImportingId(item.id);
+    setImportingId(String(item.id));
     setError(null);
 
     try {
@@ -124,7 +125,7 @@ export function StravaImport({ onRouteLoaded }: StravaImportProps) {
                       <button
                         className="border-border bg-secondary hover:border-primary/30 flex w-full items-center gap-3 rounded-lg border p-3 text-left transition-all disabled:opacity-50"
                         onClick={() => handleImport('activity', a)}
-                        disabled={importingId === a.id}
+                        disabled={importingId === String(a.id)}
                       >
                         {a.activityType === 'cycling' ? (
                           <Bike className="text-muted-foreground h-4 w-4 shrink-0" />
@@ -138,7 +139,7 @@ export function StravaImport({ onRouteLoaded }: StravaImportProps) {
                             {new Date(a.date).toLocaleDateString()}
                           </p>
                         </div>
-                        {importingId === a.id && (
+                        {importingId === String(a.id) && (
                           <Loader2 className="text-muted-foreground h-4 w-4 shrink-0 animate-spin" />
                         )}
                       </button>
@@ -160,7 +161,7 @@ export function StravaImport({ onRouteLoaded }: StravaImportProps) {
                       <button
                         className="border-border bg-secondary hover:border-primary/30 flex w-full items-center gap-3 rounded-lg border p-3 text-left transition-all disabled:opacity-50"
                         onClick={() => handleImport('route', r)}
-                        disabled={importingId === r.id}
+                        disabled={importingId === String(r.id)}
                       >
                         {r.activityType === 'cycling' ? (
                           <Bike className="text-muted-foreground h-4 w-4 shrink-0" />
@@ -173,7 +174,7 @@ export function StravaImport({ onRouteLoaded }: StravaImportProps) {
                             {r.distance} km · +{r.elevationGain} m
                           </p>
                         </div>
-                        {importingId === r.id && (
+                        {importingId === String(r.id) && (
                           <Loader2 className="text-muted-foreground h-4 w-4 shrink-0 animate-spin" />
                         )}
                       </button>

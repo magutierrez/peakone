@@ -21,7 +21,8 @@ export async function GET() {
   const data = await res.json();
   return NextResponse.json(
     data.map((r: any) => ({
-      id: r.id,
+      // Use id_str to avoid JS precision loss on large 64-bit Strava IDs
+      id: r.id_str ?? String(r.id),
       name: r.name,
       // type: 1 = ride, 2 = run/walk
       activityType: r.type === 1 ? 'cycling' : 'walking',
