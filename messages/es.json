@@ -121,7 +121,7 @@
     "escapePointsTooltipDesc": "Un lugar cercano a la ruta donde puedes abortar, pedir ayuda o alcanzar una carretera. Se calcula a partir de datos OSM:",
     "escapePointsTooltipItem1": "Pueblos, ciudades o aldeas a menos de 2,5 km",
     "escapePointsTooltipItem2": "Carreteras primarias o secundarias a menos de 2,5 km",
-    "escapePointsTooltipItem3": "Se muestra el punto más cercano por zona en el mapa",
+    "escapePointsTooltipItem3": "Refugios de montaña y albergues (alpine_hut / wilderness_hut) a menos de 2,5 km",
     "reliability": {
       "high": "Alta",
       "medium": "Media",

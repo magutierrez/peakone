@@ -2,7 +2,7 @@
 
 import { Marker } from 'react-map-gl/maplibre';
 import { WindArrow } from '@/components/wind-arrow';
-import { MapPin, Droplets, Signpost, Moon } from 'lucide-react';
+import { MapPin, Droplets, Signpost, Moon, House } from 'lucide-react';
 import type { RoutePoint, RouteWeatherPoint } from '@/lib/types';
 import type { ActiveFilter } from '@/store/route-store';
 import { useTranslations } from 'next-intl';
@@ -97,7 +97,13 @@ export function MapMarkers({
                 <div className="border-border bg-card rounded-lg border px-2 py-1 text-[9px] font-bold whitespace-nowrap shadow-sm">
                   {ep.name}
                 </div>
-                <MapPin className="h-5 w-5 fill-indigo-500/20 text-indigo-500" />
+                {ep.type === 'shelter' ? (
+                  <div className="rounded-full border-2 border-white bg-amber-500 p-1 shadow-md">
+                    <House className="h-3 w-3 text-white" />
+                  </div>
+                ) : (
+                  <MapPin className="h-5 w-5 fill-indigo-500/20 text-indigo-500" />
+                )}
               </div>
             </Marker>
           ),

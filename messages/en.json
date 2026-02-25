@@ -121,7 +121,7 @@
     "escapePointsTooltipDesc": "A location near the route where you can abort, seek help or reach a road. Calculated from OSM data:",
     "escapePointsTooltipItem1": "Villages, towns or hamlets within 2.5 km",
     "escapePointsTooltipItem2": "Primary or secondary roads within 2.5 km",
-    "escapePointsTooltipItem3": "The closest point per zone is shown on the map",
+    "escapePointsTooltipItem3": "Mountain refuges and shelters (alpine_hut / wilderness_hut) within 2.5 km",
     "reliability": {
       "high": "High",
       "medium": "Medium",

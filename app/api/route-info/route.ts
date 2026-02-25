@@ -32,6 +32,8 @@ export async function POST(request: NextRequest) {
         node["amenity"="drinking_water"](${bbox});
         node["natural"="spring"](${bbox});
         node["man_made"="water_tap"](${bbox});
+        node["tourism"~"alpine_hut|wilderness_hut"](${bbox});
+        way["tourism"~"alpine_hut|wilderness_hut"](${bbox});
       );
       out center;`;
 
@@ -94,7 +96,9 @@ export async function POST(request: NextRequest) {
     const highwayElements = elements.filter((el: any) => el.tags?.highway);
     const escapeElements = elements.filter(
       (el: any) =>
-        el.tags?.place || (el.tags?.highway && ['primary', 'secondary'].includes(el.tags.highway)),
+        el.tags?.place ||
+        (el.tags?.highway && ['primary', 'secondary'].includes(el.tags.highway)) ||
+        (el.tags?.tourism && ['alpine_hut', 'wilderness_hut'].includes(el.tags.tourism)),
     );
     const waterElements = elements.filter(
       (el: any) =>
@@ -185,9 +189,8 @@ export async function POST(request: NextRequest) {
           ? {
               lat: closestEscape.center?.lat || closestEscape.lat,
               lon: closestEscape.center?.lon || closestEscape.lon,
-              name:
-                escapeTags.name || (escapeTags.highway ? 'Carretera principal' : 'Núcleo urbano'),
-              type: escapeTags.place ? 'town' : 'road',
+              name: escapeTags.name || (escapeTags.tourism ? 'Refugio' : escapeTags.highway ? 'Carretera principal' : 'Núcleo urbano'),
+              type: escapeTags.tourism ? 'shelter' : escapeTags.place ? 'town' : 'road',
               distanceFromRoute: Math.round(minEscapeDist * 10) / 10,
             }
           : undefined,

@@ -58,7 +58,7 @@ export interface EscapePoint {
   lat: number;
   lon: number;
   name: string;
-  type: 'town' | 'road';
+  type: 'town' | 'road' | 'shelter';
   distanceFromRoute: number;
 }
 
