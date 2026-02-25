@@ -62,7 +62,10 @@ export function useMapLayers(
       }
     } else {
       const filterKey = activeFilter.key;
+      const colorMap = filterKey === 'pathType' ? PATH_TYPE_COLORS : SURFACE_COLORS;
+      const segmentColor = colorMap[activeFilter.value] || colorMap.unknown;
       let currentSegment: number[][] = [];
+
       points.forEach((p) => {
         let matchingWp = weatherPoints[0];
         for (let j = 0; j < weatherPoints.length; j++) {
@@ -74,8 +77,6 @@ export function useMapLayers(
         }
 
         const currentFilterValue = matchingWp[filterKey] || 'unknown';
-        const colorMap = filterKey === 'pathType' ? PATH_TYPE_COLORS : SURFACE_COLORS;
-        const color = colorMap[currentFilterValue] || colorMap.unknown;
 
         if (currentFilterValue === activeFilter.value) {
           currentSegment.push([p.lon, p.lat]);
@@ -84,18 +85,18 @@ export function useMapLayers(
             features.push({
               type: 'Feature',
               geometry: { type: 'LineString', coordinates: currentSegment },
-              properties: { color },
+              properties: { color: segmentColor },
             });
           }
           currentSegment = [];
         }
       });
+
       if (currentSegment.length > 1) {
-        const colorMap = filterKey === 'pathType' ? PATH_TYPE_COLORS : SURFACE_COLORS;
         features.push({
           type: 'Feature',
           geometry: { type: 'LineString', coordinates: currentSegment },
-          properties: { color: colorMap[activeFilter.value] || colorMap.unknown },
+          properties: { color: segmentColor },
         });
       }
     }
