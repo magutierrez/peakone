@@ -369,6 +369,9 @@
     "continueFacebook": "Continue with Facebook",
     "continueX": "Continue with X (Twitter)",
     "continueStrava": "Continue with Strava",
+    "connectStrava": "Connect with Strava",
+    "connectStravaButton": "Connect Strava",
+    "stravaDescription": "Sync your routes and activities directly.",
     "terms": "By continuing, you agree to our terms of service and privacy policy.",
     "termsLinks": "By continuing, you agree to our <terms>terms of service</terms> and <privacy>privacy policy</privacy>.",
     "logout": "Log out",
@@ -413,6 +416,8 @@
   "SavedRoutes": {
     "title": "My Saved Routes",
     "loading": "Loading routes...",
+    "stravaTitle": "My Strava Activities",
+    "stravaRoutes": "My Strava Routes",
     "activities": "Activities",
     "routes": "Routes",
     "noData": "No data found",

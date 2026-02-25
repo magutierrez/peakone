@@ -369,6 +369,9 @@
     "continueFacebook": "Continuar con Facebook",
     "continueX": "Continuar con X (Twitter)",
     "continueStrava": "Continuar con Strava",
+    "connectStrava": "Conectar con Strava",
+    "connectStravaButton": "Conectar Strava",
+    "stravaDescription": "Sincroniza tus rutas y actividades directamente.",
     "terms": "Al continuar, aceptas nuestros términos de servicio y política de privacidad.",
     "termsLinks": "Al continuar, aceptas nuestros <terms>términos de servicio</terms> y <privacy>política de privacidad</privacy>.",
     "logout": "Cerrar sesión",
@@ -413,6 +416,8 @@
   "SavedRoutes": {
     "title": "Mis Rutas Guardadas",
     "loading": "Cargando rutas...",
+    "stravaTitle": "Mis Actividades de Strava",
+    "stravaRoutes": "Mis Rutas de Strava",
     "activities": "Actividades",
     "routes": "Rutas",
     "noData": "No se encontraron datos",

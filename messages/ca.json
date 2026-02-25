@@ -37,8 +37,15 @@
   },
   "SetupPage": {
     "title": "Planifica la teva Ruta",
+    "uploadGPX": "Puja GPX",
+    "wikiloc": "Wikiloc",
     "selectRouteSource": "Selecciona Origen de Ruta",
     "savedRoutes": "Les meves Rutes Guardades",
+    "noSavedRoutes": "Encara no tens cap ruta guardada. Puja un arxiu GPX per començar.",
+    "wikilocTitle": "Importar des de Wikiloc",
+    "wikilocDescription": "Enganxa l'enllaç de la ruta de Wikiloc per analitzar-la.",
+    "wikilocPlaceholder": "https://www.wikiloc.com/hiking-trails/...",
+    "importWikiloc": "Importar Ruta",
     "strava": "Strava",
     "stravaConnectDesc": "Connecta el teu compte de Strava per importar les teves activitats i rutes guardades.",
     "stravaConnect": "Connectar amb Strava",
@@ -52,7 +59,8 @@
     "errors": {
       "insufficientPoints": "L'arxiu GPX no conté suficients punts.",
       "readError": "Error en llegir l'arxiu GPX. Verifica el format.",
-      "noRouteSelected": "Si us plau, selecciona o puja una ruta per analitzar."
+      "noRouteSelected": "Si us plau, selecciona o puja una ruta per analitzar.",
+      "saveError": "Error en guardar la ruta a la base de dades local."
     }
   },
   "Hazards": {
@@ -66,6 +74,7 @@
     "slope": "Pendent",
     "avg": "Mitjana",
     "max": "Màx",
+    "showOnMap": "Veure al mapa",
     "noSegments": "No s'han detectat trams de risc en aquesta ruta.",
     "levels": {
       "low": "BAIX",
@@ -191,6 +200,10 @@
   },
   "RouteConfigPanel": {
     "routeSummary": "Resum de Ruta",
+    "distance": "Distància",
+    "positiveElevation": "Elevació +",
+    "negativeElevation": "Elevació -",
+    "difficulty": "Dificultat",
     "gpxFile": "Arxiu GPX",
     "reverseRoute": "Invertir sentit",
     "km": "km",
@@ -244,7 +257,8 @@
       "escapeDesc": "Poble o carretera principal a {dist}km",
       "noCoverage": "Zona sense cobertura",
       "lowCoverage": "Cobertura feble",
-      "evacuation": "Punt d'evacuació"
+      "evacuation": "Punt d'evacuació",
+      "viewOnMap": "Veure al mapa"
     },
     "timelineTitle": "Timeline per punt",
     "elevationTitle": "Perfil d'elevació",
@@ -252,6 +266,7 @@
     "unknownWeather": "Desconegut",
     "windFrom": "Vent des de {direction} graus",
     "loading": "Carregant...",
+    "noData": "No hi ha informació disponible per mostrar en aquest moment",
     "slope": "Pendent",
     "chart": {
       "elevation": "Elevació",
@@ -324,7 +339,8 @@
       "unknown": "Altres",
       "construction": "Construcció",
       "motorway_link": "Enllaç autovia",
-      "trunk_link": "Enllaç carretera nacional"
+      "trunk_link": "Enllaç carretera nacional",
+      "steps": "Escales"
     },
     "surfaces": {
       "title": "Superfícies",
@@ -357,6 +373,7 @@
     "connectStravaButton": "Connectar Strava",
     "stravaDescription": "Sincronitza les teves rutes i activitats directament.",
     "terms": "En continuar, acceptes els nostres termes de servei i política de privadesa.",
+    "termsLinks": "En continuar, acceptes els nostres <terms>termes de servei</terms> i <privacy>política de privadesa</privacy>.",
     "logout": "Tancar sessió",
     "settings": "Ajustos",
     "settingsTitle": "Preferències d'Unitats",
@@ -368,6 +385,30 @@
     "uk": "Regne Unit (mi, m, °C)",
     "imperial": "Imperial (mi, ft, °C)",
     "save": "Guardar canvis"
+  },
+  "Privacy": {
+    "title": "Política de Privadesa",
+    "introduction": "A peakOne, la teva privadesa és la nostra prioritat. Com a aplicació Local-First, gestionem les teves dades de manera diferent a les apps web tradicionals.",
+    "localDataTitle": "Emmagatzematge Local-First",
+    "localDataContent": "Totes les dades de rutes, arxius GPX i configuració s'emmagatzemen localment al teu navegador usant PGLite (WASM Postgres) i IndexedDB. No tenim cap base de dades central on es guardin els teus tracks.",
+    "noServerStorageTitle": "Sense Emmagatzematge en Servidor",
+    "noServerStorageContent": "Les teves dades sensibles d'activitat no surten del teu dispositiu per emmagatzemar-les als nostres servidors. Qualsevol anàlisi (temps, terreny) es fa enviant coordenades a APIs públiques, però els teus tracks originals no els guardem nosaltres.",
+    "authenticationTitle": "Autenticació",
+    "authenticationContent": "Fem servir proveïdors de tercers (Google, Strava, etc.) únicament per identificar-te i permetre l'accés a l'aplicació. No venem ni compartim les teves dades de perfil amb ningú.",
+    "openSourceTitle": "Codi Obert",
+    "openSourceContent": "peakOne és de codi obert. Pots auditar el nostre codi per verificar com es gestionen les teves dades."
+  },
+  "Terms": {
+    "title": "Termes de Servei",
+    "acceptance": "En fer servir peakOne, acceptes aquests termes.",
+    "noResponsibilityTitle": "Sense Responsabilitat",
+    "noResponsibilityContent": "peakOne es proporciona 'tal com és', sense cap garantia. No som responsables de cap inexactitud en els pronòstics meteorològics, dades del terreny o incidents que puguin ocórrer durant les teves activitats.",
+    "userResponsibilityTitle": "La teva Responsabilitat",
+    "userResponsibilityContent": "Les activitats a l'aire lliure comporten riscos inherents. Consulta sempre diverses fonts d'informació i usa el teu propi criteri. Les dades de peakOne són únicament per a planificació.",
+    "openSourceTitle": "Llicència",
+    "openSourceContent": "El codi de l'aplicació és de codi obert. Ets lliure d'usar-lo d'acord amb la seva llicència, però no oferim cap garantia sobre el seu funcionament.",
+    "dataLossTitle": "Pèrdua de Dades",
+    "dataLossContent": "Com que les dades es guarden localment al teu navegador, buidar la caché o canviar de dispositiu provocarà la pèrdua de les teves rutes guardades si no tens còpies de seguretat."
   },
   "LocaleSwitcher": {
     "switchLocale": "Canviar idioma"
@@ -418,7 +459,11 @@
       "play": "Iniciar ruta",
       "stop": "Aturar",
       "speed": "Velocitat"
-    }
+    },
+    "backToMap": "Tornar al mapa",
+    "elevation": "Elevació",
+    "slope": "Pendent",
+    "streetView": "Street View"
   },
   "IBP": {
     "title": "Índex IBP",
