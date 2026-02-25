@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import type { Feature, FeatureCollection, LineString } from 'geojson';
 import { useTheme } from 'next-themes';
+import { useLocale } from 'next-intl';
 import Map, { NavigationControl, MapRef } from 'react-map-gl/maplibre';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -28,6 +29,7 @@ interface RouteMapProps {
 
 export default function RouteMap({ onResetToFullRouteView }: RouteMapProps) {
   const { resolvedTheme } = useTheme();
+  const locale = useLocale();
   const mapRef = useRef<MapRef>(null);
   const lastMapHoverRef = useRef<number>(0);
 
@@ -109,13 +111,38 @@ export default function RouteMap({ onResetToFullRouteView }: RouteMapProps) {
     resetToFullRouteView();
   }, [resetToFullRouteView]);
 
+  // Build locale-aware name expression for MapLibre symbol layers.
+  // Kept in a ref so the stable applyMapLanguage callback always reads the latest value.
+  const langExpression = useMemo(() => {
+    if (locale === 'ca')
+      return ['coalesce', ['get', 'name:ca'], ['get', 'name:es'], ['get', 'name:latin'], ['get', 'name']];
+    if (locale === 'es')
+      return ['coalesce', ['get', 'name:es'], ['get', 'name:latin'], ['get', 'name']];
+    return ['coalesce', ['get', 'name:en'], ['get', 'name:latin'], ['get', 'name']];
+  }, [locale]);
+  const langExpressionRef = useRef(langExpression);
+  useEffect(() => { langExpressionRef.current = langExpression; }, [langExpression]);
+
+  const applyMapLanguage = useCallback((map: maplibregl.Map) => {
+    if (!map.isStyleLoaded()) return;
+    for (const layer of map.getStyle().layers) {
+      if (layer.type === 'symbol' && (layer.layout as any)?.['text-field']) {
+        try {
+          map.setLayoutProperty(layer.id, 'text-field', langExpressionRef.current);
+        } catch { /* layer may not support text-field */ }
+      }
+    }
+  }, []);
+
   const onMapLoad = useCallback(
     (event: any) => {
       syncTerrain();
+      applyMapLanguage(event.target);
       event.target.on('styledata', syncTerrain);
+      event.target.on('style.load', () => applyMapLanguage(event.target));
       resetToFullRouteView();
     },
-    [syncTerrain, resetToFullRouteView],
+    [syncTerrain, applyMapLanguage, resetToFullRouteView],
   );
 
   const [manualPopupInfo, setManualPopupInfo] = useState<any>(null);
